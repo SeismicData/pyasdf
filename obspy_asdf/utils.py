@@ -156,6 +156,11 @@ def is_mpi_env():
     except ImportError:
         return False
 
+    try:
+        import mpi4py.MPI
+    except ImportError:
+        return False
+
     if mpi4py.MPI.COMM_WORLD.size == 1 and mpi4py.MPI.COMM_WORLD.rank == 0:
         return False
     return True
