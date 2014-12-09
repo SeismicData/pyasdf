@@ -52,6 +52,9 @@ MSG_TAGS = [
     # initialize a metadata synchronization once a certain number of workers
     # reached a full buffer.
     "WORKER_REQUESTS_WRITE",
+    # Send from a worker to indicate that it received the poison pill and is
+    # now either waiting for a final write or done with everything.
+    "POISON_PILL_RECEIVED",
     # Message send by the master to indicate everything has been processed.
     # Otherwise all workers will keep looping to be able to synchronize
     # metadata.
@@ -64,6 +67,6 @@ MSG_TAGS.update({value: key for key, value in MSG_TAGS.items()})
 # Poison pill sent from master to workers to indicate that no more work is
 # available.
 POISON_PILL = "POISON_PILL"
-#
-MAX_MEMORY_PER_WORKER_IN_MB = 2
 
+
+MAX_MEMORY_PER_WORKER_IN_MB = 256

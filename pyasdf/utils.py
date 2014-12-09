@@ -234,10 +234,17 @@ class JobQueueHelper(object):
         self._all_jobs = [Job(_i) for _i in jobs]
         self._in_queue = self._all_jobs[:]
         self._finished_jobs = []
+        self._poison_pills_received = 0
 
         self._workers = {_i: Worker([], [0]) for _i in worker_names}
 
         self._starttime = time.time()
+
+    def poison_pill_received(self):
+        """
+        Increment the point pills received counter.
+        """
+        self._poison_pills_received += 1
 
     def get_job_for_worker(self, worker_name):
         """
@@ -299,6 +306,10 @@ class JobQueueHelper(object):
     @property
     def all_done(self):
         return len(self._all_jobs) == len(self._finished_jobs)
+
+    @property
+    def all_poison_pills_received(self):
+        return len(self._workers) == self._poison_pills_received
 
 
 def pretty_sender_log(rank, destination, tag, payload):

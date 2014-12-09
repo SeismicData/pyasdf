@@ -206,6 +206,7 @@ class ASDFDataSet(object):
         Returns a named tuple with ``comm``, ``rank``, ``size``, and ``MPI``
         if run with MPI and False otherwise.
         """
+        # Simple cache.
         if hasattr(self, "__is_mpi"):
             return self.__is_mpi
         self.__is_mpi = is_mpi_env()
@@ -405,7 +406,9 @@ class ASDFDataSet(object):
         data = self.__file["Waveforms"]["%s.%s" % (network, station)][
             waveform_name]
         tr = obspy.Trace(data=data.value)
-        tr.stats.starttime = obspy.UTCDateTime(data.attrs["starttime"])
+        # Starttime is a timestamp in nanoseconds.
+        tr.stats.starttime = obspy.UTCDateTime(
+            float(data.attrs["starttime"]) / 1.0E9)
         tr.stats.sampling_rate = float(data.attrs["sampling_rate"])
         tr.stats.network = network
         tr.stats.station = station
@@ -576,8 +579,10 @@ class ASDFDataSet(object):
                 "maxshape": (None,)
             },
             "dataset_attrs": {
-                "starttime": str(trace.stats.starttime),
-                "sampling_rate": str(trace.stats.sampling_rate)
+                # Starttime is the timestamp in nanoseconds as an integer.
+                "starttime":
+                    int(round(trace.stats.starttime.timestamp * 1.0E9)),
+                "sampling_rate": trace.stats.sampling_rate
             }
         }
         if event_id is None and \
@@ -814,7 +819,9 @@ class ASDFDataSet(object):
                 print(jobs)
                 __last_print = time.time()
 
-            if len(workers_requesting_write) >= 0.5 * self.mpi.comm.size:
+            if (len(workers_requesting_write) >= 0.5 * self.mpi.comm.size) or \
+                    (len(workers_requesting_write) and
+                     jobs.all_poison_pills_received):
                 if self.debug:
                     print("MASTER: initializing metadata synchronization.")
 
@@ -828,7 +835,7 @@ class ASDFDataSet(object):
                             for rank in worker_nodes]
                 self.mpi.MPI.Request.waitall(requests)
 
-                self._sync_metadata(output_dataset)
+                self._sync_metadata(output_dataset, tag_map=tag_map)
 
                 # Reset workers requesting a write.
                 workers_requesting_write[:] = []
@@ -839,7 +846,7 @@ class ASDFDataSet(object):
             # Retrieve any possible message and "dispatch" appropriately.
             status = MPI.Status()
             msg = self.mpi.comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG,
-                                 status=status)
+                                     status=status)
             tag = MSG_TAGS[status.tag]
             source = status.source
 
@@ -863,9 +870,13 @@ class ASDFDataSet(object):
             elif tag == "WORKER_REQUESTS_WRITE":
                 workers_requesting_write.append(source)
 
+            elif tag == "POISON_PILL_RECEIVED":
+                jobs.poison_pill_received()
+
             else:
                 raise NotImplementedError
 
+        print("Master done, shutting down workers...")
         # Shutdown workers.
         for rank in worker_nodes:
             self._send_mpi(None, rank, "ALL_DONE")
@@ -893,9 +904,8 @@ class ASDFDataSet(object):
 
             # Check if master requested a write.
             if self._get_msg(0, "MASTER_FORCES_WRITE"):
-                self._sync_metadata(output_dataset)
+                self._sync_metadata(output_dataset, tag_map=tag_map)
                 for key, value in self.stream_buffer.items():
-                    tag = key[1]
                     for trace in value:
                         output_dataset.\
                             _add_trace_write_independent_information(
@@ -929,7 +939,10 @@ class ASDFDataSet(object):
                     if self.stream_buffer:
                         self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE",
                                        blocking=False)
+                        worker_state["waiting_for_write"] = True
                     worker_state["poison_pill_received"] = True
+                    self._send_mpi(None, 0, "POISON_PILL_RECEIVED",
+                                   blocking=False)
                     continue
 
                 # Otherwise process the data.
@@ -947,9 +960,10 @@ class ASDFDataSet(object):
                                    blocking=False)
                     worker_state["waiting_for_write"] = True
 
+        print("Worker %i shutting down..." % self.mpi.rank)
         self.mpi.comm.barrier()
 
-    def _sync_metadata(self, output_dataset):
+    def _sync_metadata(self, output_dataset, tag_map):
         """
         Method responsible for synchronizing metadata across all processes
         in the HDF5 file. All metadata changing operations must be collective.
@@ -957,11 +971,10 @@ class ASDFDataSet(object):
         if hasattr(self, "stream_buffer"):
             sendobj = []
             for key, stream in self.stream_buffer.items():
-                tag = key[1]
                 for trace in stream:
                     info = \
                         output_dataset._add_trace_get_collective_information(
-                            trace, tag)
+                            trace, tag_map[key[1]])
                     trace.stats.__info = info
                     sendobj.append(info)
         else:
