@@ -635,7 +635,7 @@ class ASDFDataSet(object):
                                    channel.start_date, channel.end_date)
                         if essence in chan_essence:
                             continue
-                        existing_channels.appends(channel)
+                        existing_channels.append(channel)
                         found_new_channel = True
 
                     # Only write if something actually changed.
