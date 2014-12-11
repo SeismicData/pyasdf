@@ -728,67 +728,48 @@ class ASDFDataSet(object):
         return sorted(self.__file["Waveforms"].keys())
 
 
-    def process_two_files(self, other_file, process_function):
+    def process_two_files_without_parallel_output(
+            self, other_ds, process_function):
         if not self.mpi:
             raise ASDFException("Currently only works with MPI.")
 
         this_stations = set(self.get_station_list())
-
-        other_ds = ASDFDataSet(other_file)
         other_stations = set(other_ds.get_station_list())
 
         # Usable stations are those that are part of both.
-        usable_stations = this_stations.intersection(other_stations)
+        usable_stations = list(this_stations.intersection(other_stations))
 
-        # Get all possible station and waveform tag combinations and let
-        # each process read the data it needs.
-        station_tags = []
-        for station in stations:
-            # Get the station and all possible tags.
-            waveforms = self.__file["Waveforms"][station].keys()
-            if not "StationXML" in waveforms:
-                continue
-            tags = set()
-            for waveform in waveforms:
-                if waveform == "StationXML":
-                    continue
-                tags.add(waveform.split("__")[-1])
-            for tag in tags:
-                if tag not in tag_map.keys():
-                    continue
-                station_tags.append((station, tag))
+        # Divide into chunks, each rank takes their corresponding chunks.
+        def chunks(l, n):
+            """
+            Yield successive n-sized chunks from l.
+            From http://stackoverflow.com/a/312464/1657047
+            """
+            for i in range(0, len(l), n):
+                yield l[i:i+n]
 
-        # XXX: Remove once some other structure has been established.
-        assert len(station_tags) == len(set(station_tags))
-        if not station_tags:
-            raise ValueError("No data matching the tag map found.")
+        chunksize = int(math.ceil(len(usable_stations) / self.mpi.size))
+        all_chunks = list(chunks(usable_stations, chunksize))
 
-        output_data_set = ASDFDataSet(output_filename)
-        # Copy all stations.
-        for station_name, station_group in self._waveform_group.items():
-            for tag, data in station_group.items():
-                if tag != "StationXML":
-                    continue
-                if station_name not in output_data_set._waveform_group:
-                    group = output_data_set._waveform_group.create_group(
-                        station_name)
-                else:
-                    group = output_data_set[station_name]
-                station_group.copy(source=data, dest=group,
-                                   name="StationXML")
+        results = {}
 
-        # Copy events.
-        if self.events:
-            output_data_set.events = self.events
+        for station in all_chunks[self.mpi.rank]:
+            try:
+                result = process_function(
+                    getattr(self.waveforms, station),
+                    getattr(other_ds.waveforms, station))
+            except Exception as e:
+                print("Could not process station '%s' due to: %s" % (
+                    station, str(e)))
+            results[station] = result
 
-        # Check for MPI, if yes, dispatch to MPI worker, if not dispatch to
-        # the multiprocessing handling.
-        if self.mpi:
-            self._dispatch_processing_mpi(process_function, output_data_set,
-                                          station_tags, tag_map)
-        else:
-            self._dispatch_processing_multiprocessing(
-                process_function, output_data_set, station_tags, tag_map)
+        # Gather and create a final dictionary of results.
+        gathered_results = self.mpi.comm.allgather(results)
+        results = {}
+        for result in gathered_results:
+            results.update(result)
+        return results
+
 
     def process(self, process_function, output_filename, tag_map):
         if os.path.exists(output_filename):
