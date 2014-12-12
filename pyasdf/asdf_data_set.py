@@ -54,7 +54,7 @@ class ASDFDataSet(object):
     """
     DataSet object holding
     """
-    def __init__(self, filename, compression=None, debug=False):
+    def __init__(self, filename, compression=None, debug=False, mpi=None):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
@@ -64,7 +64,11 @@ class ASDFDataSet(object):
             newly added data sets. Existing ones are not touched.
         :type debug: bool
         :param debug: If True, print debug messages. Defaults to False.
+        :param mpi: Force MPI on/off. Don't touch this unless you have a
+            reason.
+        :type mpi: bool
         """
+        self.__force_mpi = mpi
         self.debug = debug
 
         # Deal with compression settings.
@@ -209,7 +213,13 @@ class ASDFDataSet(object):
         # Simple cache.
         if hasattr(self, "__is_mpi"):
             return self.__is_mpi
-        self.__is_mpi = is_mpi_env()
+
+        if self.__force_mpi is True:
+            self.__is_mpi = True
+        elif self.__force_mpi is False:
+            self.__is_mpi = False
+        else:
+            self.__is_mpi = is_mpi_env()
 
         # If it actually is an mpi environment, set the communicator and the
         # rank.
@@ -775,50 +785,63 @@ class ASDFDataSet(object):
         if os.path.exists(output_filename):
             msg = "Output file '%s' already exists." % output_filename
             raise ValueError(msg)
-        stations = sorted(self.__file["Waveforms"].keys())
+
+        stations = self.get_station_list()
+
         # Get all possible station and waveform tag combinations and let
         # each process read the data it needs.
         station_tags = []
         for station in stations:
             # Get the station and all possible tags.
             waveforms = self.__file["Waveforms"][station].keys()
+
+            # Only care about stations that have station information.
             if not "StationXML" in waveforms:
                 continue
+
             tags = set()
+
             for waveform in waveforms:
                 if waveform == "StationXML":
                     continue
                 tags.add(waveform.split("__")[-1])
+
             for tag in tags:
                 if tag not in tag_map.keys():
                     continue
                 station_tags.append((station, tag))
 
-        # XXX: Remove once some other structure has been established.
-        assert len(station_tags) == len(set(station_tags))
         if not station_tags:
             raise ValueError("No data matching the tag map found.")
 
-        output_data_set = ASDFDataSet(output_filename)
-        # Copy all stations.
-        for station_name, station_group in self._waveform_group.items():
-            for tag, data in station_group.items():
-                if tag != "StationXML":
-                    continue
-                if station_name not in output_data_set._waveform_group:
-                    group = output_data_set._waveform_group.create_group(
-                        station_name)
-                else:
-                    group = output_data_set[station_name]
-                station_group.copy(source=data, dest=group,
-                                   name="StationXML")
+        # Copy the station and event data only on the master process.
+        if not self.mpi or (self.mpi and self.mpi.rank == 0):
+            # Deactivate MPI even if active to not run into any barriers.
+            output_data_set = ASDFDataSet(output_filename, mpi=False)
+            for station_name, station_group in self._waveform_group.items():
+                for tag, data in station_group.items():
+                    if tag != "StationXML":
+                        continue
+                    if station_name not in output_data_set._waveform_group:
+                        group = output_data_set._waveform_group.create_group(
+                            station_name)
+                    else:
+                        group = output_data_set[station_name]
+                    station_group.copy(source=data, dest=group,
+                                       name="StationXML")
 
-        # Copy events.
-        if self.events:
-            output_data_set.events = self.events
+            # Copy the events.
+            if self.events:
+                output_data_set.events = self.events
+            del output_data_set
+
+        if self.mpi:
+            self.mpi.comm.barrier()
+
+        output_data_set = ASDFDataSet(output_filename)
 
         # Check for MPI, if yes, dispatch to MPI worker, if not dispatch to
-        # the multiprocessing handling.
+        # the multiprocessing handler.
         if self.mpi:
             self._dispatch_processing_mpi(process_function, output_data_set,
                                           station_tags, tag_map)
