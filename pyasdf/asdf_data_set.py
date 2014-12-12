@@ -14,6 +14,10 @@ from __future__ import absolute_import
 import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
+# Import ObsPy first as import h5py on some machines will some reset paths
+# and lxml cannot be loaded anymore afterwards...
+import obspy
+
 import copy
 import collections
 import h5py
@@ -22,7 +26,6 @@ import itertools
 import math
 import multiprocessing
 import numpy as np
-import obspy
 import warnings
 import time
 
