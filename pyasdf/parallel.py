@@ -10,10 +10,9 @@ two lines before importing NumPy! Or just import this module first!
 >>> os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2014
+    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2014
 :license:
-    GNU Lesser General Public License, Version 3
-    (http://www.gnu.org/copyleft/lesser.html)
+    BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
 import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"

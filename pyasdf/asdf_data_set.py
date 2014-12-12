@@ -6,8 +6,7 @@ Prototype implementation for a new file format using Python, ObsPy, and HDF5.
 :copyright:
     Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2014
 :license:
-    GNU Lesser General Public License, Version 3
-    (http://www.gnu.org/copyleft/lesser.html)
+    BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
 from __future__ import absolute_import
 
