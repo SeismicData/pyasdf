@@ -15,8 +15,8 @@ import obspy
 import os
 import pytest
 
-from obspy_asdf import ASDFDataSet
-from obspy_asdf.header import FORMAT_VERSION, FORMAT_NAME
+from pyasdf import ASDFDataSet
+from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
 
 
 data_dir = os.path.join(os.path.dirname(os.path.abspath(
