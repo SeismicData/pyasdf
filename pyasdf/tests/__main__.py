@@ -8,8 +8,7 @@ python -m pyasdf.tests
 :copyright:
     Lion Krischer (krischer@geophysik.uni-muenchen.de), 2015
 :license:
-    GNU General Public License, Version 3
-    (http://www.gnu.org/copyleft/gpl.html)
+    BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
 if __name__ == "__main__":
     import inspect
