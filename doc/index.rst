@@ -61,6 +61,25 @@ look at the examples that demonstrate more complex workflows.
 Creating an ASDF data set
 *************************
 
+The first step is always to import ``pyasdf`` and create a
+:class:`~pyasdf.asdf_data_set.ASDFDataSet` object. If the file does not
+exists, it will be created, otherwise the existing one will be opened.
+
+.. code-block:: python
+
+    import pyasdf
+    ds = pyasdf.ASDFDataSet("new_file.h5", compression="szip-nn-10")
+
+Compression will help to reduce the size of files without affecting the
+quality as all offered compression options are lossless. Only new data will
+be compressed and compression will be disable for files created with
+parallel I/O as these two features are not compatible. See the documentation
+of the  :class:`~pyasdf.asdf_data_set.ASDFDataSet` object for more details.
+
+ASDF can optionally store events and associate waveforms with a given event.
+To add an event with ``pyasdf`` use the
+:meth:`~pyasdf.asdf_data_set.ASDFDataSet.add_quakeml` method.
+
 
 
 

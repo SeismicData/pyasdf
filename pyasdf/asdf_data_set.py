@@ -40,7 +40,8 @@ class ASDFDataSet(object):
 
     Central object of this Python package.
     """
-    def __init__(self, filename, compression=None, debug=False, mpi=None):
+    def __init__(self, filename, compression="szip-nn-10", debug=False,
+                 mpi=None):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
@@ -368,9 +369,34 @@ class ASDFDataSet(object):
 
     def add_quakeml(self, event):
         """
-        Adds a QuakeML file or existing ObsPy event to the dataset.
+        Adds a QuakeML file or an existing ObsPy event to the data set.
 
-        :param event: Filename or existing ObsPy event or catalog object.
+        An exception will be raised if an event is attempted to be added
+        that already exists within the data set. Duplicates are detected
+        based on the public ids of the events.
+
+        :param event: Filename or existing ObsPy
+            :class:`~obspy.core.event.Event` or
+            :class:`~obspy.core.event.Catalog` object.
+        :raises: ValueError
+
+        .. rubric:: Example
+
+        For now we will create a new ASDF file but one can also use an
+        existing one.
+
+        >>> impory pyasdf
+        >>> import obspy
+        >>> ds = pyasdf.ASDFDataSet("new_file.h5")
+
+        One can add an event either by passing a filename ...
+
+        >>> ds.add_quakeml("/path/to/quake.xml")
+
+        ... or by passing an existing event or catalog object.
+
+        >>> cat = obspy.readEvents("/path/to/quakem.xml")
+        >>> ds.add_quakeml(cat)
         """
         if isinstance(event, obspy.core.event.Event):
             cat = obspy.core.event.Catalog(events=[event])
