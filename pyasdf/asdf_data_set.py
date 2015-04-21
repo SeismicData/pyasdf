@@ -14,15 +14,17 @@ from __future__ import absolute_import
 # and lxml cannot be loaded anymore afterwards...
 import obspy
 
-import copy
 import collections
-import h5py
+import copy
 import io
 import itertools
 import math
-import numpy as np
-import warnings
+import os
 import time
+import warnings
+
+import numpy as np
+import h5py
 
 
 from .header import ASDFException, ASDFWarnings, COMPRESSIONS, FORMAT_NAME, \
