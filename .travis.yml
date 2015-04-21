@@ -1,0 +1,39 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.4"
+
+env:
+  global:
+    secure: "gfu3DCSoUVi/69Dc4cCIHXVYaA6Phgggzs8YL02c6Q/zDQCgiufv2JatRO40cwAu6qqjLXuxoWv+4PbZky0+Mdhn9XLLYq/Fmv4jtWBgTtBxnYxpKqBsLWKT99gDdFbYxm91bf8kg+IaS1S5PXBA3hFkiy0hHrDPPdrNa5CmYgE="
+
+before_install:
+  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/miniconda/bin:$PATH
+  - conda update --yes conda
+  - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
+  - conda install --yes -n condaenv pip
+  - source activate condaenv
+  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  - sudo rm -rf /dev/shm
+  - sudo ln -s /run/shm /dev/shm
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py mpi4py
+  - conda install --yes -c obspy obspy python=$TRAVIS_PYTHON_VERSION
+  # Build docs on Python 2.7 for now.
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda install --yes sphinx; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install --use-mirrors sphinx-bootstrap-theme; fi
+  - pip install coveralls
+
+install:
+  - pip install --no-deps -v -e .
+
+script:
+  - coverage run --source=pyasdf -m pyasdf.tests
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
+
+after_success:
+  - cd $TRAVIS_BUILD_DIR; coveralls
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
