@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2014
+    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2015
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -34,7 +34,7 @@ COMPRESSIONS = {
     "gzip-5": ("gzip", 5),
     "gzip-6": ("gzip", 6),
     "gzip-7": ("gzip", 7),
-    "gzip8-": ("gzip", 8),
+    "gzip-8": ("gzip", 8),
     "gzip-9": ("gzip", 9),
     "szip-ec-8": ("szip", ("ec", 8)),
     "szip-ec-10": ("szip", ("ec", 10)),

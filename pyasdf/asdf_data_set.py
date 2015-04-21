@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Prototype implementation for a new file format using Python, ObsPy, and HDF5.
+Python implementation of the Adaptable Seismic Data Format (ASDF).
 
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2014
+    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2015
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -54,7 +54,7 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
 
 class ASDFDataSet(object):
     """
-    Object dealing with ASDF data set.
+    Object dealing with Adaptable Seismic Data Format (ASDF).
 
     Central object of this Python package.
     """
@@ -68,6 +68,18 @@ class ASDFDataSet(object):
             only be applied to newly created data sets. Existing ones are not
             touched. Using parallel I/O will also disable compression as it
             is not possible to use both at the same time.
+
+            **Available compressions choices (all of them are lossless):**
+
+            * ``None``: No compression
+            * ``"gzip-0"`` - ``"gzip-9"``: Gzip compression level 0  (worst
+              but fast) to 9 (best but slow)
+            * ``"lzf"``: LZF compression
+            * ``"szip-ec-8"``: szip compression
+            * ``"szip-ec-10"``: szip compression
+            * ``"szip-nn-8"``: szip compression
+            * ``"szip-nn-10"``: szip compression
+
         :type debug: bool
         :param debug: If True, print debug messages. Potentially very verbose.
         :param mpi: Force MPI on/off. Don't touch this unless you have a

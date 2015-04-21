@@ -40,6 +40,29 @@ This section will teach you the basics of creating and working with. For
 more detailed information, please see the :doc:`api` documentation or have a
 look at the examples that demonstrate more complex workflows.
 
+.. admonition:: Notes on using MPI
+
+    ``pyasdf`` will behave slightly different depending on whether it is being
+    called with MPI or not. If called with MPI, the underlying HDF5 files
+    will be opened with MPI I/O and fully parallel I/O will be utilized for
+    the processing functions. Keep the scripts reasonably short if using MPI
+    or place appropriate barriers.
+
+    The module will detect if it has been called with MPI if ``mpi4py`` can
+    be imported and the size of the communicator is greater than one. Thus
+    calling it with ``mpirun/mpiexec`` with only one core will not be
+    recognized as being called with MPI.
+
+    Due to a limitation of Python you should always delete all references to
+    the :class:`~pyasdf.asdf_data_set.ASDFDataSet` objects at the end.
+    Otherwise the program will potentially not finish when called with MPI.
+
+
+Creating an ASDF data set
+*************************
+
+
+
 
 Acknowledgements
 ----------------
