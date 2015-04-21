@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Setup script for pyasdf module.
+Setup script for the pyasdf module.
 
 :copyright:
     Lion Krischer (krischer@geophysik.uni-muenchen.de), 2014
@@ -47,9 +47,8 @@ setup_config = dict(
     packages=find_packages(),
     license="BSD",
     platforms="OS Independent",
-    install_requires=["obspy >=0.9.2", "h5py", "colorama"],
-    extras_require={
-        "tests": ["pytest", "flake8"]},
+    install_requires=["obspy >=0.10.1", "h5py", "colorama", "mpi4py",
+                      "pytest", "flake8"],
     package_data={
         "pyasdf": get_package_data()},
 )

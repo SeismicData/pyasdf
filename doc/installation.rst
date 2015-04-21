@@ -5,10 +5,10 @@ pyasdf and Dependencies
 -----------------------
 
 ``pyasdf`` supports Python version 2.7 and 3.4 and it depends on the following
-Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``mpi4py``, ``colorama``, and
-``pytest``. Keep in mind that ``h5py`` must be compiled with parallel I/O
-support and that it is linked against the same MPI as ``mpi4py`` which of
-course should be the same that is used by your computer.
+Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``mpi4py``, ``colorama``,
+``flake8``, and ``pytest``. Keep in mind that ``h5py`` must be compiled with
+parallel I/O support and that it is linked against the same MPI as ``mpi4py``
+which of course should be the same that is used by your computer.
 
 If you know what you are doing, install it any way you see fit. Otherwise do
 yourself a favor and download the
@@ -19,7 +19,7 @@ dependencies.
 .. code-block:: bash
 
     $ conda update conda
-    $ conda install -c obspy obspy colorama pytest pip
+    $ conda install -c obspy obspy colorama pytest pip flake8
 
 
 Installing the parallel libraries is a bit more difficult unfortunately. For
