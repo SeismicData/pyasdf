@@ -70,8 +70,9 @@ MSG_TAGS = [
     # metadata.
     "ALL_DONE",
     ]
+
 # Convert to two-way dict as MPI only knows integer tags.
-MSG_TAGS = {msg: i  for i, msg in enumerate(MSG_TAGS)}
+MSG_TAGS = {msg: i for i, msg in enumerate(MSG_TAGS)}
 MSG_TAGS.update({value: key for key, value in MSG_TAGS.items()})
 
 # Poison pill sent from master to workers to indicate that no more work is

@@ -43,8 +43,9 @@ def print_sys_info():
         "{div}\n"
         "Other_modules:\n\t{other_modules}"
     )
+
     print(info.format(
-        pyasdf_version = __version__,
+        pyasdf_version=__version__,
         div="=" * 79,
         python=wm["python_implementation"],
         py_version=wm["python_version"],
@@ -67,5 +68,3 @@ def print_sys_info():
                                   if key != "mpi4py" and key != "h5py")
 
     ))
-
-

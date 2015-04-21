@@ -9,7 +9,6 @@
 from __future__ import absolute_import
 
 import collections
-import multiprocessing
 import os
 import sys
 import time
@@ -37,12 +36,14 @@ def get_multiprocessing():
     if is_multiprocessing_problematic():
         msg = ("NumPy linked against 'Accelerate.framework'. Multiprocessing "
                "will be disabled. See "
-               "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-Processing-"
-               "with-Python-and-ObsPy for more information.")
+               "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-"
+               "Processing-with-Python-and-ObsPy for more information.")
         warnings.warn(msg)
         # Disable by replacing with dummy implementation using threads.
-        from multiprocessing import dummy
+        from multiprocessing import dummy  # NOQA
         multiprocessing = dummy
+    else:
+        import multiprocesssing  # NOQA
     return multiprocessing
 
 
@@ -96,8 +97,8 @@ class AuxiliaryDataContainer(object):
             "\tParameters:\n\t\t{parameters}"
             .format(data_type=self.data_type, data_shape=self.data.shape,
                     dtype=self.data.dtype, tag=self.tag,
-                    parameters="\n\t\t".join(["%s: %s" % (_i[0], _i[1])
-                                              for _i in
+                    parameters="\n\t\t".join([
+                        "%s: %s" % (_i[0], _i[1]) for _i in
                         sorted(self.parameters.items(), key=lambda x: x[0])])))
 
 
@@ -320,12 +321,13 @@ class JobQueueHelper(object):
         job = [_i for _i in self._workers[worker_name].active_jobs
                if _i.arguments == arguments]
         if len(job) == 0:
-            msg = ("MASTER: Job %s from worker %i not found. All jobs: %s\n"
-                  % (str(arguments), worker_name,
-                     str(self._workers[worker_name].active_jobs)))
+            msg = ("MASTER: Job %s from worker %i not found. All jobs: %s\n" %
+                   (str(arguments), worker_name,
+                    str(self._workers[worker_name].active_jobs)))
             raise ValueError(msg)
         if len(job) > 1:
-            raise ValueError("WTF %i %s %s" % (worker_name, str(arguments),
+            raise ValueError("WTF %i %s %s" % (
+                worker_name, str(arguments),
                 str(self._workers[worker_name].active_jobs)))
         job = job[0]
         job.result = result
@@ -399,13 +401,13 @@ def _pretty_log(prefix, first, second, tag, payload):
 
     tag = MSG_TAGS[tag]
     tag = tag_colors[tags.index(tag) % len(tag_colors)] + tag + \
-          colorama.Style.RESET_ALL
+        colorama.Style.RESET_ALL
 
     first = colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET \
         if first == 0 else colors[first % len(colors)] + \
-                           ("WORKER %i" %  first) + colorama.Style.RESET_ALL
+        ("WORKER %i" % first) + colorama.Style.RESET_ALL
     second = colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET \
         if second == 0 else colors[second % len(colors)] + \
-                            ("WORKER %i" %  second) + colorama.Style.RESET_ALL
+        ("WORKER %i" % second) + colorama.Style.RESET_ALL
 
     print("%s %s %s [%s] -- %s" % (first, prefix, second, tag, str(payload)))

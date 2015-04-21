@@ -75,7 +75,7 @@ class ASDFDataSet(object):
         if compression not in COMPRESSIONS:
             msg = "Unknown compressions '%s'. Available compressions: \n\t%s" \
                 % (compression, "\n\t".join(sorted(
-                [str(i) for i in COMPRESSIONS.keys()])))
+                    [str(i) for i in COMPRESSIONS.keys()])))
             raise Exception(msg)
         self.__compression = COMPRESSIONS[compression]
         # Turn off compression for parallel I/O. Any already written
@@ -110,9 +110,9 @@ class ASDFDataSet(object):
                 msg = ("The file '%s' has version number '%s'. The reader "
                        "expects version '%s'. The program will continue but "
                        "the result is undefined." % (
-                    self.filename,
-                    self.__file.attrs["file_format_version"],
-                    FORMAT_VERSION))
+                           self.filename,
+                           self.__file.attrs["file_format_version"],
+                           FORMAT_VERSION))
                 warnings.warn(msg, ASDFWarnings)
         else:
             self.__file.attrs["file_format"] = FORMAT_NAME
@@ -281,7 +281,7 @@ class ASDFDataSet(object):
         self.__file.close()
 
     def add_auxiliary_data(self, data, data_type, tag, parameters,
-                         provenance=None):
+                           provenance=None):
         """
         Adds auxiliary data to the file.
 
@@ -358,7 +358,7 @@ class ASDFDataSet(object):
         :return:
         """
         data_type = info["data_type"]
-        if not data_type in self._auxiliary_data_group:
+        if data_type not in self._auxiliary_data_group:
             self._auxiliary_data_group.create_group(data_type)
         group = self._auxiliary_data_group[data_type]
 
@@ -442,7 +442,7 @@ class ASDFDataSet(object):
         """
         data = self.__file["Waveforms"][station_name]["StationXML"]
         inv = obspy.read_inventory(io.BytesIO(data.value.tostring()),
-            format="stationxml")
+                                   format="stationxml")
         return inv
 
     def _get_auxiliary_data(self, data_type, tag):
@@ -532,7 +532,7 @@ class ASDFDataSet(object):
         :return:
         """
         station_name = info["station_name"]
-        if not station_name in self._waveform_group:
+        if station_name not in self._waveform_group:
             self._waveform_group.create_group(station_name)
         group = self._waveform_group[station_name]
 
@@ -616,7 +616,7 @@ class ASDFDataSet(object):
             for station in network:
                 station_code = station.code
                 station_name = "%s.%s" % (network_code, station_code)
-                if not station_name in self._waveform_group:
+                if station_name not in self._waveform_group:
                     self._waveform_group.create_group(station_name)
                 station_group = self._waveform_group[station_name]
                 # Get any already existing StationXML file. This will always
@@ -690,7 +690,7 @@ class ASDFDataSet(object):
             contents = dir(station)
             if not contents:
                 continue
-            if not "StationXML" in contents and contents:
+            if "StationXML" not in contents and contents:
                 print("No station information available for station '%s'" %
                       station_id)
                 summary["no_station_information"] += 1
@@ -708,7 +708,6 @@ class ASDFDataSet(object):
         print("\t%i stations with no waveforms" %
               summary["no_waveforms"])
         print("\t%i good stations" % summary["good_stations"])
-
 
     def itertag(self, tag):
         """
@@ -737,9 +736,8 @@ class ASDFDataSet(object):
         """
         return sorted(self.__file["Waveforms"].keys())
 
-
-    def process_two_files_without_parallel_output(
-            self, other_ds, process_function):
+    def process_two_files_without_parallel_output(self, other_ds,
+                                                  process_function):
         if not self.mpi:
             raise ASDFException("Currently only works with MPI.")
 
@@ -780,7 +778,6 @@ class ASDFDataSet(object):
             results.update(result)
         return results
 
-
     def process(self, process_function, output_filename, tag_map):
         if os.path.exists(output_filename):
             msg = "Output file '%s' already exists." % output_filename
@@ -796,7 +793,7 @@ class ASDFDataSet(object):
             waveforms = self.__file["Waveforms"][station].keys()
 
             # Only care about stations that have station information.
-            if not "StationXML" in waveforms:
+            if "StationXML" not in waveforms:
                 continue
 
             tags = set()
@@ -1031,7 +1028,7 @@ class ASDFDataSet(object):
                 # If the buffer is too large, request from the master to stop
                 # the current execution.
                 if self.stream_buffer.get_size() >= \
-                                MAX_MEMORY_PER_WORKER_IN_MB * 1024 ** 2:
+                        MAX_MEMORY_PER_WORKER_IN_MB * 1024 ** 2:
                     self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE",
                                    blocking=False)
                     worker_state["waiting_for_write"] = True
@@ -1215,4 +1212,3 @@ class ASDFDataSet(object):
         if self.debug:
             pretty_receiver_log(source, self.mpi.rank, tag, msg)
         return msg
-
