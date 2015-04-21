@@ -9,11 +9,16 @@
 from __future__ import absolute_import
 
 import collections
-import obspy
+import multiprocessing
+import os
 import sys
 import time
 from UserDict import DictMixin
+import warnings
 import weakref
+
+import numpy as np
+import obspy
 
 from .header import MSG_TAGS
 
@@ -22,6 +27,45 @@ ReceivedMessage = collections.namedtuple("ReceivedMessage", ["data"])
 # Tuple denoting a single worker.
 Worker = collections.namedtuple("Worker", ["active_jobs",
                                            "completed_jobs_count"])
+
+
+def get_multiprocessing():
+    """
+    Helper function returning the multiprocessing module or the threading
+    version of it.
+    """
+    if is_multiprocessing_problematic():
+        msg = ("NumPy linked against 'Accelerate.framework'. Multiprocessing "
+               "will be disabled. See "
+               "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-Processing-"
+               "with-Python-and-ObsPy for more information.")
+        warnings.warn(msg)
+        # Disable by replacing with dummy implementation using threads.
+        from multiprocessing import dummy
+        multiprocessing = dummy
+    return multiprocessing
+
+
+def is_multiprocessing_problematic():
+    """
+    Return True if multiprocessing is known to have issues on the given
+    platform.
+
+    Mainly results from the fact that some BLAS/LAPACK implementations
+    cannot deal with forked processing.
+    """
+    # Handling numpy linked against accelerate.
+    config_info = str([value for key, value in
+                       np.__config__.__dict__.iteritems()
+                       if key.endswith("_info")]).lower()
+
+    if "accelerate" in config_info or "veclib" in config_info:
+        return True
+    elif "openblas" in config_info:
+        # Most openBLAS can only operate with one thread...
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    else:
+        return False
 
 
 def sizeof_fmt(num):

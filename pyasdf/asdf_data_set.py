@@ -10,9 +10,6 @@ Python implementation of the Adaptable Seismic Data Format (ASDF).
 """
 from __future__ import absolute_import
 
-import os
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-
 # Import ObsPy first as import h5py on some machines will some reset paths
 # and lxml cannot be loaded anymore afterwards...
 import obspy
@@ -23,33 +20,16 @@ import h5py
 import io
 import itertools
 import math
-import multiprocessing
 import numpy as np
 import warnings
 import time
-
-
-# Handling numpy linked against accelerate.
-config_info = str([value for key, value in
-                   np.__config__.__dict__.iteritems()
-                   if key.endswith("_info")]).lower()
-
-if "accelerate" in config_info or "veclib" in config_info:
-    msg = ("NumPy linked against 'Accelerate.framework'. Multiprocessing "
-           "will be disabled. See "
-           "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-Processing-"
-           "with-Python-and-ObsPy for more information.")
-    warnings.warn(msg)
-    # Disable by replacing with dummy implementation using threads.
-    from multiprocessing import dummy
-    multiprocessing = dummy
 
 
 from .header import ASDFException, ASDFWarnings, COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
-    AuxiliaryDataGroupAccessor, AuxiliaryDataContainer
+    AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing
 
 
 class ASDFDataSet(object):
@@ -1095,6 +1075,7 @@ class ASDFDataSet(object):
 
     def _dispatch_processing_multiprocessing(
             self, process_function, output_data_set, station_tags, tag_map):
+        multiprocessing = get_multiprocessing()
 
         input_filename = self.filename
         output_filename = output_data_set.filename

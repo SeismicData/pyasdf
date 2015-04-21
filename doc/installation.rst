@@ -38,6 +38,42 @@ Then install parallel ``h5py`` according to
 `these instructions <http://docs.h5py.org/en/latest/mpi.html>`_.
 
 
+After everything is installed, run the following command to print
+information about the current system.
+
+.. code-block:: bash
+
+    $ python -c "import pyasdf; pyasdf.print_sys_info()"
+
+which will print something along the following lines::
+
+    pyasdf version 0.1.x
+    ===============================================================================
+    CPython 2.7.9, compiler: GCC 4.2.1 (Apple Inc. build 5577)
+    Darwin 14.3.0 64bit
+    Machine: x86_64, Processor: i386 with 8 cores
+    ===============================================================================
+    HDF5 version 1.8.13, h5py version: 2.3.1
+    MPI: Open MPI, version: 1.8.3, mpi4py version: 1.3.1
+    Parallel I/O support: True
+    Problematic multiprocessing: False
+    ===============================================================================
+    Other_modules:
+        obspy: 0.10.1
+        lxml: 3.4.2
+        scipy: 0.15.1
+        numpy: 1.9.2
+
+
+This should enable you to judge if ``pyasdf`` can run on your system.
+Especially important is the *Parallel I/O support* line. If multiprocessing
+is problematic, ``pyasdf`` will not be able to run on more than one machine
+without MPI. Please see
+`here <https://github.com/obspy/obspy/wiki/Notes-on-Parallel-Processing-with-Python-and-ObsPy>`_
+for information about why and how to fix it.
+
+
+
 
 Testing
 -------
