@@ -67,8 +67,8 @@ exists, it will be created, otherwise the existing one will be opened.
 
 .. code-block:: python
 
-    import pyasdf
-    ds = pyasdf.ASDFDataSet("new_file.h5", compression="szip-nn-10")
+    >>> import pyasdf
+    >>> ds = pyasdf.ASDFDataSet("new_file.h5", compression="gzip-3")
 
 Compression will help to reduce the size of files without affecting the
 quality as all offered compression options are lossless. Only new data will
@@ -76,11 +76,81 @@ be compressed and compression will be disable for files created with
 parallel I/O as these two features are not compatible. See the documentation
 of the  :class:`~pyasdf.asdf_data_set.ASDFDataSet` object for more details.
 
+At any point you can get an overview of the contents by printing the object
+
+.. code-block:: python
+
+    >>> print(ds)
+    ASDF file [format version: 0.0.1b]: 'new_file.h5' (7.7 KB)
+    Contains 0 event(s)
+    Contains waveform data from 0 station(s).
+
+
+**Adding Information about an Earthquake:**
+
 ASDF can optionally store events and associate waveforms with a given event.
 To add an event with ``pyasdf`` use the
-:meth:`~pyasdf.asdf_data_set.ASDFDataSet.add_quakeml` method.
+:meth:`~pyasdf.asdf_data_set.ASDFDataSet.add_quakeml` method. Be aware that
+all operations will directly write to the file without an explicit
+*save/write* step. This enables ``pyasdf`` to deal with arbitrarily big data
+sets.
+
+.. code-block:: python
+
+    >>> ds.add_quakeml("/path/to/quake.xml")
+    >>> print(ds)
+    ASDF file [format version: 0.0.1b]: 'new_file.h5' (14.7 KB)
+    Contains 1 event(s)
+    Contains waveform data from 0 station(s).
+
+The event can later be accessed again by using the ``event`` attribute.
+Please be careful that this might contain multiple events and not only one.
 
 
+.. code-block:: python
+
+    >>> event = ds.events[0]
+
+
+**Adding Waveforms:**
+
+The next step is to add waveform data. In this example we will add all SAC
+files in one folder with the help of the
+:meth:`~pyasdf.asdf_data_set.ASDFDataSet.add_waveforms` method.
+Printing the progress is unnecessary but useful when dealing with large
+amounts of data. There are a couple of subtleties to keep in mind here:
+
+* The data will be compressed with the compression settings given during the
+  initialization of the data set object.
+* It is possible to optionally associate waveforms with a specific event.
+* You must give a tag. The tag is an additional identifier of that particular
+  waveform. The ``"raw_recording"`` tag is by convention only given to raw,
+  unprocessed data.
+* The actual type of the data will not change. This example uses SAC which
+  means data is in single precision floating point, MiniSEED will typically
+  be in single precision integer if coming from a data center. If you desire
+  a different data type to be stored for whatever reason you have to
+  manually convert it and pass the ObsPy :class:`~obspy.core.stream.Stream`
+  object.
+
+
+.. code-block:: python
+
+    >>> import glob
+    >>> for _i, filename in enumerate(files):
+    ...     print("Adding file %i of %i ..." % (_i + 1, len(files)))
+    ...     ds.add_waveforms(filename, tag="raw_recording", event_id=event)
+    Adding file 1 of 588 ...
+    ...
+    >>> print(ds)
+    ASDF file [format version: 0.0.1b]: 'new_file.h5' (145.9 MB)
+    Contains 1 event(s)
+    Contains waveform data from 196 station(s).
+
+
+**Adding Station Information:**
+
+The last step to create a very basic ASDF file is to add station information.
 
 
 Acknowledgements

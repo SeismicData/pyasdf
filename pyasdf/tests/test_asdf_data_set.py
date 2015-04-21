@@ -395,7 +395,7 @@ def test_tag_iterator(example_data_set):
 
     # It will only return matching tags.
     count = 0
-    for st, inv in data_set.itertag("random"):
+    for _ in data_set.itertag("random"):
         count += 1
     assert count == 0
 
