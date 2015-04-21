@@ -40,14 +40,14 @@ class ASDFDataSet(object):
 
     Central object of this Python package.
     """
-    def __init__(self, filename, compression="szip-nn-10", debug=False,
+    def __init__(self, filename, compression="gzip-3", debug=False,
                  mpi=None):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
         :type compression: str
         :param compression: The compression to use. Defaults to
-            ``"szip-nn-10"`` which yielded good results in the past. Will
+            ``"gzip-3"`` which yielded good results in the past. Will
             only be applied to newly created data sets. Existing ones are not
             touched. Using parallel I/O will also disable compression as it
             is not possible to use both at the same time.
@@ -184,6 +184,13 @@ class ASDFDataSet(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    @property
+    def asdf_format_version(self):
+        """
+        Returns the version of the ASDF file.
+        """
+        return self.__file.attrs["file_format_version"]
 
     @property
     def _waveform_group(self):

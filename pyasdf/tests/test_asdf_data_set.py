@@ -418,3 +418,14 @@ def test_processing_multiprocessing(example_data_set):
     out_data_set = ASDFDataSet(output_filename)
 
     assert data_set == out_data_set
+
+
+def test_format_version_decorator(example_data_set):
+    """
+    Tests the format version decorator.
+
+    Also more or less tests that the format version is correctly written and
+    read.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+    assert data_set.asdf_format_version == FORMAT_VERSION
