@@ -54,18 +54,22 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
 
 class ASDFDataSet(object):
     """
-    DataSet object holding
+    Object dealing with ASDF data set.
+
+    Central object of this Python package.
     """
     def __init__(self, filename, compression=None, debug=False, mpi=None):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
-        :type compression: str, optional
-        :param compression: The compression to use. Defaults to 'szip-nn-10'
-            which yielded good results in the past. Will only be applied to
-            newly added data sets. Existing ones are not touched.
+        :type compression: str
+        :param compression: The compression to use. Defaults to
+            ``"szip-nn-10"`` which yielded good results in the past. Will
+            only be applied to newly created data sets. Existing ones are not
+            touched. Using parallel I/O will also disable compression as it
+            is not possible to use both at the same time.
         :type debug: bool
-        :param debug: If True, print debug messages. Defaults to False.
+        :param debug: If True, print debug messages. Potentially very verbose.
         :param mpi: Force MPI on/off. Don't touch this unless you have a
             reason.
         :type mpi: bool

@@ -36,7 +36,9 @@ following resources are useful if you are starting out with Python and ObsPy:
 Using pyasdf
 ^^^^^^^^^^^^
 
-to be written ...
+This section will teach you the basics of creating and working with. For
+more detailed information, please see the :doc:`api` documentation or have a
+look at the examples that demonstrate more complex workflows.
 
 
 Acknowledgements
@@ -53,3 +55,5 @@ Detailed Documentation
 
     installation
     examples
+    api
+    asdf_data_set
