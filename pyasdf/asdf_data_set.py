@@ -537,11 +537,13 @@ class ASDFDataSet(object):
                 event_id = str(event_id.resource_id.id)
             elif isinstance(event_id, obspy.core.event.ResourceIdentifier):
                 event_id = str(event_id.id)
-            elif isinstance(event_id, basestring):
-                pass
             else:
-                msg = "Invalid type for event_id."
-                raise TypeError(msg)
+                try:
+                    event_id = str(
+                        obspy.core.event.ResourceIdentifier(event_id))
+                except:
+                    msg = "Invalid type for event_id."
+                    raise TypeError(msg)
 
         tag = tag.strip()
         if tag.lower() == "stationxml":

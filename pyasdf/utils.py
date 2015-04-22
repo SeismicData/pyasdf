@@ -40,8 +40,10 @@ def get_multiprocessing():
                "Processing-with-Python-and-ObsPy for more information.")
         warnings.warn(msg)
         # Disable by replacing with dummy implementation using threads.
+        import multiprocessing as mp
         from multiprocessing import dummy  # NOQA
         multiprocessing = dummy
+        multiprocessing.cpu_count = mp.cpu_count
     else:
         import multiprocesssing  # NOQA
     return multiprocessing
@@ -182,7 +184,7 @@ class WaveformAccessor(object):
     def __getattr__(self, item):
         if item != "StationXML":
             __station = self.__data_set()._waveform_group[self.__station_name]
-            keys = [_i for _i in __station.iterkeys()
+            keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
             traces = [self.__data_set()._get_waveform(_i) for _i in keys]
             return obspy.Stream(traces=traces)
@@ -195,7 +197,7 @@ class WaveformAccessor(object):
         if "StationXML" in __station:
             directory.append("StationXML")
         directory.extend([_i.split("__")[-1]
-                          for _i in __station.iterkeys()
+                          for _i in __station.keys()
                           if _i != "StationXML"])
         return sorted(set(directory))
 
@@ -397,7 +399,7 @@ def _pretty_log(prefix, first, second, tag, payload):
         colorama.Fore.MAGENTA,
     )
 
-    tags = [i for i in MSG_TAGS.keys() if isinstance(i, basestring)]
+    tags = [i for i in MSG_TAGS.keys() if isinstance(i, (str, bytes))]
 
     tag = MSG_TAGS[tag]
     tag = tag_colors[tags.index(tag) % len(tag_colors)] + tag + \
