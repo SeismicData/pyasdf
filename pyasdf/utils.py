@@ -45,7 +45,7 @@ def get_multiprocessing():
         multiprocessing = dummy
         multiprocessing.cpu_count = mp.cpu_count
     else:
-        import multiprocesssing  # NOQA
+        import multiprocessing  # NOQA
     return multiprocessing
 
 
