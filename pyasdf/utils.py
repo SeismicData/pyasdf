@@ -6,13 +6,13 @@
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 import collections
 import os
 import sys
 import time
-from UserDict import DictMixin
 import warnings
 import weakref
 
@@ -57,7 +57,7 @@ def is_multiprocessing_problematic():
     """
     # Handling numpy linked against accelerate.
     config_info = str([value for key, value in
-                       np.__config__.__dict__.iteritems()
+                       np.__config__.__dict__.items()
                        if key.endswith("_info")]).lower()
 
     if "accelerate" in config_info or "veclib" in config_info:
@@ -163,7 +163,7 @@ class StationAccessor(object):
     def __dir__(self):
         __waveforms = self.__data_set()._waveform_group
         return sorted(set(
-            [_i.replace(".", "_") for _i in __waveforms.iterkeys()]))
+            [_i.replace(".", "_") for _i in __waveforms.keys()]))
 
     def __len__(self):
         return len(self.__dir__())
@@ -219,7 +219,7 @@ def is_mpi_env():
     return True
 
 
-class StreamBuffer(DictMixin):
+class StreamBuffer(collections.MutableMapping):
     """
     Very simple key value store for obspy stream object with the additional
     ability to approximate the size of all stored stream objects.

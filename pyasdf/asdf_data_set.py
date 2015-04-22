@@ -8,7 +8,8 @@ Python implementation of the Adaptable Seismic Data Format (ASDF).
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import absolute_import
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals)
 
 # Import ObsPy first as import h5py on some machines will some reset paths
 # and lxml cannot be loaded anymore afterwards...
@@ -1102,7 +1103,7 @@ class ASDFDataSet(object):
         # Make sure all remaining write requests are processed before
         # proceeding.
         if self.mpi.rank == 0:
-            for rank in xrange(1, self.mpi.size):
+            for rank in range(1, self.mpi.size):
                 msg = self._get_msg(rank, "WORKER_REQUESTS_WRITE")
                 if self.debug and msg:
                     print("MASTER: Ignoring write request by worker %i" %
@@ -1141,7 +1142,7 @@ class ASDFDataSet(object):
             input_queue.put(_i)
 
         # Put some poison pills.
-        for _ in xrange(cpu_count):
+        for _ in range(cpu_count):
             input_queue.put(POISON_PILL)
 
         # Give a short time for the queues to play catch-up.
@@ -1195,7 +1196,7 @@ class ASDFDataSet(object):
 
         # Create n processes, with n being the number of available CPUs.
         processes = []
-        for _ in xrange(cpu_count):
+        for _ in range(cpu_count):
             processes.append(Process(input_queue, output_queue,
                                      input_filename, output_filename,
                                      input_file_lock, output_file_lock,
