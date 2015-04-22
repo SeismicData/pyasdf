@@ -66,7 +66,7 @@ def isolate_and_merge_station(inv, network_id, station_id):
             if other_network.start_date is not None:
                 if network.start_date is None or \
                         network.start_date > other_network.start_date:
-                   network.start_date = other_network.start_date
+                    network.start_date = other_network.start_date
             # None is the "biggest" end_date.
             if network.end_date is not None and other_network.end_date is \
                     not None:
@@ -104,7 +104,7 @@ def isolate_and_merge_station(inv, network_id, station_id):
             # Update the times if necessary.
             if other_station.start_date is not None:
                 if station.start_date is None or \
-                                station.start_date > other_station.start_date:
+                        station.start_date > other_station.start_date:
                     station.start_date = other_station.start_date
             # None is the "biggest" end_date.
             if station.end_date is not None and other_station.end_date is \
@@ -119,8 +119,8 @@ def isolate_and_merge_station(inv, network_id, station_id):
             # Update the number of channels.
             if other_station.total_number_of_channels:
                 if station.total_number_of_channels or \
-                                station.total_number_of_channels < \
-                                other_station.total_number_of_channels:
+                        station.total_number_of_channels < \
+                        other_station.total_number_of_channels:
                     station.total_number_of_channels = \
                         other_station.total_number_of_channels
             # Update the other elements
@@ -131,7 +131,7 @@ def isolate_and_merge_station(inv, network_id, station_id):
             station.historical_code = (station.historical_code or
                                        other_station.historical_code) or None
             station.restricted_status = station.restricted_status or \
-                                        other_station.restricted_status
+                other_station.restricted_status
         inv.networks[0].stations = [station]
 
     # Last but not least, remove duplicate channels. This is done on the

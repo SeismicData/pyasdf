@@ -16,7 +16,6 @@ from __future__ import (absolute_import, division, print_function,
 import obspy
 
 import collections
-import copy
 import io
 import itertools
 import math
@@ -33,6 +32,7 @@ from .header import ASDFException, ASDFWarnings, COMPRESSIONS, FORMAT_NAME, \
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing
+from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
 class ASDFDataSet(object):
@@ -189,12 +189,17 @@ class ASDFDataSet(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    @property
-    def asdf_format_version(self):
+    def _flush(self):
         """
-        Returns the version of the ASDF file.
+        Flush the underlying HDF5 file.
         """
-        return self.__file.attrs["file_format_version"]
+        self.__file.flush()
+
+    def _close(self):
+        """
+        Close the underlying HDF5 file.
+        """
+        self.__file.close()
 
     @property
     def _waveform_group(self):
@@ -207,6 +212,13 @@ class ASDFDataSet(object):
     @property
     def _auxiliary_data_group(self):
         return self.__file["AuxiliaryData"]
+
+    @property
+    def asdf_format_version(self):
+        """
+        Returns the version of the ASDF file.
+        """
+        return self.__file.attrs["file_format_version"]
 
     @property
     def filename(self):
@@ -296,18 +308,6 @@ class ASDFDataSet(object):
 
         self.__file["QuakeML"].resize(data.shape)
         self.__file["QuakeML"][:] = data
-
-    def _flush(self):
-        """
-        Flush the underlying HDF5 file.
-        """
-        self.__file.flush()
-
-    def _close(self):
-        """
-        Close the underlying HDF5 file.
-        """
-        self.__file.close()
 
     def add_auxiliary_data(self, data, data_type, tag, parameters,
                            provenance=None):
@@ -666,12 +666,41 @@ class ASDFDataSet(object):
             e.g. ``"IU.ANMO"``
         :type station_name: str
         """
+        if station_name not in self.__file["Waveforms"] or \
+                "StationXML" not in self.__file["Waveforms"][station_name]:
+            return None
+
         data = self.__file["Waveforms"][station_name]["StationXML"]
 
         with io.BytesIO(data.value.tostring()) as buf:
             inv = obspy.read_inventory(buf, format="stationxml")
 
         return inv
+
+    def _add_inventory_object(self, inv, network_id, station_id):
+        station_name = "%s.%s" % (network_id, station_id)
+
+        # Write the station information to a numpy array that will then be
+        # written to the HDF5 file.
+        with io.BytesIO() as buf:
+            inv.write(buf, format="stationxml")
+            buf.seek(0, 0)
+            data = np.frombuffer(buf.read(), dtype=np.dtype("byte"))
+
+        if station_name not in self._waveform_group:
+            self._waveform_group.create_group(station_name)
+        station_group = self._waveform_group[station_name]
+
+        # If it already exists, overwrite the existing one.
+        if "StationXML" in station_group:
+            station_group["StationXML"].resize(data.shape)
+            station_group["StationXML"][:] = data
+        else:
+            # maxshape takes care to create an extendable data set.
+            station_group.create_dataset(
+                "StationXML", data=data,
+                maxshape=(None,),
+                fletcher32=True)
 
     def add_stationxml(self, stationxml):
         """
@@ -695,75 +724,31 @@ class ASDFDataSet(object):
         # Now we essentially walk the whole inventory, see what parts are
         # already available and add only the new ones. This involved quite a
         # bit of splitting and merging of the inventory objects.
+        network_station_codes = set()
         for network in stationxml:
-            network_code = network.code
-
             for station in network:
-                station_code = station.code
-                station_name = "%s.%s" % (network_code, station_code)
+                network_station_codes.add((network.code, station.code))
 
-                if station_name not in self._waveform_group:
-                    self._waveform_group.create_group(station_name)
+        for network_id, station_id in network_station_codes:
+            station_name = "%s.%s" % (network_id, station_id)
 
-                station_group = self._waveform_group[station_name]
-                # Get any already existing StationXML file. This will always
-                # only contain a single station!
-                if "StationXML" in station_group:
-                    existing_station_xml = obspy.read_inventory(
-                        io.BytesIO(
-                            station_group["StationXML"].value.tostring()),
-                        format="stationxml")
-                    # Only exactly one station acceptable.
-                    if len(existing_station_xml.networks) != 1 or  \
-                            len(existing_station_xml.networks[0].stations) \
-                            != 1:
-                        msg = ("The existing StationXML file for station "
-                               "'%s.%s' does not contain exactly one station!"
-                               % (network_code, station_code))
-                        raise ASDFException(msg)
-                    existing_channels = \
-                        existing_station_xml.networks[0].stations[0].channels
-                    # XXX: Need better checks for duplicates...
-                    found_new_channel = False
-                    chan_essence = [(_i.code, _i.location_code, _i.start_date,
-                                     _i.end_date) for _i in existing_channels]
-                    for channel in station.channels:
-                        essence = (channel.code, channel.location_code,
-                                   channel.start_date, channel.end_date)
-                        if essence in chan_essence:
-                            continue
-                        existing_channels.append(channel)
-                        found_new_channel = True
-
-                    # Only write if something actually changed.
-                    if found_new_channel is True:
-                        temp = io.BytesIO()
-                        existing_station_xml.write(temp, format="stationxml")
-                        temp.seek(0, 0)
-                        data = np.array(list(temp.read()), dtype="|S1")
-                        data.dtype = np.dtype("byte")
-                        temp.close()
-                        # maxshape takes care to create an extendable data set.
-                        station_group["StationXML"].resize((len(data.data),))
-                        station_group["StationXML"][:] = data
-                else:
-                    # Create a shallow copy of the network and add the channels
-                    # to only have the channels of this station.
-                    new_station_xml = copy.copy(stationxml)
-                    new_station_xml.networks = [network]
-                    new_station_xml.networks[0].stations = [station]
-                    # Finally write it.
-                    temp = io.BytesIO()
-                    new_station_xml.write(temp, format="stationxml")
-                    temp.seek(0, 0)
-                    data = np.array(list(temp.read()), dtype="|S1")
-                    data.dtype = np.dtype("byte")
-                    temp.close()
-                    # maxshape takes care to create an extendable data set.
-                    station_group.create_dataset(
-                        "StationXML", data=data,
-                        maxshape=(None,),
-                        fletcher32=True)
+            # Get any existing station information.
+            existing_inventory = self._get_station(station_name)
+            # If it does not exist yet, make sure its well behaved and add it.
+            if existing_inventory is None:
+                self._add_inventory_object(
+                    inv=isolate_and_merge_station(
+                        stationxml, network_id=network_id,
+                        station_id=station_id),
+                    network_id=network_id, station_id=station_id)
+            # Otherwise merge with the existing one and overwrite the
+            # existing one.
+            else:
+                self._add_inventory_object(
+                    inv=merge_inventories(
+                        inv_a=existing_inventory, inv_b=stationxml,
+                        network_id=network_id, station_id=station_id),
+                    network_id=network_id, station_id=station_id)
 
     def validate(self):
         """

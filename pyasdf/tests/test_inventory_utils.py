@@ -49,7 +49,7 @@ def test_merging_stations():
 
     # Make sure the station dates have been set correctly.
     assert new_inv[0][0].start_date == \
-       obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
+        obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
     assert new_inv[0][0].end_date is None
 
     # The 9 channels should remain.
@@ -82,7 +82,7 @@ def test_merge_inventories():
 
     # Make sure the station dates have been set correctly.
     assert new_inv[0][0].start_date == \
-           obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
+        obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
     assert new_inv[0][0].end_date is None
 
     # The 9 channels should remain.
