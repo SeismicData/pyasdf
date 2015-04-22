@@ -259,8 +259,9 @@ class ASDFDataSet(object):
         if not len(data.value):
             return obspy.core.event.Catalog()
 
-        cat = obspy.readEvents(io.BytesIO(data.value.tostring()),
-                               format="quakeml")
+        with io.BytesIO(data.value.tostring()) as buf:
+            cat = obspy.readEvents(buf, format="quakeml")
+
         return cat
 
     @events.setter
@@ -272,15 +273,12 @@ class ASDFDataSet(object):
         else:
             raise TypeError("Must be an ObsPy event or catalog instance")
 
-        temp = io.BytesIO()
-        cat.write(temp, format="quakeml")
-        temp.seek(0, 0)
-        data = np.array(list(temp.read()), dtype="|S1")
-        data.dtype = np.dtype("byte")
-        temp.close()
+        with io.BytesIO() as buf:
+            cat.write(buf, format="quakeml")
+            buf.seek(0, 0)
+            data = np.frombuffer(buf.read(), dtype=np.dtype("byte"))
 
         self.__file["QuakeML"].resize(data.shape)
-
         self.__file["QuakeML"][:] = data
 
     def _flush(self):
