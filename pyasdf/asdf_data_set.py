@@ -145,6 +145,9 @@ class ASDFDataSet(object):
     def __del__(self):
         """
         Cleanup. Force flushing and close the file.
+
+        If called with MPI this will also enable MPI to cleanly shutdown in
+        all cases.
         """
         try:
             self._flush()
@@ -158,7 +161,7 @@ class ASDFDataSet(object):
         More or less comprehensive equality check. Potentially quite slow as
         it checks all data.
 
-        :type other:`~obspy_asdf.ASDFDDataSet`
+        :type other:`~pyasdf.asdf_data_set.ASDFDDataSet`
         """
         if type(self) != type(other):
             return False
@@ -217,9 +220,9 @@ class ASDFDataSet(object):
     def mpi(self):
         """
         Returns a named tuple with ``comm``, ``rank``, ``size``, and ``MPI``
-        if run with MPI and False otherwise.
+        if run with MPI and ``False`` otherwise.
         """
-        # Simple cache.
+        # Simple cache as this is potentially accessed a lot.
         if hasattr(self, "__is_mpi"):
             return self.__is_mpi
 
@@ -241,6 +244,7 @@ class ASDFDataSet(object):
 
             import mpi4py
 
+            # This is not needed on most mpi4py installations.
             if not mpi4py.MPI.Is_initialized():
                 mpi4py.MPI.Init()
 
@@ -255,6 +259,11 @@ class ASDFDataSet(object):
 
     @property
     def events(self):
+        """
+        Get all events stored in the data set.
+
+        :rtype: An ObsPy :class:`~obspy.core.event.Catalog` object.
+        """
         data = self.__file["QuakeML"]
         if not len(data.value):
             return obspy.core.event.Catalog()
@@ -266,6 +275,13 @@ class ASDFDataSet(object):
 
     @events.setter
     def events(self, event):
+        """
+        Set the events of the dataset.
+
+        :param event: One or more events. Will replace all existing ones.
+        :type event: :class:`~obspy.core.event.Event` or
+            :class:`~obspy.core.event.Catalog`
+        """
         if isinstance(event, obspy.core.event.Event):
             cat = obspy.core.event.Catalog(events=[event])
         elif isinstance(event, obspy.core.event.Catalog):
@@ -282,9 +298,15 @@ class ASDFDataSet(object):
         self.__file["QuakeML"][:] = data
 
     def _flush(self):
+        """
+        Flush the underlying HDF5 file.
+        """
         self.__file.flush()
 
     def _close(self):
+        """
+        Close the underlying HDF5 file.
+        """
         self.__file.close()
 
     def add_auxiliary_data(self, data, data_type, tag, parameters,
@@ -381,9 +403,9 @@ class ASDFDataSet(object):
         that already exists within the data set. Duplicates are detected
         based on the public ids of the events.
 
-        :param event: Filename or existing ObsPy
-            :class:`~obspy.core.event.Event` or
-            :class:`~obspy.core.event.Catalog` object.
+        :param event: Filename or existing ObsPy event object.
+        :type event: :class:`~obspy.core.event.Event` or
+            :class:`~obspy.core.event.Catalog`
         :raises: ValueError
 
         .. rubric:: Example
@@ -428,9 +450,14 @@ class ASDFDataSet(object):
         Returns the waveform and station data for the requested station and
         tag.
 
-        :param station_name:
-        :param tag:
-        :return: tuple
+        :param station_name: A string with network id and station id,
+            e.g. ``"IU.ANMO"``
+        :type station_name: str
+        :param tag: The tag of the waveform.
+        :type tag: str
+        :return: tuple of the waveform and the inventory.
+        :rtype: (:class:`~obspy.core.stream.Stream`,
+                 :class:`~obspy.station.inventory.Inventory`)
         """
         station_name = station_name.replace(".", "_")
         station = getattr(self.waveforms, station_name)
@@ -465,17 +492,6 @@ class ASDFDataSet(object):
             details.event_id = obspy.core.event.ResourceIdentifier(
                 data.attrs["event_id"])
         return tr
-
-    def _get_station(self, station_name):
-        """
-        Retrieves the specified StationXML as an obspy.station.Inventory
-        object. For internal use only, use the dot accessors for outside
-        access.
-        """
-        data = self.__file["Waveforms"][station_name]["StationXML"]
-        inv = obspy.read_inventory(io.BytesIO(data.value.tostring()),
-                                   format="stationxml")
-        return inv
 
     def _get_auxiliary_data(self, data_type, tag):
         group = self._auxiliary_data_group[data_type][tag]
@@ -640,21 +656,55 @@ class ASDFDataSet(object):
             info["dataset_attrs"]["event_id"] = str(event_id)
         return info
 
+    def _get_station(self, station_name):
+        """
+        Retrieves the specified StationXML as an obspy.station.Inventory
+        object. For internal use only, use the dot accessors for external
+        access.
+
+        :param station_name: A string with network id and station id,
+            e.g. ``"IU.ANMO"``
+        :type station_name: str
+        """
+        data = self.__file["Waveforms"][station_name]["StationXML"]
+
+        with io.BytesIO(data.value.tostring()) as buf:
+            inv = obspy.read_inventory(buf, format="stationxml")
+
+        return inv
+
     def add_stationxml(self, stationxml):
         """
+        Adds the StationXML to the data set object.
+
+        This does some fairly exhaustive processing and will happily
+        split the StationXML file and merge it with existing ones.
+
+        If you care to have an a more or less unchanged StationXML file in
+        the data set object be sure to add it one station at a time.
+
+        :param stationxml: Filename of StationXML file or an ObsPy inventory
+            object containing the same.
+        :type stationxml: str or :class:`~obspy.station.inventory.Inventory`
         """
-        if isinstance(stationxml, obspy.station.Inventory):
-            pass
-        else:
+        # If not already an inventory object, delegate to ObsPy and see if
+        # it can read it.
+        if not isinstance(stationxml, obspy.station.Inventory):
             stationxml = obspy.read_inventory(stationxml, format="stationxml")
 
+        # Now we essentially walk the whole inventory, see what parts are
+        # already available and add only the new ones. This involved quite a
+        # bit of splitting and merging of the inventory objects.
         for network in stationxml:
             network_code = network.code
+
             for station in network:
                 station_code = station.code
                 station_name = "%s.%s" % (network_code, station_code)
+
                 if station_name not in self._waveform_group:
                     self._waveform_group.create_group(station_name)
+
                 station_group = self._waveform_group[station_name]
                 # Get any already existing StationXML file. This will always
                 # only contain a single station!
@@ -717,7 +767,7 @@ class ASDFDataSet(object):
 
     def validate(self):
         """
-        Validates and ASDF file. It currently checks that each waveform file
+        Validate and ASDF file. It currently checks that each waveform file
         has a corresponding station file.
         """
         summary = {"no_station_information": 0, "no_waveforms": 0,
