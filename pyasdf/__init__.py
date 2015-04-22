@@ -9,12 +9,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-__all__ = ["__version__", "ASDFDataSet", "ASDFException", "ASDFWarnings",
-           "print_sys_info", "get_sys_info"]
-
-
 from .asdf_data_set import ASDFDataSet, ASDFException, ASDFWarnings
 
+
+__all__ = ["__version__", "ASDFDataSet", "ASDFException", "ASDFWarnings",
+           "print_sys_info", "get_sys_info"]
 
 __version__ = "0.1.x"
 

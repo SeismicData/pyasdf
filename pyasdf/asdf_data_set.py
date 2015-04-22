@@ -491,11 +491,10 @@ class ASDFDataSet(object):
         filesize = sizeof_fmt(os.path.getsize(self.filename))
         ret = "{format} file [format version: {version}]: '{filename}' ({" \
               "size})".format(
-            format=FORMAT_NAME,
-            version=self.asdf_format_version,
-            filename=os.path.relpath(self.filename),
-            size=filesize
-        )
+                  format=FORMAT_NAME,
+                  version=self.asdf_format_version,
+                  filename=os.path.relpath(self.filename),
+                  size=filesize)
         ret += "\n\tContains %i event(s)" % len(self.events)
         ret += "\n\tContains waveform data from {len} station(s).".format(
             len=len(self.__file["Waveforms"])
