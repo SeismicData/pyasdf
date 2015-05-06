@@ -65,3 +65,6 @@ for min_period, max_period in [(27.0, 60.0)]:
     }
 
     ds.process(process_function, tag_name + ".h5", tag_map=tag_map)
+
+# Important when running with MPI as it might otherwise not be able to finish.
+del ds

@@ -65,3 +65,7 @@ if ds.mpi.rank == 0:
     print len(results)
 
 print "Time taken:", b - a
+
+# Important when running with MPI as it might otherwise not be able to finish.
+del ds
+del other_ds
