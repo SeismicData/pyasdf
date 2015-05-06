@@ -10,12 +10,14 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import glob
-import h5py
 import inspect
 import io
 import shutil
-import obspy
 import os
+
+import h5py
+import numpy as np
+import obspy
 import pytest
 
 from pyasdf import ASDFDataSet
@@ -465,3 +467,28 @@ def test_format_version_decorator(example_data_set):
     """
     data_set = ASDFDataSet(example_data_set.filename)
     assert data_set.asdf_format_version == FORMAT_VERSION
+
+
+def test_reading_and_writing_auxiliary_data(tmpdir):
+    """
+    Tests reading and writing auxiliary data.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # Define some auxiliary data and add it.
+    data = np.random.random(100)
+    data_type = "RandomArrays"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+                                parameters=parameters)
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
+    np.testing.assert_equal(data, aux_data.data)
+    aux_data.data_type == data_type
+    aux_data.tag == tag
+    aux_data.parameters == parameters
