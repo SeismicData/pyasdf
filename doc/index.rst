@@ -171,6 +171,35 @@ structure imposed by the ASDF format.
     Contains waveform data from 196 station(s).
 
 
+**Adding Auxiliary Data:**
+
+The ASDF format has the capability to store generic non-waveform data called
+*auxiliary data*. Auxiliary data are data arrays with associcated
+attributes that can represent anything; each sub-community is supposed to come
+up with conventions of how to use this.
+
+.. code-block:: python
+
+    >>> import numpy as np
+    >>> data = np.random.random(100)
+    # The type always should be camel case.
+    >>> data_type = "RandomArrays"
+    # Name to identify the particular piece of data.
+    >>> tag = "example_array"
+    # Any additional parameters as a Python dictionary which will end up as
+    # attributes of the array.
+    >>> parameters = {
+    ...     "a": 1,
+    ...     "b": 2.0}
+    >>> ds.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    ...                       parameters=parameters)
+    >>> print(ds)
+    ASDF file [format version: b'0.0.1b']: 'new_file.h5' (188.3 MB)
+    Contains 1 event(s)
+    Contains waveform data from 196 station(s).
+    Contains 1 type(s) of auxiliary data: RandomArrays
+
+
 Acknowledgements
 ----------------
 
