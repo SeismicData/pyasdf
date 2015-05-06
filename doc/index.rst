@@ -10,6 +10,15 @@ pyasdf
     `issue <https://github.com/SeismicData/pyasdf/issues>`_ on Github.
 
 
+This document is organized as follows. Other documents can be reached via
+the navigation bar up top.
+
+
+.. contents::
+    :local:
+    :depth: 3
+
+
 Installation
 ------------
 
@@ -38,8 +47,8 @@ Using pyasdf
 
 This section will teach you the basics of creating and working with ASDF
 files with `pyasdf`. For more detailed information, please see the
-:doc:`api` documentation or have a look at the examples that demonstrate more
-complex workflows.
+:doc:`api` documentation or have a look at the :doc:`examples` section that
+demonstrates more complex workflows.
 
 .. admonition:: Notes on using MPI
 
