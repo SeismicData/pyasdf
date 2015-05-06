@@ -117,8 +117,10 @@ class ASDFDataSet(object):
                            FORMAT_VERSION))
                 warnings.warn(msg, ASDFWarnings)
         else:
-            self.__file.attrs["file_format"] = FORMAT_NAME
-            self.__file.attrs["file_format_version"] = FORMAT_VERSION
+            self.__file.attrs["file_format"] = \
+                self._zeropad_ascii_string(FORMAT_NAME)
+            self.__file.attrs["file_format_version"] = \
+                self._zeropad_ascii_string(FORMAT_VERSION)
 
         # Create the waveform and provenance groups.
         if "Waveforms" not in self.__file:
@@ -200,6 +202,16 @@ class ASDFDataSet(object):
         Close the underlying HDF5 file.
         """
         self.__file.close()
+
+    def _zeropad_ascii_string(self, text):
+        """
+        Returns a zero padded ASCII string in the most compatible way possible.
+
+        Might later need to handle bytes/unicode.
+
+        :param text: The text to be converted.
+        """
+        return np.string_(text + b"\x00")
 
     @property
     def _waveform_group(self):
