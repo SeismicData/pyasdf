@@ -254,8 +254,9 @@ def test_assert_format_and_version_number_are_written(tmpdir):
 
     # Open again and assert name and version number.
     with h5py.File(asdf_filename, "r") as hdf5_file:
-        assert hdf5_file.attrs["file_format_version"] == FORMAT_VERSION
-        assert hdf5_file.attrs["file_format"] == FORMAT_NAME
+        assert hdf5_file.attrs["file_format_version"].decode() \
+           == FORMAT_VERSION
+        assert hdf5_file.attrs["file_format"].decode() == FORMAT_NAME
 
 
 def test_dot_accessors(example_data_set):

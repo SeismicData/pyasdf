@@ -100,7 +100,7 @@ class ASDFDataSet(object):
 
         # Write file format and version information to the file.
         if "file_format" in self.__file.attrs:
-            if self.__file.attrs["file_format"] != FORMAT_NAME:
+            if self.__file.attrs["file_format"].decode() != FORMAT_NAME:
                 msg = "Not a '%s' file." % FORMAT_NAME
                 raise ASDFException(msg)
             if "file_format_version" not in self.__file.attrs:
@@ -108,7 +108,8 @@ class ASDFDataSet(object):
                        "program will continue but the result is undefined." %
                        self.filename)
                 warnings.warn(msg, ASDFWarnings)
-            elif self.__file.attrs["file_format_version"] != FORMAT_VERSION:
+            elif self.__file.attrs["file_format_version"].decode() != \
+                    FORMAT_VERSION:
                 msg = ("The file '%s' has version number '%s'. The reader "
                        "expects version '%s'. The program will continue but "
                        "the result is undefined." % (
@@ -230,7 +231,7 @@ class ASDFDataSet(object):
         """
         Returns the version of the ASDF file.
         """
-        return self.__file.attrs["file_format_version"]
+        return self.__file.attrs["file_format_version"].decode()
 
     @property
     def filename(self):
