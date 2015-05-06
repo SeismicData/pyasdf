@@ -1364,7 +1364,6 @@ class ASDFDataSet(object):
                         stream, inv = \
                             input_data_set.get_data_for_tag(station, tag)
                         input_data_set._flush()
-                        input_data_set._close()
                         del input_data_set
 
                     output_stream = self.processing_function(stream, inv)
