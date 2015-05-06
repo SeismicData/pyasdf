@@ -500,9 +500,13 @@ class ASDFDataSet(object):
         details = obspy.core.util.AttribDict()
         setattr(tr.stats, FORMAT_NAME.lower(), details)
         details.format_version = FORMAT_VERSION
-        if "event_id" in data.attrs:
-            details.event_id = obspy.core.event.ResourceIdentifier(
-                data.attrs["event_id"])
+
+        # Read all the ids if they are there.
+        ids = ["event_id", "origin_id", "magnitude_id", "focal_mechanism_id"]
+        for name in ids:
+            if name in data.attrs:
+                setattr(details, name,
+                        obspy.core.event.ResourceIdentifier(data.attrs[name]))
         return tr
 
     def _get_auxiliary_data(self, data_type, tag):
@@ -532,16 +536,96 @@ class ASDFDataSet(object):
                 ", ".join(sorted(dir(self.auxiliary_data))))
         return ret
 
-    def add_waveforms(self, waveform, tag, event_id=None):
+    def add_waveforms(self, waveform, tag, event_id=None, origin_id=None,
+                      magnitude_id=None, focal_mechanism_id=None):
         """
-        Adds one or more waveforms to the file.
+        Adds one or more waveforms to the current ASDF file.
 
         :param waveform: The waveform to add. Can either be an ObsPy Stream or
             Trace object or something ObsPy can read.
-        :type tag: String
+        :type waveform: :class:`obspy.core.stream.Stream`,
+            :class:`obspy.core.trace.Trace`, str, ...
         :param tag: The tag that will be given to all waveform files. It is
             mandatory for all traces and facilitates identification of the data
-            within one ASDF volume.
+            within one ASDF volume. The ``"raw_record"`` tag is,
+            by convention, reserved to raw, recorded, unprocessed data.
+        :type tag: str
+        :param event_id: The event or id which the waveform is associated
+            with. This is useful for recorded data if a clear association is
+            given, but also for synthetic data.
+        :type event_id: :class:`obspy.core.event.Event`,
+            :class:`obspy.core.event.ResourceIdentifier`, or str
+        :param origin_id: The particular origin this waveform is associated
+            with. This is mainly useful for synthetic data where the origin
+            is precisely known.
+        :type origin_id: :class:`obspy.core.event.Origin`,
+            :class:`obspy.core.event.ResourceIdentifier`, or str
+        :param magnitude_id: The particular magnitude this waveform is
+            associated with. This is mainly useful for synthetic data where
+            the magnitude is precisely known.
+        :type magnitude_id: :class:`obspy.core.event.Magnitude`,
+            :class:`obspy.core.event.ResourceIdentifier`, or str
+        :param focal_mechanism_id: The particular focal mechanism this
+            waveform is associated with. This is mainly useful for synthetic
+            data where the mechanism is precisely known.
+        :type focal_mechanism_id: :class:`obspy.core.event.FocalMechanism`,
+            :class:`obspy.core.event.ResourceIdentifier`, or str
+
+        .. rubric:: Examples
+
+        We first setup an example ASDF file with a single event.
+
+        >>> from pyasdf import ASDFDataSet
+        >>> ds = ASDFDataSet("event_tests.h5")
+        >>> ds.add_quakeml("quake.xml")
+        >>> event = ds.events[0]
+
+        Now assume we have a MiniSEED file that is an unprocessed
+        observation of that earthquake straight from a datacenter called
+        ``recording.mseed``. We will now add it to the file, give it the
+        ``"raw_recording"`` tag (which is reserved for raw, recorded,
+        and unproceseed data) and associate it with the event. Keep in mind
+        that this association is optional.
+
+        >>> ds.add_waveforms("recording.mseed", tag="raw_recording",
+        ...                  event_id=event)
+
+        It is also possible to directly add
+        :class:`obspy.core.stream.Stream` objects containing an arbitrary
+        number of :class:`obspy.core.trace.Trace` objects.
+
+        >>> import obspy
+        >>> st = obspy.read()  # Reads an example file without argument.
+        >>> print(st)
+        3 Trace(s) in Stream:
+        BW.RJOB..EHZ | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
+        BW.RJOB..EHN | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
+        BW.RJOB..EHE | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
+        >>> ds.add_waveforms(st, tag="obspy_example")
+
+        Just to demonstrate that all waveforms can also be retrieved again.
+
+        >>> print(print(ds.waveforms.BW_RJOB.obspy_example))
+        3 Trace(s) in Stream:
+        BW.RJOB..EHZ | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
+        BW.RJOB..EHN | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
+        BW.RJOB..EHE | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
+
+        For the last example lets assume we have the result of a simulation
+        stored in the ``synthetics.sac`` file. In this case we know the
+        precise source parameters (we specified them before running the
+        simulation) so it is a good idea to add that association to the
+        waveform. Please again keep in mind that they are all optional and
+        depending on your use case they might or might not be
+        useful/meaningful.
+
+        >>> origin = event.preferred_origin()
+        >>> magnitude = event.preferred_magnitude()
+        >>> focal_mechanism = event.preferred_focal_mechansism()
+        >>> ds.add_waveforms("synthetics.sac", event_id=event,
+        ...                  origin_id=origin, magnitude_id=magnitude,
+        ...                  focal_mechanism_id=focal_mechanism)
+
         """
         # Extract the event_id from the different possibilities.
         if event_id:
@@ -555,6 +639,46 @@ class ASDFDataSet(object):
                         obspy.core.event.ResourceIdentifier(event_id))
                 except:
                     msg = "Invalid type for event_id."
+                    raise TypeError(msg)
+
+        # Do the same for the origin, magnitude, and focal mechanism.
+        if origin_id:
+            if isinstance(origin_id, obspy.core.event.Origin):
+                origin_id = str(origin_id.resource_id.id)
+            elif isinstance(origin_id, obspy.core.event.ResourceIdentifier):
+                origin_id = str(origin_id.id)
+            else:
+                try:
+                    origin_id = str(
+                        obspy.core.event.ResourceIdentifier(origin_id))
+                except:
+                    msg = "Invalid type for origin_id."
+                    raise TypeError(msg)
+        if magnitude_id:
+            if isinstance(magnitude_id, obspy.core.event.Magnitude):
+                magnitude_id = str(magnitude_id.resource_id.id)
+            elif isinstance(magnitude_id, obspy.core.event.ResourceIdentifier):
+                magnitude_id = str(magnitude_id.id)
+            else:
+                try:
+                    magnitude_id = str(
+                        obspy.core.event.ResourceIdentifier(magnitude_id))
+                except:
+                    msg = "Invalid type for magnitude_id."
+                    raise TypeError(msg)
+        if focal_mechanism_id:
+            if isinstance(focal_mechanism_id, obspy.core.event.FocalMechanism):
+                focal_mechanism_id = str(focal_mechanism_id.resource_id.id)
+            elif isinstance(focal_mechanism_id,
+                            obspy.core.event.ResourceIdentifier):
+                focal_mechanism_id = str(focal_mechanism_id.id)
+            else:
+                try:
+                    focal_mechanism_id = str(
+                        obspy.core.event.ResourceIdentifier(
+                            focal_mechanism_id))
+                except:
+                    msg = "Invalid type for focal_mechanism_id."
                     raise TypeError(msg)
 
         tag = tag.strip()
@@ -575,7 +699,9 @@ class ASDFDataSet(object):
             # Complicated multi-step process but it enables one to use
             # parallel I/O with the same functions.
             info = self._add_trace_get_collective_information(
-                trace, tag, event_id=event_id)
+                trace, tag, event_id=event_id, origin_id=origin_id,
+                magnitude_id=magnitude_id,
+                focal_mechanism_id=focal_mechanism_id)
             if info is None:
                 continue
             self._add_trace_write_collective_information(info)
@@ -607,8 +733,9 @@ class ASDFDataSet(object):
         for key, value in info["dataset_attrs"].items():
             ds.attrs[key] = value
 
-    def _add_trace_get_collective_information(self, trace, tag,
-                                              event_id=None):
+    def _add_trace_get_collective_information(
+            self, trace, tag, event_id=None, origin_id=None,
+            magnitude_id=None, focal_mechanism_id=None):
         """
         The information required for the collective part of adding a trace.
 
@@ -662,12 +789,21 @@ class ASDFDataSet(object):
                 "sampling_rate": trace.stats.sampling_rate
             }
         }
-        if event_id is None and \
-                hasattr(trace.stats, "asdf") and \
-                hasattr(trace.stats.asdf, "event_id"):
-            event_id = str(trace.stats.asdf.event_id.id)
-        if event_id:
-            info["dataset_attrs"]["event_id"] = str(event_id)
+
+        # Add all the event ids.
+        ids = {
+            "event_id": event_id,
+            "origin_id": origin_id,
+            "magnitude_id": magnitude_id,
+            "focal_mechanism_id": focal_mechanism_id}
+        for name, obj in ids.items():
+            if obj is None and \
+                    hasattr(trace.stats, "asdf") and \
+                    hasattr(trace.stats.asdf, name):
+                obj = str(getattr(trace.stats.asdf, name).id)
+            if obj:
+                info["dataset_attrs"][name] = str(obj)
+
         return info
 
     def _get_station(self, station_name):
