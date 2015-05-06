@@ -18,6 +18,8 @@ event = ds.events[0]
 filenames = glob.glob("./SAC/*.SAC")
 for _i, filename in enumerate(filenames):
     print("Adding SAC file %i of %i..." % (_i + 1, len(filenames)))
+    # We associate the waveform with the previous event. This is optional
+    # but recommended if the association is meaningful.
     ds.add_waveforms(filename, tag="raw_recording", event_id=event)
 
 # Add StationXML files.
@@ -25,6 +27,3 @@ filenames = glob.glob("./StationXML/*.xml")
 for _i, filename in enumerate(filenames):
     print("Adding StationXML file %i of %i..." % (_i + 1, len(filenames)))
     ds.add_stationxml(filename)
-
-# Important when running with MPI as it might otherwise not be able to finish.
-del ds

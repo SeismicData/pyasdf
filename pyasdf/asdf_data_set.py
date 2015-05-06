@@ -211,7 +211,7 @@ class ASDFDataSet(object):
 
         :param text: The text to be converted.
         """
-        return np.string_(text + b"\x00")
+        return np.string_((text + "\x00").encode())
 
     @property
     def _waveform_group(self):
@@ -656,7 +656,7 @@ class ASDFDataSet(object):
                 "maxshape": (None,)
             },
             "dataset_attrs": {
-                # Starttime is the timestamp in nanoseconds as an integer.
+                # Starttime is the epoch time in nanoseconds.
                 "starttime":
                     int(round(trace.stats.starttime.timestamp * 1.0E9)),
                 "sampling_rate": trace.stats.sampling_rate

@@ -36,9 +36,10 @@ following resources are useful if you are starting out with Python and ObsPy:
 Using pyasdf
 ^^^^^^^^^^^^
 
-This section will teach you the basics of creating and working with. For
-more detailed information, please see the :doc:`api` documentation or have a
-look at the examples that demonstrate more complex workflows.
+This section will teach you the basics of creating and working with ASDF
+files with `pyasdf`. For more detailed information, please see the
+:doc:`api` documentation or have a look at the examples that demonstrate more
+complex workflows.
 
 .. admonition:: Notes on using MPI
 
@@ -137,20 +138,37 @@ amounts of data. There are a couple of subtleties to keep in mind here:
 .. code-block:: python
 
     >>> import glob
+    >>> files = glob.glob("/path/to/data/*.mseed")
     >>> for _i, filename in enumerate(files):
     ...     print("Adding file %i of %i ..." % (_i + 1, len(files)))
     ...     ds.add_waveforms(filename, tag="raw_recording", event_id=event)
     Adding file 1 of 588 ...
     ...
     >>> print(ds)
-    ASDF file [format version: 0.0.1b]: 'new_file.h5' (145.9 MB)
+    ASDF file [format version: 0.0.1b]: 'new_file.h5' (169.7 MB)
     Contains 1 event(s)
     Contains waveform data from 196 station(s).
 
 
 **Adding Station Information:**
 
-The last step to create a very basic ASDF file is to add station information.
+The last step to create a very basic ASDF file is to add station information
+which is fairly straightforward. Please keep in mind that this will
+potentially rearrange and split the StationXML files to fit within the
+structure imposed by the ASDF format.
+
+.. code-block:: python
+
+    >>> files = glob.glob("/path/to/stations/*.xml")
+    >>> for _i, filename in enumerate(files):
+    ...     print("Adding file %i of %i ..." % (_i + 1, len(files)))
+    ...     ds.add_stationxml(filename)
+    Adding file 1 of 196 ...
+    ...
+    >>> print(ds)
+    ASDF file [format version: 0.0.1b]: 'new_file.h5' (188.3 MB)
+    Contains 1 event(s)
+    Contains waveform data from 196 station(s).
 
 
 Acknowledgements
