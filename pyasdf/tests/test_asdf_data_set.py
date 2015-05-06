@@ -378,6 +378,38 @@ def test_event_association_is_persistent_through_processing(example_data_set):
     assert event_id == processed_st[0].stats.asdf.event_id
 
 
+def test_detailed_event_association_is_persistent_through_processing(
+        example_data_set):
+    """
+    Processing a file with an associated event and storing it again should
+    keep the association for all the possible event tags..
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+    # Store a new waveform.
+    event = data_set.events[0]
+    origin = event.origins[0]
+    magnitude = event.magnitudes[0]
+    focmec = event.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+    tr.stats.network = "BW"
+    tr.stats.station = "RJOB"
+
+    data_set.add_waveforms(tr, tag="random", event_id=event,
+                           origin_id=origin, focal_mechanism_id=focmec,
+                           magnitude_id=magnitude)
+
+    new_st = data_set.waveforms.BW_RJOB.random
+    new_st.taper(max_percentage=0.05, type="cosine")
+
+    data_set.add_waveforms(new_st, tag="processed")
+    processed_st = data_set.waveforms.BW_RJOB.processed
+    assert event.resource_id == processed_st[0].stats.asdf.event_id
+    assert origin.resource_id == processed_st[0].stats.asdf.origin_id
+    assert magnitude.resource_id == processed_st[0].stats.asdf.magnitude_id
+    assert focmec.resource_id == processed_st[0].stats.asdf.focal_mechanism_id
+
+
 def test_tag_iterator(example_data_set):
     """
     Tests the tag iterator.
