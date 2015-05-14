@@ -5,16 +5,35 @@ pyasdf and Dependencies
 -----------------------
 
 ``pyasdf`` supports Python version 2.7 and 3.4 and it depends on the following
-Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``mpi4py``, ``colorama``,
-``flake8``, and ``pytest``. Keep in mind that ``h5py`` must be compiled with
-parallel I/O support and that it is linked against the same MPI as ``mpi4py``
-which of course should be the same that is used by your computer.
+Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``, ``flake8``,
+``pytest``, and optionally ``mpi4py``. You can install ``pyasdf`` with or
+without parallel I/O support; the later requires ``mpi4py`` and parallel
+versions of ``hdf5`` and ``h5py``.
 
 If you know what you are doing, install it any way you see fit. Otherwise do
 yourself a favor and download the
 `Anaconda Python distribution <https://store.continuum.io/cshop/anaconda/>`_
-for Python 2.7 or 3.4. After downloading update it, and install the
+for Python 2.7 or 3.4. After downloading, update it, and install the
 dependencies.
+
+
+Dependencies for the non-parallel I/O version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+All dependencies for ``pyasdf`` with no parallel I/O support can be installed
+with ``conda``:
+
+.. code-block:: bash
+
+    $ conda update conda
+    $ conda install -c obspy obspy colorama pytest pip flake8 h5py
+
+
+Dependencies for the parallel I/O version
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The version with parallel I/O support is a bit more difficult as the ``h5py``
+installable via ``conda`` has no parallel I/O support.
 
 .. code-block:: bash
 
@@ -22,8 +41,7 @@ dependencies.
     $ conda install -c obspy obspy colorama pytest pip flake8
 
 
-Installing the parallel libraries is a bit more difficult unfortunately. For
-all the following make sure that the MPI package of your local
+For all the following make sure that the MPI package of your local
 supercomputer/cluster is loaded. The ``mpi4py`` potentially shipping with
 Anaconda might not work on your cluster so uninstall it and reinstall with
 ``pip`` at which point it should link against your cluster's MPI
@@ -34,9 +52,26 @@ implementation.
     $ conda uninstall mpi4py
     $ pip install mpi4py
 
-Then install parallel ``h5py`` according to
+Keep in mind that ``h5py`` must be compiled with parallel I/O support and that
+it is linked against the same MPI as ``mpi4py`` which of course should be the
+same that is used by your computer.
+
+Install parallel ``h5py`` according to
 `these instructions <http://docs.h5py.org/en/latest/mpi.html>`_.
 
+Installing pyasdf
+^^^^^^^^^^^^^^^^^
+
+``pyasdf`` is currently not on pypi but eventually be. For now, best install via git.
+
+.. code-block:: bash
+
+    $ git clone https://github.com/SeismicData/pyasdf.git
+    $ cd pyasdf
+    $ pip install -v -e .
+
+The ``-e`` flag results in an editable installation meaning the a simple ``git
+pull`` is enough to update ``pyasdf``.
 
 After everything is installed, run the following command to print
 information about the current system.
