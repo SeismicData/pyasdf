@@ -19,19 +19,24 @@ from socket import gethostname
 from time import strftime
 
 import h5py
-from mpi4py import MPI
+try:
+    from mpi4py import MPI
+except ImportError:
+    MPI = None
 
 from .utils import is_multiprocessing_problematic
 
 # Dependencies.
-modules = ["numpy", "scipy", "obspy", "lxml", "mpi4py", "h5py"]
+modules = ["numpy", "scipy", "obspy", "lxml", "h5py"]
+if MPI:
+    modules.append("mpi4py")
 
 
 def get_watermark():
     """
     Return information about the current system relevant for pyasdf.
     """
-    vendor = MPI.get_vendor()
+    vendor = MPI.get_vendor() if MPI else None
 
     watermark = {
         "python_implementation": platform.python_implementation(),
@@ -50,12 +55,15 @@ def get_watermark():
         "timezone": strftime('%Z'),
         "hdf5_version": h5py.version.hdf5_version,
         "parallel_h5py": hasattr(h5py.get_config(), "mpi"),
-        "mpi_vendor": vendor[0],
-        "mpi_vendor_version": ".".join(map(str, vendor[1])),
+        "mpi_vendor": vendor[0] if vendor else None,
+        "mpi_vendor_version": ".".join(map(str, vendor[1]))
+        if vendor else None,
         "problematic_multiprocessing": is_multiprocessing_problematic()
         }
 
     watermark["module_versions"] = {
         module: get_distribution(module).version for module in modules}
+    if MPI is None:
+        watermark["module_versions"]["mpi4py"] = None
 
     return watermark
