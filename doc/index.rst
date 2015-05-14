@@ -162,9 +162,18 @@ amounts of data. There are a couple of subtleties to keep in mind here:
 **Adding Station Information:**
 
 The last step to create a very basic ASDF file is to add station information
-which is fairly straightforward. Please keep in mind that this will
-potentially rearrange and split the StationXML files to fit within the
-structure imposed by the ASDF format.
+which is fairly straightforward.
+
+
+.. note::
+
+    Please keep in mind that this will potentially rearrange and split the
+    StationXML files to fit within the structure imposed by the ASDF format.
+    StationXML can store any number and combination of networks, stations,
+    and channels whereas ASDF requires a **separate StationXML file per
+    station**. ``pyasdf`` will thus split up files if necessary and also
+    merge them with any possibly already existing StationXML files.
+
 
 .. code-block:: python
 
