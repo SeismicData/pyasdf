@@ -802,7 +802,8 @@ class ASDFDataSet(object):
                     hasattr(trace.stats.asdf, name):
                 obj = str(getattr(trace.stats.asdf, name).id)
             if obj:
-                info["dataset_attrs"][name] = str(obj)
+                info["dataset_attrs"][name] = \
+                    self._zeropad_ascii_string(str(obj))
 
         return info
 
