@@ -155,8 +155,7 @@ class ASDFDataSet(object):
         try:
             self._flush()
             self._close()
-        # Value Error is raised if the file has already been closed.
-        except ValueError:
+        except (ValueError, TypeError):
             pass
 
     def __eq__(self, other):
