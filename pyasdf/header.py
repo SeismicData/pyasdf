@@ -46,7 +46,7 @@ COMPRESSIONS = {
 
 
 FORMAT_NAME = "ASDF"
-FORMAT_VERSION = "0.0.1b"
+FORMAT_VERSION = "0.0.2"
 
 # MPI message tags used for communication.
 MSG_TAGS = [
