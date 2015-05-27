@@ -506,7 +506,8 @@ class ASDFDataSet(object):
         for name in ids:
             if name in data.attrs:
                 setattr(details, name,
-                        obspy.core.event.ResourceIdentifier(data.attrs[name]))
+                        obspy.core.event.ResourceIdentifier(
+                            data.attrs[name].tostring().decode()))
         return tr
 
     def _get_auxiliary_data(self, data_type, tag):
