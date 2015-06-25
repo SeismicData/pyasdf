@@ -155,7 +155,7 @@ class ASDFDataSet(object):
         try:
             self._flush()
             self._close()
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, AttributeError):
             pass
 
     def __eq__(self, other):
