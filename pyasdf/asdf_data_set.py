@@ -20,6 +20,7 @@ import io
 import itertools
 import math
 import os
+import sys
 import time
 import warnings
 
@@ -31,10 +32,19 @@ import h5py
 try:
     filter = itertools.ifilter
 except AttributeError:
-    pass
+    # Python 3 is a bit more aggressive when buffering warnings but here it
+    # is fairly important that they are shown, thus we monkey-patch it to
+    # flush stderr afterwards.
+    def get_warning_fct():
+        closure_warn = warnings.warn
+        def __warn(self, *args, **kwargs):
+            closure_warn(self, *args, **kwargs)
+            sys.stderr.flush()
+        return __warn
+    warnings.warn = get_warning_fct()
 
 
-from .header import ASDFException, ASDFWarnings, COMPRESSIONS, FORMAT_NAME, \
+from .header import ASDFException, ASDFWarning, COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
@@ -92,7 +102,7 @@ class ASDFDataSet(object):
         if self.__compression[0] and self.mpi:
             msg = "Compression will be disabled as parallel HDF5 does not " \
                   "support compression"
-            warnings.warn(msg)
+            warnings.warn(msg, ASDFWarning)
             self.__compression = COMPRESSIONS[None]
 
         # Open file or take an already open HDF5 file object.
@@ -114,7 +124,7 @@ class ASDFDataSet(object):
                 msg = ("No file format version given for file '%s'. The "
                        "program will continue but the result is undefined." %
                        self.filename)
-                warnings.warn(msg, ASDFWarnings)
+                warnings.warn(msg, ASDFWarning)
             elif self.__file.attrs["file_format_version"].decode() != \
                     FORMAT_VERSION:
                 msg = ("The file '%s' has version number '%s'. The reader "
@@ -123,7 +133,7 @@ class ASDFDataSet(object):
                            self.filename,
                            self.__file.attrs["file_format_version"],
                            FORMAT_VERSION))
-                warnings.warn(msg, ASDFWarnings)
+                warnings.warn(msg, ASDFWarning)
         else:
             self.__file.attrs["file_format"] = \
                 self._zeropad_ascii_string(FORMAT_NAME)
@@ -369,7 +379,7 @@ class ASDFDataSet(object):
         if group_name in self._auxiliary_data_group:
             msg = "Data '%s' already exists in file. Will not be added!" % \
                   group_name
-            warnings.warn(msg, ASDFWarnings)
+            warnings.warn(msg, ASDFWarning)
             return
 
         # XXX: Figure out why this is necessary. It should work according to
@@ -775,7 +785,7 @@ class ASDFDataSet(object):
         if group_name in self._waveform_group:
             msg = "Data '%s' already exists in file. Will not be added!" % \
                   group_name
-            warnings.warn(msg, ASDFWarnings)
+            warnings.warn(msg, ASDFWarning)
             return
 
         # XXX: Figure out why this is necessary. It should work according to

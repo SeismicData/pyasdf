@@ -17,7 +17,7 @@ class ASDFException(Exception):
     pass
 
 
-class ASDFWarnings(UserWarning):
+class ASDFWarning(UserWarning):
     """
     Generic ASDF warning.
     """

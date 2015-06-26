@@ -405,7 +405,9 @@ def _pretty_log(prefix, first, second, tag, payload):
         colorama.Fore.MAGENTA,
     )
 
-    tags = [i for i in MSG_TAGS.keys() if isinstance(i, (str, bytes))]
+    # Deterministic colors also on Python 3.
+    msg_tag_keys = sorted(MSG_TAGS.keys(), key=lambda x: str(x))
+    tags = [i for i in msg_tag_keys if isinstance(i, (str, bytes))]
 
     tag = MSG_TAGS[tag]
     tag = tag_colors[tags.index(tag) % len(tag_colors)] + tag + \
