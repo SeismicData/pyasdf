@@ -38,6 +38,12 @@ def get_watermark():
     """
     vendor = MPI.get_vendor() if MPI else None
 
+    c = h5py.get_config()
+    if not hasattr(c, "mpi") or not c.mpi:
+        is_parallel = False
+    else:
+        is_parallel = True
+
     watermark = {
         "python_implementation": platform.python_implementation(),
         "python_version": platform.python_version(),
@@ -54,7 +60,7 @@ def get_watermark():
         "time": strftime('%H:%M:%S'),
         "timezone": strftime('%Z'),
         "hdf5_version": h5py.version.hdf5_version,
-        "parallel_h5py": hasattr(h5py.get_config(), "mpi"),
+        "parallel_h5py": is_parallel,
         "mpi_vendor": vendor[0] if vendor else None,
         "mpi_vendor_version": ".".join(map(str, vendor[1]))
         if vendor else None,

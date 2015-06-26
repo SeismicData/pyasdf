@@ -260,8 +260,15 @@ class ASDFDataSet(object):
         # If it actually is an mpi environment, set the communicator and the
         # rank.
         if self.__is_mpi:
+
             # Check if HDF5 has been complied with parallel I/O.
-            if not h5py.get_config().mpi:
+            c = h5py.get_config()
+            if not hasattr(c, "mpi") or not c.mpi:
+                is_parallel = False
+            else:
+                is_parallel = True
+
+            if not is_parallel:
                 msg = "Running under MPI requires HDF5/h5py to be complied " \
                       "with support for parallel I/O."
                 raise RuntimeError(msg)
