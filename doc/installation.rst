@@ -32,6 +32,12 @@ with ``conda``:
 Dependencies for the parallel I/O version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. admonition:: A note of Warnings
+
+    There currently are some issues in combination of Python 3 and MPI so if
+    you want to utilize parallel I/O best stick to Python 2.7 for now.
+
+
 The version with parallel I/O support is a bit more difficult as the ``h5py``
 installable via ``conda`` has no parallel I/O support.
 
