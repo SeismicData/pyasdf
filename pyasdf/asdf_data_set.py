@@ -27,6 +27,13 @@ import numpy as np
 import h5py
 
 
+# Minimum compatibility wrapper between Python 2 and 3.
+try:
+    filter = itertools.ifilter
+except AttributeError:
+    pass
+
+
 from .header import ASDFException, ASDFWarnings, COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
@@ -1286,8 +1293,8 @@ class ASDFDataSet(object):
 
         data = self.mpi.comm.allgather(sendobj=sendobj)
         # Chain and remove None.
-        trace_info = itertools.ifilter(lambda x: x is not None,
-                                       itertools.chain.from_iterable(data))
+        trace_info = filter(lambda x: x is not None,
+                            itertools.chain.from_iterable(data))
         # Write collective part.
         for info in trace_info:
             output_dataset._add_trace_write_collective_information(info)

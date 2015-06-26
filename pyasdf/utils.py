@@ -243,12 +243,18 @@ class StreamBuffer(collections.MutableMapping):
     def keys(self):
         return self.__streams.keys()
 
+    def __len__(self):
+        return len(self.__streams)
+
+    def __iter__(self):
+        return iter(self.__streams)
+
     def get_size(self):
         """
         Try to approximate the size of all stores Stream object.
         """
         cum_size = 0
-        for stream in self.__streams.itervalues():
+        for stream in self.__streams.values():
             cum_size += sys.getsizeof(stream)
             for trace in stream:
                 cum_size += sys.getsizeof(trace)
