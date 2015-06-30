@@ -22,7 +22,8 @@ before_install:
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
-  - conda install --yes -c obspy obspy python=$TRAVIS_PYTHON_VERSION
+  # NOTE: Remove nose when matplotlib/matplotlib#4188 is fixed.
+  - conda install --yes -c obspy obspy python=$TRAVIS_PYTHON_VERSION nose
   # Build docs on Python 2.7 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda install --yes sphinx; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install sphinx-bootstrap-theme; fi
