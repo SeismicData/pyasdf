@@ -2,7 +2,7 @@
 # based on: http://sleepycoders.blogspot.se/2013/03/sharing-travis-ci-generated-files.html
 
 # Only do it if not acting on a pull request.
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+if [ "$TRAVIS_PULL_REQUEST" == "false" -a "$TRAVIS_BRANCH" == "master" ]; then
   # Go to home and setup git
   cd $HOME
   git config --global user.email "travis@travis-ci.org"
