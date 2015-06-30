@@ -7,9 +7,12 @@ python:
 env:
   global:
     secure: "gfu3DCSoUVi/69Dc4cCIHXVYaA6Phgggzs8YL02c6Q/zDQCgiufv2JatRO40cwAu6qqjLXuxoWv+4PbZky0+Mdhn9XLLYq/Fmv4jtWBgTtBxnYxpKqBsLWKT99gDdFbYxm91bf8kg+IaS1S5PXBA3hFkiy0hHrDPPdrNa5CmYgE="
+  matrix:
+    - MPI="openmpi-bin libopenmpi-dev"
+    - MPI=mpich2
 
 before_install:
-  - sudo apt-get install -qq mpich2
+  - sudo apt-get install -qq $MPI
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
@@ -38,4 +41,6 @@ script:
 
 after_success:
   - cd $TRAVIS_BUILD_DIR; coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' -a $MPI == 'mpich2' ]]; then
+      bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ;
+    fi
