@@ -10,9 +10,10 @@ env:
   matrix:
     - MPI="openmpi-bin libopenmpi-dev"
     - MPI=mpich2
+    - MPI=none
 
 before_install:
-  - sudo apt-get install -qq $MPI
+  - if [[ $MPI != 'none' ]]; then sudo apt-get install -qq $MPI; fi
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
@@ -30,7 +31,8 @@ before_install:
   # Build docs on Python 2.7 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda install --yes sphinx; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install sphinx-bootstrap-theme; fi
-  - pip install coveralls mpi4py
+  - pip install coveralls
+  - if [[ $MPI != 'none' ]]; then pip install mpi4py; fi
 
 install:
   - pip install --no-deps -v -e .
