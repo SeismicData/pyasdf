@@ -565,6 +565,9 @@ class ASDFDataSet(object):
                 ", ".join(sorted(dir(self.auxiliary_data))))
         return ret
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.__str__())
+
     def add_waveforms(self, waveform, tag, event_id=None, origin_id=None,
                       magnitude_id=None, focal_mechanism_id=None):
         """
