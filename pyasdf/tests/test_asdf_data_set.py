@@ -512,7 +512,20 @@ def test_accessing_non_existent_tag_raises(example_data_set):
     data_set = ASDFDataSet(example_data_set.filename)
 
     with pytest.raises(WaveformNotInFileException) as excinfo:
-        _t = data_set.waveforms.AE_113A.asdfasdf
+        data_set.waveforms.AE_113A.asdfasdf
 
     assert excinfo.value.message == ("Tag 'asdfasdf' not part of the data "
                                      "set for station 'AE.113A'.")
+
+
+def test_waveform_accessor_printing(example_data_set):
+    """
+    Pretty printing of the waveform accessor proxy objects.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    assert data_set.waveforms.AE_113A.__str__() == (
+        "Contents of the data set for station AE.113A:\n"
+        "    - Has a StationXML file\n"
+        "    - 1 Waveform Tag(s):\n"
+        "         raw_recording")
