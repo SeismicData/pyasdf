@@ -10,20 +10,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 
-class ASDFException(Exception):
-    """
-    Generic exception for the Python ASDF implementation.
-    """
-    pass
-
-
-class ASDFWarning(UserWarning):
-    """
-    Generic ASDF warning.
-    """
-    pass
-
-
 # List all compression options.
 COMPRESSIONS = {
     None: (None, None),

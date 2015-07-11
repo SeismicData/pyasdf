@@ -47,7 +47,8 @@ except AttributeError:
     warnings.warn = get_warning_fct()
 
 
-from .header import ASDFException, ASDFWarning, COMPRESSIONS, FORMAT_NAME, \
+from .exceptions import ASDFException, ASDFWarning
+from .header import COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \

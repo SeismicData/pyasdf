@@ -9,11 +9,12 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-from .asdf_data_set import ASDFDataSet, ASDFException, ASDFWarning
+from .exceptions import ASDFException, ASDFWarning, WaveformNotInFileException
+from .asdf_data_set import ASDFDataSet
 
 
 __all__ = ["__version__", "ASDFDataSet", "ASDFException", "ASDFWarning",
-           "print_sys_info", "get_sys_info"]
+           "WaveformNotInFileException", "print_sys_info", "get_sys_info"]
 
 __version__ = "0.1.x"
 

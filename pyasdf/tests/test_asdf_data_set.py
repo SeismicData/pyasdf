@@ -21,6 +21,7 @@ import obspy
 import pytest
 
 from pyasdf import ASDFDataSet
+from pyasdf.exceptions import WaveformNotInFileException
 from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
 
 
@@ -271,9 +272,9 @@ def test_dot_accessors(example_data_set):
     # Get the contents, this also asserts that tab completions works.
     assert sorted(dir(data_set.waveforms)) == ["AE_113A", "TA_POKR"]
     assert sorted(dir(data_set.waveforms.AE_113A)) == \
-        ["StationXML", "raw_recording"]
+        ["StationXML", "_station_name", "raw_recording"]
     assert sorted(dir(data_set.waveforms.TA_POKR)) == \
-        ["StationXML", "raw_recording"]
+        ["StationXML", "_station_name", "raw_recording"]
 
     # Actually check the contents.
     waveform = data_set.waveforms.AE_113A.raw_recording.sort()
@@ -502,3 +503,16 @@ def test_looping_over_stations(example_data_set):
 
     stations = ["AE.113A", "TA.POKR"]
     assert sorted([_i._station_name for _i in data_set.waveforms]) == stations
+
+
+def test_accessing_non_existent_tag_raises(example_data_set):
+    """
+    Accessing a non-existing station should raise.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    with pytest.raises(WaveformNotInFileException) as excinfo:
+        _t = data_set.waveforms.AE_113A.asdfasdf
+
+    assert excinfo.value.message == ("Tag 'asdfasdf' not part of the data "
+                                     "set for station 'AE.113A'.")

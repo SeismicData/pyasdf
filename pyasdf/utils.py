@@ -19,6 +19,7 @@ import weakref
 import numpy as np
 import obspy
 
+from .exceptions import WaveformNotInFileException
 from .header import MSG_TAGS
 
 # Tuple holding a the body of a received message.
@@ -190,6 +191,15 @@ class WaveformAccessor(object):
             __station = self.__data_set()._waveform_group[self._station_name]
             keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
+
+            if not keys:
+                # Important as __del__() for the waveform group is otherwise
+                # not always called.
+                del __station
+                raise WaveformNotInFileException(
+                    "Tag '%s' not part of the data set for station '%s'." % (
+                        item, self._station_name))
+
             traces = [self.__data_set()._get_waveform(_i) for _i in keys]
             return obspy.Stream(traces=traces)
         else:
