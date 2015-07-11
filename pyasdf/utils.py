@@ -215,6 +215,28 @@ class WaveformAccessor(object):
                           if _i != "StationXML"])
         return sorted(set(directory))
 
+    def __str__(self):
+        contents = self.__dir__()
+        waveform_contents = [_i for _i in contents if _i not in [
+                             "StationXML", "_station_name"]]
+
+        ret_str = (
+            "Contents of the data set for station {station}:\n"
+            "    - {station_xml}\n"
+            "    - {count} Waveform Tag(s):\n"
+            "         {waveforms}"
+        )
+        return ret_str.format(
+            station=self._station_name,
+            station_xml="Has a StationXML file" if "StationXML" in contents
+            else "Has no StationXML file",
+            count=len(waveform_contents),
+            waveforms="\n        ".join(waveform_contents)
+        )
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.__str__())
+
 
 def is_mpi_env():
     """
