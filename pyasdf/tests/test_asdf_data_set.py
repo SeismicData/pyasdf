@@ -492,3 +492,13 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     aux_data.data_type == data_type
     aux_data.tag == tag
     aux_data.parameters == parameters
+
+
+def test_looping_over_stations(example_data_set):
+    """
+    Tests that iterating over the stations of a dataset works as expected.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    stations = ["AE.113A", "TA.POKR"]
+    assert sorted([_i._station_name for _i in data_set.waveforms]) == stations

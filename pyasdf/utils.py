@@ -170,6 +170,10 @@ class StationAccessor(object):
     def __len__(self):
         return len(self.__dir__())
 
+    def __iter__(self):
+        for _i in self.__dir__():
+            yield getattr(self, _i.replace("_", "."))
+
 
 class WaveformAccessor(object):
     """
@@ -178,22 +182,22 @@ class WaveformAccessor(object):
     def __init__(self, station_name, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
         # file around.
-        self.__station_name = station_name
+        self._station_name = station_name
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __getattr__(self, item):
         if item != "StationXML":
-            __station = self.__data_set()._waveform_group[self.__station_name]
+            __station = self.__data_set()._waveform_group[self._station_name]
             keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
             traces = [self.__data_set()._get_waveform(_i) for _i in keys]
             return obspy.Stream(traces=traces)
         else:
-            return self.__data_set()._get_station(self.__station_name)
+            return self.__data_set()._get_station(self._station_name)
 
     def __dir__(self):
-        __station = self.__data_set()._waveform_group[self.__station_name]
-        directory = []
+        __station = self.__data_set()._waveform_group[self._station_name]
+        directory = ["_station_name"]
         if "StationXML" in __station:
             directory.append("StationXML")
         directory.extend([_i.split("__")[-1]
