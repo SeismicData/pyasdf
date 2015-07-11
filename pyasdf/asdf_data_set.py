@@ -544,17 +544,30 @@ class ASDFDataSet(object):
             data=group, data_type=data_type, tag=tag,
             parameters={i: j for i, j in group.attrs.items()})
 
+    @property
+    def filesize(self):
+        """
+        Return the current size of the file.
+        """
+        return os.path.getsize(self.filename)
+
+    @property
+    def pretty_filesize(self):
+        """
+        Return a pretty string representation of the size of the file.
+        """
+        return sizeof_fmt(self.filesize)
+
     def __str__(self):
         """
         Pretty string formatting.
         """
-        filesize = sizeof_fmt(os.path.getsize(self.filename))
         ret = "{format} file [format version: {version}]: '{filename}' ({" \
               "size})".format(
                   format=FORMAT_NAME,
                   version=self.asdf_format_version,
                   filename=os.path.relpath(self.filename),
-                  size=filesize)
+                  size=self.filesize)
         ret += "\n\tContains %i event(s)" % len(self.events)
         ret += "\n\tContains waveform data from {len} station(s).".format(
             len=len(self.__file["Waveforms"])
