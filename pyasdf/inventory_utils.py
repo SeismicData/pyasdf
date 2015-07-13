@@ -188,7 +188,7 @@ def get_coordinates(data, level="station"):
                 station_coordinates = {}
                 for child in elem.getchildren():
                     if child.tag == latitude_tag:
-                        station_coordinates["latitutde"] = float(child.text)
+                        station_coordinates["latitude"] = float(child.text)
                     elif child.tag == longitude_tag:
                         station_coordinates["longitude"] = float(child.text)
                     elif child.tag == elevation_tag:
@@ -227,7 +227,7 @@ def get_coordinates(data, level="station"):
 
                 for child in elem.getchildren():
                     if child.tag == latitude_tag:
-                        channel_coordinates["latitutde"] = float(child.text)
+                        channel_coordinates["latitude"] = float(child.text)
                     elif child.tag == longitude_tag:
                         channel_coordinates["longitude"] = float(child.text)
                     elif child.tag == elevation_tag:

@@ -103,13 +103,13 @@ def test_quick_coordinate_extraction():
 
     assert coords == {
         'BW.RJOB': {'elevation_in_m': 860.0,
-                    'latitutde': 47.737167,
+                    'latitude': 47.737167,
                     'longitude': 12.795714},
         'GR.FUR': {'elevation_in_m': 565.0,
-                   'latitutde': 48.162899,
+                   'latitude': 48.162899,
                    'longitude': 11.2752},
         'GR.WET': {'elevation_in_m': 613.0,
-                   'latitutde': 49.144001,
+                   'latitude': 49.144001,
                    'longitude': 12.8782}}
 
     # Test at the channel level. These are then time dependent.
@@ -129,19 +129,19 @@ def test_quick_coordinate_extraction():
     assert coords["BW.RJOB..EHE"] == [
         {'elevation_in_m': 860.0,
          'endtime': UTCDateTime(2006, 12, 12, 0, 0),
-         'latitutde': 47.737167,
+         'latitude': 47.737167,
          'local_depth_in_m': 0.0,
          'longitude': 12.795714,
          'starttime': UTCDateTime(2001, 5, 15, 0, 0)},
         {'elevation_in_m': 860.0,
          'endtime': UTCDateTime(2007, 12, 17, 0, 0),
-         'latitutde': 47.737167,
+         'latitude': 47.737167,
          'local_depth_in_m': 0.0,
          'longitude': 12.795714,
          'starttime': UTCDateTime(2006, 12, 13, 0, 0)},
         {'elevation_in_m': 860.0,
          'endtime': None,
-         'latitutde': 47.737167,
+         'latitude': 47.737167,
          'local_depth_in_m': 0.0,
          'longitude': 12.795714,
          'starttime': UTCDateTime(2007, 12, 17, 0, 0)}]

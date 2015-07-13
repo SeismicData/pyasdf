@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import collections
+import io
 import os
 import sys
 import time
@@ -19,8 +20,10 @@ import weakref
 import numpy as np
 import obspy
 
-from .exceptions import WaveformNotInFileException
+from .exceptions import (WaveformNotInFileException, NoStationXMLForStation,
+                         ASDFValueError)
 from .header import MSG_TAGS
+from .inventory_utils import get_coordinates
 
 # Tuple holding a the body of a received message.
 ReceivedMessage = collections.namedtuple("ReceivedMessage", ["data"])
@@ -186,6 +189,34 @@ class WaveformAccessor(object):
         self._station_name = station_name
         self.__data_set = weakref.ref(asdf_data_set)
 
+    @property
+    def coordinates(self):
+        """
+        Get coordinates of the station if any.
+        """
+        coords = self.__get_coordinates(level="station")
+        if self._station_name not in coords:
+            raise ASDFValueError("StationXML file has no coordinates for "
+                                 "station '%s'." % self._station_name)
+        return coords[self._station_name]
+
+    def __get_coordinates(self, level):
+        """
+        Helper function.
+        """
+        station = self.__data_set()._waveform_group[self._station_name]
+        if "StationXML" not in station:
+            raise NoStationXMLForStation("Station '%s' has no StationXML "
+                                         "file." % self._station_name)
+        try:
+            with io.BytesIO(station["StationXML"].value.tostring()) as buf:
+                coordinates = get_coordinates(buf, level=level)
+        finally:
+            # HDF5 reference are tricky...
+            del station
+
+        return coordinates
+
     def __getattr__(self, item):
         if item != "StationXML":
             __station = self.__data_set()._waveform_group[self._station_name]
@@ -207,7 +238,7 @@ class WaveformAccessor(object):
 
     def __dir__(self):
         __station = self.__data_set()._waveform_group[self._station_name]
-        directory = ["_station_name"]
+        directory = ["_station_name", "coordinates"]
         if "StationXML" in __station:
             directory.append("StationXML")
         directory.extend([_i.split("__")[-1]

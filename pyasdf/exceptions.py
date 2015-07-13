@@ -24,6 +24,20 @@ class WaveformNotInFileException(ASDFException):
     pass
 
 
+class NoStationXMLForStation(ASDFException):
+    """
+    Raised when a station has no associated StationXML file.
+    """
+    pass
+
+
+class ASDFValueError(ASDFException, ValueError):
+    """
+    ASDF specific value error.
+    """
+    pass
+
+
 class ASDFWarning(UserWarning):
     """
     Generic ASDF warning.
