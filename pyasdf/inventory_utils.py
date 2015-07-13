@@ -243,27 +243,3 @@ def get_coordinates(data, level="station"):
         return dict(coordinates)
     else:
         raise ValueError("Level must be either 'station' or 'channel'.")
-
-    # Small state machine.
-    net_state, sta_state = [None, None]
-
-    tags = (network_tag, station_tag, channel_tag)
-    context = etree.iterparse(data, events=("start", ), tag=tags)
-
-    for _, elem in context:
-        if elem.tag == channel_tag:
-            channel = elem.get('code')
-            location = elem.get('locationCode').strip()
-            starttime = UTCDateTime(elem.get('startDate')).timestamp
-            endtime = elem.get('endDate')
-            if endtime:
-                endtime = UTCDateTime(endtime).timestamp
-            final_results["channels"][(
-                net_state, sta_state, location, channel, starttime,
-                endtime)] = elem
-        elif elem.tag == station_tag:
-            sta_state = elem.get('code')
-            final_results["stations"][(net_state, sta_state)] = elem
-        elif elem.tag == network_tag:
-            net_state = elem.get('code')
-            final_results["networks"][net_state] = elem
