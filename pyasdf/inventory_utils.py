@@ -11,7 +11,10 @@ Utilities for dealing with inventory objects.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import collections
 import copy
+from lxml import etree
+from obspy import UTCDateTime
 
 
 def merge_inventories(inv_a, inv_b, network_id, station_id):
@@ -153,3 +156,114 @@ def isolate_and_merge_station(inv, network_id, station_id):
     inv[0][0].selected_number_of_channels = len(inv[0][0].channels)
 
     return inv
+
+
+def get_coordinates(data, level="station"):
+    """
+    Very quick way to get coordinates from a StationXML file.
+
+    Can extract coordinates at the station and at the channel level.
+    """
+    ns = "http://www.fdsn.org/xml/station/1"
+    network_tag = "{%s}Network" % ns
+    station_tag = "{%s}Station" % ns
+    channel_tag = "{%s}Channel" % ns
+    latitude_tag = "{%s}Latitude" % ns
+    longitude_tag = "{%s}Longitude" % ns
+    elevation_tag = "{%s}Elevation" % ns
+    depth_tag = "{%s}Depth" % ns
+
+    # Return station coordinates.
+    if level == "station":
+        coordinates = {}
+
+        # Small state machine.
+        net_state = None
+
+        tags = (network_tag, station_tag)
+        context = etree.iterparse(data, events=("start", ), tag=tags)
+
+        for _, elem in context:
+            if elem.tag == station_tag:
+                station_coordinates = {}
+                for child in elem.getchildren():
+                    if child.tag == latitude_tag:
+                        station_coordinates["latitutde"] = float(child.text)
+                    elif child.tag == longitude_tag:
+                        station_coordinates["longitude"] = float(child.text)
+                    elif child.tag == elevation_tag:
+                        station_coordinates["elevation_in_m"] = float(
+                            child.text)
+                coordinates["%s.%s" % (net_state, elem.get("code"))] = \
+                    station_coordinates
+            elif elem.tag == network_tag:
+                net_state = elem.get('code')
+        return coordinates
+
+    # Return channel coordinates.
+    elif level == "channel":
+        coordinates = collections.defaultdict(list)
+
+        # Small state machine.
+        net_state, sta_state = (None, None)
+
+        tags = (network_tag, station_tag, channel_tag)
+        context = etree.iterparse(data, events=("start", ), tag=tags)
+
+        for _, elem in context:
+            if elem.tag == channel_tag:
+                # Get basics.
+                channel = elem.get('code')
+                location = elem.get('locationCode').strip()
+                starttime = UTCDateTime(elem.get('startDate'))
+                endtime = elem.get('endDate')
+                if endtime:
+                    endtime = UTCDateTime(endtime)
+
+                tag = "%s.%s.%s.%s" % (net_state, sta_state, location, channel)
+                channel_coordinates = {"starttime": starttime,
+                                       "endtime": endtime}
+                coordinates[tag].append(channel_coordinates)
+
+                for child in elem.getchildren():
+                    if child.tag == latitude_tag:
+                        channel_coordinates["latitutde"] = float(child.text)
+                    elif child.tag == longitude_tag:
+                        channel_coordinates["longitude"] = float(child.text)
+                    elif child.tag == elevation_tag:
+                        channel_coordinates["elevation_in_m"] = float(
+                            child.text)
+                    elif child.tag == depth_tag:
+                        channel_coordinates["local_depth_in_m"] = float(
+                            child.text)
+            elif elem.tag == station_tag:
+                sta_state = elem.get('code')
+            elif elem.tag == network_tag:
+                net_state = elem.get('code')
+        return dict(coordinates)
+    else:
+        raise ValueError("Level must be either 'station' or 'channel'.")
+
+    # Small state machine.
+    net_state, sta_state = [None, None]
+
+    tags = (network_tag, station_tag, channel_tag)
+    context = etree.iterparse(data, events=("start", ), tag=tags)
+
+    for _, elem in context:
+        if elem.tag == channel_tag:
+            channel = elem.get('code')
+            location = elem.get('locationCode').strip()
+            starttime = UTCDateTime(elem.get('startDate')).timestamp
+            endtime = elem.get('endDate')
+            if endtime:
+                endtime = UTCDateTime(endtime).timestamp
+            final_results["channels"][(
+                net_state, sta_state, location, channel, starttime,
+                endtime)] = elem
+        elif elem.tag == station_tag:
+            sta_state = elem.get('code')
+            final_results["stations"][(net_state, sta_state)] = elem
+        elif elem.tag == network_tag:
+            net_state = elem.get('code')
+            final_results["networks"][net_state] = elem
