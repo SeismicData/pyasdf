@@ -583,3 +583,21 @@ def test_coordinate_extraction_channel_level(example_data_set):
     assert sorted(data_set.waveforms.TA_POKR.channel_coordinates.keys()) == \
         sorted(['TA.POKR.01.BHZ', 'TA.POKR..BHE', 'TA.POKR..BHZ',
                 'TA.POKR..BHN', 'TA.POKR.01.BHN', 'TA.POKR.01.BHE'])
+
+
+def test_extract_all_coordinates(example_data_set):
+    """
+    Tests the extraction of all coordinates.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    assert data_set.get_all_coordinates() == {
+       "AE.113A": {
+           "latitude": 32.7683,
+           "longitude": -113.7667,
+           "elevation_in_m": 118.0},
+
+       "TA.POKR": {
+        "latitude": 65.1171,
+        "longitude": -147.4335,
+        "elevation_in_m": 501.0}}

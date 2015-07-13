@@ -1479,3 +1479,12 @@ class ASDFDataSet(object):
         if self.debug:
             pretty_receiver_log(source, self.mpi.rank, tag, msg)
         return msg
+
+    def get_all_coordinates(self):
+        """
+        Get a dictionary of the coordinates of all stations.
+        """
+        coords = {}
+        for station in self.waveforms:
+            coords[station._station_name] = station.coordinates
+        return coords
