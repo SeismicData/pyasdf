@@ -272,9 +272,9 @@ def test_dot_accessors(example_data_set):
     # Get the contents, this also asserts that tab completions works.
     assert sorted(dir(data_set.waveforms)) == ["AE_113A", "TA_POKR"]
     assert sorted(dir(data_set.waveforms.AE_113A)) == \
-        ["StationXML", "_station_name", "raw_recording"]
+        sorted(["StationXML", "_station_name", "raw_recording", "coordinates"])
     assert sorted(dir(data_set.waveforms.TA_POKR)) == \
-        ["StationXML", "_station_name", "raw_recording"]
+        sorted(["StationXML", "_station_name", "raw_recording", "coordinates"])
 
     # Actually check the contents.
     waveform = data_set.waveforms.AE_113A.raw_recording.sort()
@@ -529,3 +529,20 @@ def test_waveform_accessor_printing(example_data_set):
         "    - Has a StationXML file\n"
         "    - 1 Waveform Tag(s):\n"
         "         raw_recording")
+
+
+def test_coordinate_extraction(example_data_set):
+    """
+    Tests the quick coordinate extraction.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    assert data_set.waveforms.AE_113A.coordinates == {
+        'latitude': 32.7683,
+        'longitude': -113.7667,
+        'elevation_in_m': 118.0}
+
+    assert data_set.waveforms.TA_POKR.coordinates == {
+        'latitude': 65.1171,
+        'longitude': -147.4335,
+        'elevation_in_m': 501.0}

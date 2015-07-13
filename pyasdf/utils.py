@@ -249,7 +249,7 @@ class WaveformAccessor(object):
     def __str__(self):
         contents = self.__dir__()
         waveform_contents = [_i for _i in contents if _i not in [
-                             "StationXML", "_station_name"]]
+                             "StationXML", "_station_name", "coordinates"]]
 
         ret_str = (
             "Contents of the data set for station {station}:\n"
