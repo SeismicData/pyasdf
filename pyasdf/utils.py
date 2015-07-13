@@ -200,6 +200,21 @@ class WaveformAccessor(object):
                                  "station '%s'." % self._station_name)
         return coords[self._station_name]
 
+    @property
+    def channel_coordinates(self):
+        """
+        Get coordinates of the station at the channel level if any.
+        """
+        coords = self.__get_coordinates(level="channel")
+        # Filter to only keep channels with the current station name.
+        coords = {key: value for key, value in coords.items()
+                  if key.startswith(self._station_name + ".")}
+        if not(coords):
+            raise ASDFValueError("StationXML file has no coordinates at "
+                                 "the channel level for station '%s'." %
+                                 self._station_name)
+        return coords
+
     def __get_coordinates(self, level):
         """
         Helper function.
