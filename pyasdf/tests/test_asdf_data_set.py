@@ -18,6 +18,7 @@ import os
 import h5py
 import numpy as np
 import obspy
+from obspy import UTCDateTime
 import pytest
 
 from pyasdf import ASDFDataSet
@@ -272,9 +273,11 @@ def test_dot_accessors(example_data_set):
     # Get the contents, this also asserts that tab completions works.
     assert sorted(dir(data_set.waveforms)) == ["AE_113A", "TA_POKR"]
     assert sorted(dir(data_set.waveforms.AE_113A)) == \
-        sorted(["StationXML", "_station_name", "raw_recording", "coordinates"])
+        sorted(["StationXML", "_station_name", "raw_recording",
+                "coordinates", "channel_coordinates"])
     assert sorted(dir(data_set.waveforms.TA_POKR)) == \
-        sorted(["StationXML", "_station_name", "raw_recording", "coordinates"])
+        sorted(["StationXML", "_station_name", "raw_recording",
+                "coordinates", "channel_coordinates"])
 
     # Actually check the contents.
     waveform = data_set.waveforms.AE_113A.raw_recording.sort()
@@ -546,3 +549,37 @@ def test_coordinate_extraction(example_data_set):
         'latitude': 65.1171,
         'longitude': -147.4335,
         'elevation_in_m': 501.0}
+
+
+def test_coordinate_extraction_channel_level(example_data_set):
+    """
+    Tests the quick coordinate extraction at the channel level.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    assert data_set.waveforms.AE_113A.channel_coordinates == {
+        'AE.113A..BHE': [{
+            'elevation_in_m': 118.0,
+            'endtime': UTCDateTime(2599, 12, 31, 23, 59, 59),
+            'latitude': 32.7683,
+            'local_depth_in_m': 0.0,
+            'longitude': -113.7667,
+            'starttime': UTCDateTime(2011, 12, 1, 0, 0)}],
+        'AE.113A..BHN': [{
+            'elevation_in_m': 118.0,
+            'endtime': UTCDateTime(2599, 12, 31, 23, 59, 59),
+            'latitude': 32.7683,
+            'local_depth_in_m': 0.0,
+            'longitude': -113.7667,
+            'starttime': UTCDateTime(2011, 12, 1, 0, 0)}],
+        'AE.113A..BHZ': [{
+            'elevation_in_m': 118.0,
+            'endtime': UTCDateTime(2599, 12, 31, 23, 59, 59),
+            'latitude': 32.7683,
+            'local_depth_in_m': 0.0,
+            'longitude': -113.7667,
+            'starttime': UTCDateTime(2011, 12, 1, 0, 0)}]}
+
+    assert sorted(data_set.waveforms.TA_POKR.channel_coordinates.keys()) == \
+        sorted(['TA.POKR.01.BHZ', 'TA.POKR..BHE', 'TA.POKR..BHZ',
+                'TA.POKR..BHN', 'TA.POKR.01.BHN', 'TA.POKR.01.BHE'])

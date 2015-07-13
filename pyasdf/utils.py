@@ -253,7 +253,7 @@ class WaveformAccessor(object):
 
     def __dir__(self):
         __station = self.__data_set()._waveform_group[self._station_name]
-        directory = ["_station_name", "coordinates"]
+        directory = ["_station_name", "coordinates", "channel_coordinates"]
         if "StationXML" in __station:
             directory.append("StationXML")
         directory.extend([_i.split("__")[-1]
@@ -264,7 +264,8 @@ class WaveformAccessor(object):
     def __str__(self):
         contents = self.__dir__()
         waveform_contents = [_i for _i in contents if _i not in [
-                             "StationXML", "_station_name", "coordinates"]]
+                             "StationXML", "_station_name", "coordinates",
+                             "channel_coordinates"]]
 
         ret_str = (
             "Contents of the data set for station {station}:\n"
