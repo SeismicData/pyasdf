@@ -514,7 +514,7 @@ def test_accessing_non_existent_tag_raises(example_data_set):
     with pytest.raises(WaveformNotInFileException) as excinfo:
         data_set.waveforms.AE_113A.asdfasdf
 
-    assert excinfo.value.message == ("Tag 'asdfasdf' not part of the data "
+    assert excinfo.value.args[0] == ("Tag 'asdfasdf' not part of the data "
                                      "set for station 'AE.113A'.")
 
 
