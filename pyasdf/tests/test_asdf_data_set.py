@@ -634,6 +634,13 @@ def test_adding_a_provenance_record(tmpdir):
 
     filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
 
-    # First try adding it as a prov document.
+    # Add it as a document.
     doc = prov.read(filename, format="xml")
     data_set.add_provenance_document(doc, name="test_provenance")
+    data_set.flush()
+    data_set.__del__()
+    del data_set
+
+    # Read it again.
+    data_set = ASDFDataSet(asdf_filename)
+    assert data_set.provenance.test_provenance == doc

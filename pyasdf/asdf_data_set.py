@@ -55,7 +55,8 @@ from .header import COMPRESSIONS, FORMAT_NAME, \
     PROV_FILENAME_REGEX
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
-    AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing
+    AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
+    ProvenanceAccessor
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -158,6 +159,7 @@ class ASDFDataSet(object):
         # Easy access to the waveforms.
         self.waveforms = StationAccessor(self)
         self.auxiliary_data = AuxiliaryDataGroupAccessor(self)
+        self.provenance = ProvenanceAccessor(self)
 
         # Create the QuakeML data set if it does not exist.
         if "QuakeML" not in self.__file:
@@ -177,7 +179,7 @@ class ASDFDataSet(object):
         all cases.
         """
         try:
-            self._flush()
+            self.flush()
             self._close()
         except (ValueError, TypeError, AttributeError):
             pass
@@ -215,7 +217,7 @@ class ASDFDataSet(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def _flush(self):
+    def flush(self):
         """
         Flush the underlying HDF5 file.
         """
@@ -755,6 +757,16 @@ class ASDFDataSet(object):
             self._add_trace_write_collective_information(info)
             self._add_trace_write_independent_information(info, trace)
 
+    def get_provenance_document(self, document_name):
+        if document_name not in self._provenance_group:
+            raise ASDFValueError(
+                "Provenance document '%s' not found in file." % document_name)
+
+        data = self._provenance_group[document_name]
+
+        with io.BytesIO(data.value.tostring()) as buf:
+            doc = prov.read(buf, format="xml")
+        return doc
 
     def add_provenance_document(self, document, name=None):
         """
@@ -798,7 +810,6 @@ class ASDFDataSet(object):
                 name, data=data,
                 maxshape=(None,),
                 fletcher32=True)
-
 
     def _add_trace_write_independent_information(self, info, trace):
         """
@@ -1398,9 +1409,9 @@ class ASDFDataSet(object):
         # Make sure all HDF5 file handles are closed before fork() is called.
         # Might become irrelevant if the HDF5 library sees some changes but
         # right now it is necessary.
-        self._flush()
+        self.flush()
         self._close()
-        output_data_set._flush()
+        output_data_set.flush()
         output_data_set._close()
         del output_data_set
 
@@ -1456,7 +1467,7 @@ class ASDFDataSet(object):
                         input_data_set = ASDFDataSet(self.input_filename)
                         stream, inv = \
                             input_data_set.get_data_for_tag(station, tag)
-                        input_data_set._flush()
+                        input_data_set.flush()
                         del input_data_set
 
                     output_stream = self.processing_function(stream, inv)

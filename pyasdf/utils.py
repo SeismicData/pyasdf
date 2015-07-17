@@ -88,6 +88,32 @@ def sizeof_fmt(num):
     return "%3.1f %s" % (num, "TB")
 
 
+class ProvenanceAccessor(object):
+    """
+    Accessor helper for the provenance records.
+    """
+    def __init__(self, asdf_data_set):
+        # Use weak references to not have any dangling references to the HDF5
+        # file around.
+        self.__data_set = weakref.ref(asdf_data_set)
+
+    def __getattr__(self, item):
+        _records = self.__data_set()._provenance_group
+        if item not in _records:
+            raise AttributeError
+        return self.__data_set().get_provenance_document(item)
+
+    def __dir__(self):
+        return sorted((self.__data_set()._provenance_group.keys()))
+
+    def __len__(self):
+        return len(self.__dir__())
+
+    def __iter__(self):
+        for _i in self.__dir__():
+            yield getattr(self, _i)
+
+
 class AuxiliaryDataContainer(object):
     def __init__(self, data, data_type, tag, parameters):
         self.data = data
