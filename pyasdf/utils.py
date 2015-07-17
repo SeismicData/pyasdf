@@ -113,6 +113,16 @@ class ProvenanceAccessor(object):
         for _i in self.__dir__():
             yield getattr(self, _i)
 
+    def __str__(self):
+        if not len(self):
+            return "No provenance document in file."
+        ret_str = "%i Provenance Document(s):\n\t%s" % (
+            len(self), "\n\t".join(dir(self)))
+        return ret_str
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.__str__())
+
 
 class AuxiliaryDataContainer(object):
     def __init__(self, data, data_type, tag, parameters):

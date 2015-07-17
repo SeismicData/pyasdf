@@ -792,8 +792,8 @@ class ASDFDataSet(object):
         # Assert the name against the regex.
         if PROV_FILENAME_REGEX.match(name) is None:
             raise ASDFValueError("Name '%s' is invalid. It must validate "
-                                 "against the regular expression '%s'." % (
-                name, PROV_FILENAME_REGEX.pattern))
+                                 "against the regular expression '%s'." %
+                                 (name, PROV_FILENAME_REGEX.pattern))
 
         with io.BytesIO() as buf:
             document.serialize(buf, format="xml")

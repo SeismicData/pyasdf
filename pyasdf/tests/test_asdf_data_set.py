@@ -603,6 +603,7 @@ def test_extract_all_coordinates(example_data_set):
         "longitude": -147.4335,
         "elevation_in_m": 501.0}}
 
+
 def test_trying_to_add_provenance_record_with_invalid_name_fails(tmpdir):
     """
     The name must be valid according to a particular regular expression.
@@ -617,13 +618,13 @@ def test_trying_to_add_provenance_record_with_invalid_name_fails(tmpdir):
     with pytest.raises(ASDFValueError) as err:
         data_set.add_provenance_document(doc, name="a-b-c")
 
-
     assert err.value.args[0] == (
         "Name 'a-b-c' is invalid. It must validate against the regular "
         "expression '^[0-9a-z][0-9a-z_]*[0-9a-z]$'.")
 
     # Must sometimes be called to get around some bugs.
     data_set.__del__()
+
 
 def test_adding_a_provenance_record(tmpdir):
     """
@@ -637,10 +638,20 @@ def test_adding_a_provenance_record(tmpdir):
     # Add it as a document.
     doc = prov.read(filename, format="xml")
     data_set.add_provenance_document(doc, name="test_provenance")
-    data_set.flush()
-    data_set.__del__()
     del data_set
 
     # Read it again.
     data_set = ASDFDataSet(asdf_filename)
     assert data_set.provenance.test_provenance == doc
+
+
+def test_str_method_provenance_documents(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+    data_set.add_provenance_document(filename, name="test_provenance")
+
+    assert str(data_set.provenance) == (
+        "1 Provenance Document(s):\n\ttest_provenance"
+    )
