@@ -22,10 +22,12 @@ import math
 import os
 import sys
 import time
+import uuid
 import warnings
 
-import numpy as np
 import h5py
+import numpy as np
+import prov
 
 
 # Minimum compatibility wrapper between Python 2 and 3.
@@ -47,9 +49,10 @@ except AttributeError:
     warnings.warn = get_warning_fct()
 
 
-from .exceptions import ASDFException, ASDFWarning
+from .exceptions import ASDFException, ASDFWarning, ASDFValueError
 from .header import COMPRESSIONS, FORMAT_NAME, \
-    FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL
+    FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL, \
+    PROV_FILENAME_REGEX
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing
@@ -751,6 +754,51 @@ class ASDFDataSet(object):
                 continue
             self._add_trace_write_collective_information(info)
             self._add_trace_write_independent_information(info, trace)
+
+
+    def add_provenance_document(self, document, name=None):
+        """
+        Add a provenance document to the open ASDF file.
+
+        :type document: Filename, file-like objects or prov document.
+        :param document: The document to add.
+        :type name: str
+        :param name: The name of the document within ASDF. Must be lowercase
+            alphanumeric with optional underscores. If not given, it will
+            autogenerate one. If given and it already exists, it will be
+            overwritten.
+        """
+        # Always open it. We will write it anew everytime. This enables
+        # pyasdf to store everything the prov package can read.
+        if not isinstance(document, prov.model.ProvDocument):
+            document = prov.read(document)
+
+        # Autogenerate name if not given.
+        if not name:
+            name = str(uuid.uuid4()).replace("-", "-")
+
+        # Assert the name against the regex.
+        if PROV_FILENAME_REGEX.match(name) is None:
+            raise ASDFValueError("Name '%s' is invalid. It must validate "
+                                 "against the regular expression '%s'." % (
+                name, PROV_FILENAME_REGEX.pattern))
+
+        with io.BytesIO() as buf:
+            document.serialize(buf, format="xml")
+            buf.seek(0, 0)
+            data = np.frombuffer(buf.read(), dtype=np.dtype("byte"))
+
+        # If it already exists, overwrite the existing one.
+        if name in self._provenance_group:
+            self._provenance_group[name].resize(data.shape)
+            self._provenance_group[name][:] = data
+        else:
+            # maxshape takes care to create an extendable data set.
+            self._provenance_group.create_dataset(
+                name, data=data,
+                maxshape=(None,),
+                fletcher32=True)
+
 
     def _add_trace_write_independent_information(self, info, trace):
         """

@@ -9,6 +9,8 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import re
+
 
 # List all compression options.
 COMPRESSIONS = {
@@ -33,6 +35,11 @@ COMPRESSIONS = {
 
 FORMAT_NAME = "ASDF"
 FORMAT_VERSION = "0.0.2"
+
+
+# Regular expression for allowed filenames within the provenance group.
+PROV_FILENAME_REGEX = re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$")
+
 
 # MPI message tags used for communication.
 MSG_TAGS = [

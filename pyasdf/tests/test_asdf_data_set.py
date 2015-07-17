@@ -19,10 +19,11 @@ import h5py
 import numpy as np
 import obspy
 from obspy import UTCDateTime
+import prov
 import pytest
 
 from pyasdf import ASDFDataSet
-from pyasdf.exceptions import WaveformNotInFileException
+from pyasdf.exceptions import WaveformNotInFileException, ASDFValueError
 from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
 
 
@@ -601,3 +602,38 @@ def test_extract_all_coordinates(example_data_set):
         "latitude": 65.1171,
         "longitude": -147.4335,
         "elevation_in_m": 501.0}}
+
+def test_trying_to_add_provenance_record_with_invalid_name_fails(tmpdir):
+    """
+    The name must be valid according to a particular regular expression.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+
+    # First try adding it as a prov document.
+    doc = prov.read(filename, format="xml")
+    with pytest.raises(ASDFValueError) as err:
+        data_set.add_provenance_document(doc, name="a-b-c")
+
+
+    assert err.value.args[0] == (
+        "Name 'a-b-c' is invalid. It must validate against the regular "
+        "expression '^[0-9a-z][0-9a-z_]*[0-9a-z]$'.")
+
+    # Must sometimes be called to get around some bugs.
+    data_set.__del__()
+
+def test_adding_a_provenance_record(tmpdir):
+    """
+    Tests adding a provenance record.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+
+    # First try adding it as a prov document.
+    doc = prov.read(filename, format="xml")
+    data_set.add_provenance_document(doc, name="test_provenance")

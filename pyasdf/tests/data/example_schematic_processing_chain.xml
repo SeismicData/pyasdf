@@ -1,0 +1,60 @@
+<prov:document xmlns:prov="http://www.w3.org/ns/prov#" xmlns:seis_prov="http://seisprov.org/seis_prov/0.1/#" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <prov:entity prov:id="seis_prov:sp001_wf_a34j4didj3">
+    <prov:label>Waveform Trace</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:waveform_trace</prov:type>
+  </prov:entity>
+  <prov:activity prov:id="seis_prov:sp002_dt_f87sf7sf78">
+    <prov:label>Detrend</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:detrend</prov:type>
+    <seis_prov:detrending_method>demean</seis_prov:detrending_method>
+  </prov:activity>
+  <prov:entity prov:id="seis_prov:sp003_wf_js83hf34aj">
+    <prov:label>Waveform Trace</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:waveform_trace</prov:type>
+  </prov:entity>
+  <prov:activity prov:id="seis_prov:sp004_lp_f87sf7sf78">
+    <prov:label>Lowpass Filter</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:lowpass_filter</prov:type>
+    <seis_prov:corner_frequency xsi:type="xsd:double">10.0</seis_prov:corner_frequency>
+    <seis_prov:filter_order xsi:type="xsd:int">4</seis_prov:filter_order>
+    <seis_prov:filter_type>Butterworth</seis_prov:filter_type>
+    <seis_prov:number_of_passes xsi:type="xsd:int">1</seis_prov:number_of_passes>
+  </prov:activity>
+  <prov:entity prov:id="seis_prov:sp005_wf_378f8ks8kd">
+    <prov:label>Waveform Trace</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:waveform_trace</prov:type>
+  </prov:entity>
+  <prov:activity prov:id="seis_prov:sp006_dc_f87sf7sf78">
+    <prov:label>Decimate</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:decimate</prov:type>
+    <seis_prov:factor xsi:type="xsd:int">2</seis_prov:factor>
+  </prov:activity>
+  <prov:entity prov:id="seis_prov:sp007_wf_jude89du8l">
+    <prov:label>Waveform Trace</prov:label>
+    <prov:type xsi:type="xsd:string">seis_prov:waveform_trace</prov:type>
+  </prov:entity>
+  <prov:used>
+    <prov:activity prov:ref="seis_prov:sp002_dt_f87sf7sf78"></prov:activity>
+    <prov:entity prov:ref="seis_prov:sp001_wf_a34j4didj3"></prov:entity>
+  </prov:used>
+  <prov:used>
+    <prov:activity prov:ref="seis_prov:sp004_lp_f87sf7sf78"></prov:activity>
+    <prov:entity prov:ref="seis_prov:sp003_wf_js83hf34aj"></prov:entity>
+  </prov:used>
+  <prov:used>
+    <prov:activity prov:ref="seis_prov:sp006_dc_f87sf7sf78"></prov:activity>
+    <prov:entity prov:ref="seis_prov:sp005_wf_378f8ks8kd"></prov:entity>
+  </prov:used>
+  <prov:wasGeneratedBy>
+    <prov:entity prov:ref="seis_prov:sp003_wf_js83hf34aj"></prov:entity>
+    <prov:activity prov:ref="seis_prov:sp002_dt_f87sf7sf78"></prov:activity>
+  </prov:wasGeneratedBy>
+  <prov:wasGeneratedBy>
+    <prov:entity prov:ref="seis_prov:sp005_wf_378f8ks8kd"></prov:entity>
+    <prov:activity prov:ref="seis_prov:sp004_lp_f87sf7sf78"></prov:activity>
+  </prov:wasGeneratedBy>
+  <prov:wasGeneratedBy>
+    <prov:entity prov:ref="seis_prov:sp007_wf_jude89du8l"></prov:entity>
+    <prov:activity prov:ref="seis_prov:sp006_dc_f87sf7sf78"></prov:activity>
+  </prov:wasGeneratedBy>
+</prov:document>
