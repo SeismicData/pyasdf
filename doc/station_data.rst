@@ -7,7 +7,7 @@ accessing the ``StationXML`` attribute will parse the data to an
 see its documentation for more details of how to work with it.
 
 >>> import pyasdf
->>> ds = pyasdf.ASDFDataSet("example_file.h5)
+>>> ds = pyasdf.ASDFDataSet("example_file.h5")
 >>> ds.waveforms.IU_FURI.StationXML
 Inventory created at 2014-12-09T19:43:16.000000Z
     Created by: IRIS WEB SERVICE: fdsnws-station | version: 1.1.9
