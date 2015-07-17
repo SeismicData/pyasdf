@@ -63,8 +63,9 @@ def print_sys_info():
         mpi4py_version=wm["module_versions"]["mpi4py"],
         is_parallel=wm["parallel_h5py"],
         problematic_mp=wm["problematic_multiprocessing"],
-        other_modules="\n\t".join("%s: %s" % (key, value) for key, value in
-                                  wm["module_versions"].items()
-                                  if key != "mpi4py" and key != "h5py")
+        other_modules="\n\t".join(
+            "%s: %s" % (key, value) for key, value in
+            sorted(wm["module_versions"].items(), key=lambda x: x[0])
+            if key != "mpi4py" and key != "h5py")
 
     ))

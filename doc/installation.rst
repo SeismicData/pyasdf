@@ -20,13 +20,14 @@ dependencies.
 Dependencies for the non-parallel I/O version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-All dependencies for ``pyasdf`` with no parallel I/O support can be installed
-with ``conda``:
+Almost all dependencies for ``pyasdf`` with no parallel I/O support can be
+installed with ``conda``, the remaining one is installed with ``pip``:
 
 .. code-block:: bash
 
     $ conda update conda
     $ conda install -c obspy obspy colorama pytest pip flake8 h5py
+    $ pip install prov
 
 
 Dependencies for the parallel I/O version
@@ -45,6 +46,7 @@ installable via ``conda`` has no parallel I/O support.
 
     $ conda update conda
     $ conda install -c obspy obspy colorama pytest pip flake8
+    $ pip install prov
 
 
 For all the following make sure that the MPI package of your local
@@ -100,10 +102,11 @@ which will print something along the following lines::
     Problematic multiprocessing: False
     ===============================================================================
     Other_modules:
-        obspy: 0.10.1
         lxml: 3.4.2
-        scipy: 0.15.1
         numpy: 1.9.2
+        obspy: 0.10.1
+        prov: 1.3.2
+        scipy: 0.15.1
 
 
 This should enable you to judge if ``pyasdf`` can run on your system.

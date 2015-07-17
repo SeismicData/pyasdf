@@ -27,7 +27,7 @@ except ImportError:
 from .utils import is_multiprocessing_problematic
 
 # Dependencies.
-modules = ["numpy", "scipy", "obspy", "lxml", "h5py"]
+modules = ["numpy", "scipy", "obspy", "lxml", "h5py", "prov"]
 if MPI:
     modules.append("mpi4py")
 
