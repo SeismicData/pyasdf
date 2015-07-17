@@ -28,6 +28,7 @@ import warnings
 import h5py
 import numpy as np
 import prov
+import prov.model
 
 
 # Minimum compatibility wrapper between Python 2 and 3.
@@ -787,7 +788,7 @@ class ASDFDataSet(object):
 
         # Autogenerate name if not given.
         if not name:
-            name = str(uuid.uuid4()).replace("-", "-")
+            name = str(uuid.uuid4()).replace("-", "_")
 
         # Assert the name against the regex.
         if PROV_FILENAME_REGEX.match(name) is None:
