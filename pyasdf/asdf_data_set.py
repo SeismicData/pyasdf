@@ -567,7 +567,7 @@ class ASDFDataSet(object):
                   format=FORMAT_NAME,
                   version=self.asdf_format_version,
                   filename=os.path.relpath(self.filename),
-                  size=self.filesize)
+                  size=self.pretty_filesize)
         ret += "\n\tContains %i event(s)" % len(self.events)
         ret += "\n\tContains waveform data from {len} station(s).".format(
             len=len(self.__file["Waveforms"])
