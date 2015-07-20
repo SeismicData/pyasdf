@@ -655,3 +655,74 @@ def test_str_method_provenance_documents(tmpdir):
     assert str(data_set.provenance) == (
         "1 Provenance Document(s):\n\ttest_provenance"
     )
+
+
+def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
+    """
+    Tests reading and writing n-dimensional auxiliary data.
+    """
+    # 2D.
+    asdf_filename = os.path.join(tmpdir.strpath, "test_2D.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    data = np.random.random((10, 10))
+    data_type = "RandomArrays"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+                                parameters=parameters)
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
+    np.testing.assert_equal(data, aux_data.data)
+    aux_data.data_type == data_type
+    aux_data.tag == tag
+    aux_data.parameters == parameters
+
+    del new_data_set
+
+    # 3D.
+    asdf_filename = os.path.join(tmpdir.strpath, "test_3D.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    data = np.random.random((5, 5, 5))
+    data_type = "RandomArrays"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+                                parameters=parameters)
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
+    np.testing.assert_equal(data, aux_data.data)
+    aux_data.data_type == data_type
+    aux_data.tag == tag
+    aux_data.parameters == parameters
+
+    del new_data_set
+
+    # 4D.
+    asdf_filename = os.path.join(tmpdir.strpath, "test_4D.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    data = np.random.random((2, 3, 4, 5))
+    data_type = "RandomArrays"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+                                parameters=parameters)
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
+    np.testing.assert_equal(data, aux_data.data)
+    aux_data.data_type == data_type
+    aux_data.tag == tag
+    aux_data.parameters == parameters
+
+    del new_data_set
