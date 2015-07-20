@@ -27,7 +27,7 @@ before_install:
   # Build docs on Python 2.7 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda install --yes sphinx; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install sphinx-bootstrap-theme; fi
-  - pip install coveralls mpi4py
+  - pip install coveralls mpi4py prov
 
 install:
   - pip install --no-deps -v -e .
