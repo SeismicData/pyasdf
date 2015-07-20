@@ -16,6 +16,7 @@ from __future__ import (absolute_import, division, print_function,
 import obspy
 
 import collections
+import copy
 import io
 import itertools
 import math
@@ -58,7 +59,7 @@ from .header import COMPRESSIONS, FORMAT_NAME, \
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
-    ProvenanceAccessor
+    ProvenanceAccessor, split_qualified_name
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -376,6 +377,9 @@ class ASDFDataSet(object):
                 "Data type name '{name}' is invalid. It must validate "
                 "against the regular expression '{pattern}'.".format(
                     name=data_type, pattern=pattern))
+        if provenance_id is not None:
+            # Will raise an error if not a valid qualified name.
+            split_qualified_name(provenance_id)
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(
@@ -398,6 +402,12 @@ class ASDFDataSet(object):
             raise ASDFValueError("'provenance_id' is a reserved parameter "
                                  "and cannot be used as an arbitrary "
                                  "parameters.")
+        # If the provenance id is set, add it to the parameters. At this
+        # point it is assumed, that the id is valid.
+        if provenance_id is not None:
+            parameters = copy.deepcopy(parameters).update(
+                {"provenance_id": provenance_id})
+
         group_name = "%s/%s" % (data_type, tag)
         if group_name in self._auxiliary_data_group:
             msg = "Data '%s' already exists in file. Will not be added!" % \
@@ -424,8 +434,7 @@ class ASDFDataSet(object):
                 "fletcher32": fletcher32,
                 "maxshape": tuple([None] * len(data.shape))
             },
-            "dataset_attrs": parameters.update(
-                {"provenanc_id": provenance_id}),
+            "dataset_attrs": parameters,
         }
         return info
 
