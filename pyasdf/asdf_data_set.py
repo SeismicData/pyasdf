@@ -20,6 +20,7 @@ import io
 import itertools
 import math
 import os
+import re
 import sys
 import time
 import uuid
@@ -367,6 +368,13 @@ class ASDFDataSet(object):
         :param provenance:
         :return:
         """
+        # Assert the data type name.
+        pattern = r"^[A-Z][A-Za-z0-9]*$"
+        if re.match(pattern, data_type) is None:
+            raise ASDFValueError(
+                "Data type name '{name}' is invalid. It must validate "
+                "against the regular expression '{pattern}'.".format(
+                    name=data_type, pattern=pattern))
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(
