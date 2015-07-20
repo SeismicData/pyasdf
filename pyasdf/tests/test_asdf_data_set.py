@@ -515,11 +515,14 @@ def test_accessing_non_existent_tag_raises(example_data_set):
     """
     data_set = ASDFDataSet(example_data_set.filename)
 
-    with pytest.raises(WaveformNotInFileException) as excinfo:
-        data_set.waveforms.AE_113A.asdfasdf
+    try:
+        with pytest.raises(WaveformNotInFileException) as excinfo:
+            data_set.waveforms.AE_113A.asdfasdf
 
-    assert excinfo.value.args[0] == ("Tag 'asdfasdf' not part of the data "
-                                     "set for station 'AE.113A'.")
+        assert excinfo.value.args[0] == ("Tag 'asdfasdf' not part of the data "
+                                         "set for station 'AE.113A'.")
+    finally:
+        data_set.__del__()
 
 
 def test_waveform_accessor_printing(example_data_set):
@@ -533,6 +536,9 @@ def test_waveform_accessor_printing(example_data_set):
         "    - Has a StationXML file\n"
         "    - 1 Waveform Tag(s):\n"
         "         raw_recording")
+
+    data_set.__del__()
+    del data_set
 
 
 def test_coordinate_extraction(example_data_set):
