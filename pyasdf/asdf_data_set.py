@@ -361,6 +361,35 @@ class ASDFDataSet(object):
         self.__file["QuakeML"].resize(data.shape)
         self.__file["QuakeML"][:] = data
 
+    def add_auxiliary_data_file(
+            self, filename_or_object, tag, parameters, provenance_id=None):
+        """
+        Special function adding a file or file like object as an auxiliary
+        data object denoting a file. This is very useful to store arbirary
+        files in ASDF>
+
+        :param filename_or_object: Filename, open-file or file-like object.
+            File should really be opened in binary mode, but this i not
+            checked.
+        :param tag: The tag of the file. Has the same limitations as normal
+            tags.
+        :param parameters: Any additional options, as a Python dictionary.
+        :param provenance_id: The id of the provenance of this data. The
+            provenance information itself must be added separately. Must be
+            given as a qualified name, e.g. ``'{namespace_uri}id'``.
+        """
+        if hasattr(filename_or_object, "read"):
+            data = np.frombuffer(filename_or_object.read(),
+                                 dtype=np.dtype("byte"))
+        else:
+            with io.open(filename_or_object, "rb") as fh:
+                data = np.frombuffer(fh.read(),
+                                     dtype=np.dtype("byte"))
+
+        self.add_auxiliary_data(data=data, data_type="File", tag=tag,
+                                parameters=parameters,
+                                provenance_id=provenance_id)
+
     def add_auxiliary_data(self, data, data_type, tag, parameters,
                            provenance_id=None):
         """
@@ -383,7 +412,7 @@ class ASDFDataSet(object):
                     name=data_type, pattern=pattern))
 
         # Assert the tag pattern.
-        tag_pattern = r"^[a-z0-9][a-z0-9_]*[a-z0-9]$"
+        tag_pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$"
         if re.match(tag_pattern, tag) is None:
             raise ASDFValueError(
                 "Tag name '{name}' is invalid. It must validate "

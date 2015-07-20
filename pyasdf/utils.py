@@ -29,7 +29,7 @@ import numpy as np
 import obspy
 
 from .exceptions import (WaveformNotInFileException, NoStationXMLForStation,
-                         ASDFValueError)
+                         ASDFValueError, ASDFAttributeError)
 from .header import MSG_TAGS
 from .inventory_utils import get_coordinates
 
@@ -143,6 +143,26 @@ class AuxiliaryDataContainer(object):
         else:
             self.provenance_id = None
         self.parameters = parameters
+
+        self.__file_cache = None
+
+    def __del__(self):
+        try:
+            self.__file_cache.close()
+        except:
+            pass
+
+    @property
+    def file(self):
+        if self.data_type != "File":
+            raise ASDFAttributeError(
+                "The 'file' property is only available "
+                "for auxiliary data with the data type 'File'.")
+        if self.__file_cache is not None:
+            return self.__file_cache
+
+        self.__file_cache = io.BytesIO(self.data.value.tostring())
+        return self.__file_cache
 
     def __str__(self):
         return (

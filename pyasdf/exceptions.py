@@ -38,6 +38,13 @@ class ASDFValueError(ASDFException, ValueError):
     pass
 
 
+class ASDFAttributeError(ASDFException, AttributeError):
+    """
+    ASDF specific attribute error.
+    """
+    pass
+
+
 class ASDFWarning(UserWarning):
     """
     Generic ASDF warning.

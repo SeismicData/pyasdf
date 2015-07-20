@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
 import glob
 import inspect
 import io
+import json
 import shutil
 import os
 
@@ -878,6 +879,41 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
 
     assert err.value.args[0] == (
         "Tag name 'A.B.C' is invalid. It must validate "
-        "against the regular expression '^[a-z0-9][a-z0-9_]*[a-z0-9]$'.")
+        "against the regular expression "
+        "'^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$'.")
 
     data_set.__del__()
+
+
+def test_adding_arbitrary_files(tmpdir):
+    """
+    Tests that adding arbitrary files works.
+    """
+    test_filename = os.path.join(tmpdir.strpath, "temp.json")
+    test_dict = {"a": 1, "b": 2}
+    with open(test_filename, "wt") as fh:
+        json.dump(test_dict, fh, sort_keys=True)
+
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    data_set.add_auxiliary_data_file(
+        test_filename, tag="test_file", parameters={"1": 1})
+
+    data_set.__del__()
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    # Extraction works the same as always, but now has a special attribute,
+    # that returns the data as a BytesIO.
+    aux_data = new_data_set.auxiliary_data.File.test_file
+    assert aux_data.parameters == {"1": 1}
+    assert aux_data.tag == "test_file"
+
+    new_test_dict = json.loads(aux_data.file.read().decode())
+    assert test_dict == new_test_dict
+
+    aux_data.file.seek(0, 0)
+
+    with open(test_filename, "rb") as fh:
+        assert fh.read() == aux_data.file.read()
