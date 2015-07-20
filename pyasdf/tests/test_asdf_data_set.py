@@ -844,3 +844,18 @@ def test_adding_waveforms_with_provenance_id(tmpdir):
 
     new_data_set.__del__()
     del new_data_set
+
+
+def test_coordinate_extraction_but_no_stationxml(tmpdir):
+    """
+    Tests what happens if no stationxml is defined for a station.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    data_set = ASDFDataSet(asdf_filename)
+    for filename in glob.glob(os.path.join(data_path, "*.mseed")):
+        data_set.add_waveforms(filename, tag="raw_recording")
+
+    # If not stationxml exists it should just return an empty dictionary.
+    assert data_set.get_all_coordinates() == {}

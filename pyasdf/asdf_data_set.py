@@ -52,7 +52,8 @@ except AttributeError:
     warnings.warn = get_warning_fct()
 
 
-from .exceptions import ASDFException, ASDFWarning, ASDFValueError
+from .exceptions import ASDFException, ASDFWarning, ASDFValueError, \
+    NoStationXMLForStation
 from .header import COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL, \
     PROV_FILENAME_REGEX
@@ -1586,5 +1587,8 @@ class ASDFDataSet(object):
         """
         coords = {}
         for station in self.waveforms:
-            coords[station._station_name] = station.coordinates
+            try:
+                coords[station._station_name] = station.coordinates
+            except NoStationXMLForStation:
+                pass
         return coords
