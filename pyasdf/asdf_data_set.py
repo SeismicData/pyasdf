@@ -409,7 +409,7 @@ class ASDFDataSet(object):
                 "compression": self.__compression[0],
                 "compression_opts": self.__compression[1],
                 "fletcher32": fletcher32,
-                "maxshape": (None,)
+                "maxshape": tuple([None] * len(data.shape))
             },
             "dataset_attrs": parameters,
         }
