@@ -9,6 +9,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import copy
 import collections
 import io
 import os
@@ -136,16 +137,24 @@ class AuxiliaryDataContainer(object):
         self.data = data
         self.data_type = data_type
         self.tag = tag
+        if "provenance_id" in parameters:
+            parameters = copy.deepcopy(parameters)
+            self.provenance_id = parameters.pop("provenance_id")
+        else:
+            self.provenance_id = None
         self.parameters = parameters
 
     def __str__(self):
         return (
             "Auxiliary Data of Type '{data_type}'\n"
             "\tTag: '{tag}'\n"
+            "{provenance}"
             "\tData shape: '{data_shape}', dtype: '{dtype}'\n"
             "\tParameters:\n\t\t{parameters}"
             .format(data_type=self.data_type, data_shape=self.data.shape,
                     dtype=self.data.dtype, tag=self.tag,
+                    provenance="" if self.provenance_id is None else
+                    "\tProvenance ID: '%s'\n" % self.provenance_id,
                     parameters="\n\t\t".join([
                         "%s: %s" % (_i[0], _i[1]) for _i in
                         sorted(self.parameters.items(), key=lambda x: x[0])])))

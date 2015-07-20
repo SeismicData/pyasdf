@@ -770,3 +770,49 @@ def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
     new_data_set = ASDFDataSet(asdf_filename)
     assert new_data_set.auxiliary_data.RandomArray.test_data.provenance_id \
       == provenance_id
+
+
+def test_str_method_of_aux_data(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # With provenance id.
+    data = np.random.random((10, 10))
+    # The data must NOT start with a number.
+    data_type = "RandomArray"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+    provenance_id = "{http://example.org}test"
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters,
+                                provenance_id=provenance_id)
+    assert \
+        str(data_set.auxiliary_data.RandomArray.test_data) == (
+            "Auxiliary Data of Type 'RandomArray'\n"
+            "\tTag: 'test_data'\n"
+            "\tProvenance ID: '{http://example.org}test'\n"
+            "\tData shape: '(10, 10)', dtype: 'float64'\n"
+            "\tParameters:\n"
+            "\t\ta: 1\n"
+            "\t\tb: 2.0\n"
+            "\t\te: hallo")
+
+    # Without.
+    data = np.random.random((10, 10))
+    # The data must NOT start with a number.
+    data_type = "RandomArray"
+    tag = "test_data_2"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters)
+    assert \
+        str(data_set.auxiliary_data.RandomArray.test_data_2) == (
+            "Auxiliary Data of Type 'RandomArray'\n"
+            "\tTag: 'test_data_2'\n"
+            "\tData shape: '(10, 10)', dtype: 'float64'\n"
+            "\tParameters:\n"
+            "\t\ta: 1\n"
+            "\t\tb: 2.0\n"
+            "\t\te: hallo")

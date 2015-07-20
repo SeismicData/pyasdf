@@ -386,7 +386,7 @@ class ASDFDataSet(object):
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(
-            data, data_type, tag, parameters, provenance_id)
+            data, data_type, tag, parameters, provenance_id=provenance_id)
         if info is None:
             return
         self._add_auxiliary_data_write_collective_information(info)
@@ -408,8 +408,8 @@ class ASDFDataSet(object):
         # If the provenance id is set, add it to the parameters. At this
         # point it is assumed, that the id is valid.
         if provenance_id is not None:
-            parameters = copy.deepcopy(parameters).update(
-                {"provenance_id": provenance_id})
+            parameters = copy.deepcopy(parameters)
+            parameters.update({"provenance_id": provenance_id})
 
         group_name = "%s/%s" % (data_type, tag)
         if group_name in self._auxiliary_data_group:
