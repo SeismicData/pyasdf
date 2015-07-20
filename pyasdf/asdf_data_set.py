@@ -357,7 +357,7 @@ class ASDFDataSet(object):
         self.__file["QuakeML"][:] = data
 
     def add_auxiliary_data(self, data, data_type, tag, parameters,
-                           provenance=None):
+                           provenance_id=None):
         """
         Adds auxiliary data to the file.
 
@@ -365,8 +365,9 @@ class ASDFDataSet(object):
         :param data_type: The type of data, think of it like a subfolder.
         :param tag: The tag of the data. Must be unique per data_type.
         :param parameters: Any additional options, as a Python dictionary.
-        :param provenance:
-        :return:
+        :param provenance_id: The id of the provenance of this data. The
+            provenance information itself must be added separately. Must be
+            given as a qualified name, e.g. ``'{namespace_uri}id'``.
         """
         # Assert the data type name.
         pattern = r"^[A-Z][A-Za-z0-9]*$"
@@ -378,14 +379,14 @@ class ASDFDataSet(object):
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(
-            data, data_type, tag, parameters, provenance)
+            data, data_type, tag, parameters, provenance_id)
         if info is None:
             return
         self._add_auxiliary_data_write_collective_information(info)
         self._add_auxiliary_data_write_independent_information(info, data)
 
     def _add_auxiliary_data_get_collective_information(
-            self, data, data_type, tag, parameters, provenance=None):
+            self, data, data_type, tag, parameters, provenance_id=None):
         """
         The information required for the collective part of adding some
         auxiliary data.
@@ -393,6 +394,10 @@ class ASDFDataSet(object):
         This will extract the group name, the parameters of the dataset to
         be created, and the attributes of the dataset.
         """
+        if "provenance_id" in parameters:
+            raise ASDFValueError("'provenance_id' is a reserved parameter "
+                                 "and cannot be used as an arbitrary "
+                                 "parameters.")
         group_name = "%s/%s" % (data_type, tag)
         if group_name in self._auxiliary_data_group:
             msg = "Data '%s' already exists in file. Will not be added!" % \
@@ -419,7 +424,8 @@ class ASDFDataSet(object):
                 "fletcher32": fletcher32,
                 "maxshape": tuple([None] * len(data.shape))
             },
-            "dataset_attrs": parameters,
+            "dataset_attrs": parameters.update(
+                {"provenanc_id": provenance_id}),
         }
         return info
 

@@ -17,6 +17,13 @@ import time
 import warnings
 import weakref
 
+# Py2k/3k compat.
+try:
+    from urlparse import urlparse
+except ImportError:
+    from urllib.parse import urlparse
+
+from lxml.etree import QName
 import numpy as np
 import obspy
 
@@ -540,3 +547,22 @@ def _pretty_log(prefix, first, second, tag, payload):
         ("WORKER %i" % second) + colorama.Style.RESET_ALL
 
     print("%s %s %s [%s] -- %s" % (first, prefix, second, tag, str(payload)))
+
+
+def split_qualified_name(name):
+    """
+    Takes a qualified name and returns a tuple of namespace, localpart.
+
+    If namespace is not a valid URL, an error will be raised.
+
+    :param name: The qualified name.
+    """
+    try:
+        q_name = QName(name)
+    except ValueError:
+        raise ASDFValueError("Not a valid qualified name.")
+    url, localname = q_name.namespace, q_name.localname
+    parsed_url = urlparse(url)
+    if not parsed_url.scheme or not parsed_url.netloc:
+        raise ASDFValueError("Not a valid qualified name.")
+    return url, localname
