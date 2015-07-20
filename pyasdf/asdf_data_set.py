@@ -228,9 +228,12 @@ class ASDFDataSet(object):
 
     def _close(self):
         """
-        Close the underlying HDF5 file.
+        Attempt to close the underlying HDF5 file.
         """
-        self.__file.close()
+        try:
+            self.__file.close()
+        except:
+            pass
 
     def _zeropad_ascii_string(self, text):
         """
