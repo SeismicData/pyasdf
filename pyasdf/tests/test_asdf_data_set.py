@@ -816,3 +816,26 @@ def test_str_method_of_aux_data(tmpdir):
             "\t\ta: 1\n"
             "\t\tb: 2.0\n"
             "\t\te: hallo")
+
+
+def test_adding_waveforms_with_provenance_id(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    data_set = ASDFDataSet(asdf_filename)
+    for filename in glob.glob(os.path.join(data_path, "*.mseed")):
+        data_set.add_waveforms(filename, tag="raw_recording",
+                               provenance_id="{http://example.org}test")
+
+    data_set.__del__()
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+
+    st = new_data_set.waveforms.TA_POKR.raw_recording
+    for tr in st:
+        assert tr.stats.asdf.provenance_id == "{http://example.org}test"
+
+    new_data_set.__del__()
+    del new_data_set
+    os.remove(filename)
