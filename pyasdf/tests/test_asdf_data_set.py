@@ -859,3 +859,23 @@ def test_coordinate_extraction_but_no_stationxml(tmpdir):
 
     # If not stationxml exists it should just return an empty dictionary.
     assert data_set.get_all_coordinates() == {}
+
+
+def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # With provenance id.
+    data = np.random.random((10, 10))
+    # The data must NOT start with a number.
+    data_type = "RandomArray"
+    tag = "A.B.C"
+
+    with pytest.raises(ASDFValueError) as err:
+        data_set.add_auxiliary_data(
+            data=data, data_type=data_type,
+            tag=tag, parameters={})
+
+    assert err.value.args[0] == (
+        "Tag name 'A.B.C' is invalid. It must validate "
+        "against the regular expression '^[a-z0-9][a-z0-9_]*[a-z0-9]$'.")
