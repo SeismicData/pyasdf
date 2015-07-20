@@ -769,7 +769,7 @@ def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
 
     new_data_set = ASDFDataSet(asdf_filename)
     assert new_data_set.auxiliary_data.RandomArray.test_data.provenance_id \
-      == provenance_id
+        == provenance_id
 
 
 def test_str_method_of_aux_data(tmpdir):
