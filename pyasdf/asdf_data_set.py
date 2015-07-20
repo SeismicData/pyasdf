@@ -568,6 +568,10 @@ class ASDFDataSet(object):
                 setattr(details, name,
                         obspy.core.event.ResourceIdentifier(
                             data.attrs[name].tostring().decode()))
+
+        if "provenance_id" in data.attrs:
+            details.provenance_id = \
+                data.attrs["provenance_id"].tostring().decode()
         return tr
 
     def _get_auxiliary_data(self, data_type, tag):
@@ -614,7 +618,8 @@ class ASDFDataSet(object):
         p.text(self.__str__())
 
     def add_waveforms(self, waveform, tag, event_id=None, origin_id=None,
-                      magnitude_id=None, focal_mechanism_id=None):
+                      magnitude_id=None, focal_mechanism_id=None,
+                      provenance_id=None):
         """
         Adds one or more waveforms to the current ASDF file.
 
@@ -647,6 +652,9 @@ class ASDFDataSet(object):
             data where the mechanism is precisely known.
         :type focal_mechanism_id: :class:`obspy.core.event.FocalMechanism`,
             :class:`obspy.core.event.ResourceIdentifier`, or str
+        :param provenance_id: The id of the provenance of this data. The
+            provenance information itself must be added separately. Must be
+            given as a qualified name, e.g. ``'{namespace_uri}id'``.
 
         .. rubric:: Examples
 
@@ -704,6 +712,9 @@ class ASDFDataSet(object):
         ...                  focal_mechanism_id=focal_mechanism)
 
         """
+        if provenance_id is not None:
+            # Will raise an error if not a valid qualified name.
+            split_qualified_name(provenance_id)
         # Extract the event_id from the different possibilities.
         if event_id:
             if isinstance(event_id, obspy.core.event.Event):
@@ -778,7 +789,8 @@ class ASDFDataSet(object):
             info = self._add_trace_get_collective_information(
                 trace, tag, event_id=event_id, origin_id=origin_id,
                 magnitude_id=magnitude_id,
-                focal_mechanism_id=focal_mechanism_id)
+                focal_mechanism_id=focal_mechanism_id,
+                provenance_id=provenance_id)
             if info is None:
                 continue
             self._add_trace_write_collective_information(info)
@@ -866,7 +878,8 @@ class ASDFDataSet(object):
 
     def _add_trace_get_collective_information(
             self, trace, tag, event_id=None, origin_id=None,
-            magnitude_id=None, focal_mechanism_id=None):
+            magnitude_id=None, focal_mechanism_id=None,
+            provenance_id=None):
         """
         The information required for the collective part of adding a trace.
 
@@ -926,7 +939,8 @@ class ASDFDataSet(object):
             "event_id": event_id,
             "origin_id": origin_id,
             "magnitude_id": magnitude_id,
-            "focal_mechanism_id": focal_mechanism_id}
+            "focal_mechanism_id": focal_mechanism_id,
+            "provenance_id": provenance_id}
         for name, obj in ids.items():
             if obj is None and \
                     hasattr(trace.stats, "asdf") and \

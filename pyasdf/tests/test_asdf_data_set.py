@@ -838,4 +838,3 @@ def test_adding_waveforms_with_provenance_id(tmpdir):
 
     new_data_set.__del__()
     del new_data_set
-    os.remove(filename)
