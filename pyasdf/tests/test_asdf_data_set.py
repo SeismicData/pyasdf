@@ -748,3 +748,25 @@ def test_adding_auxiliary_data_with_invalid_data_type_name_raises(tmpdir):
             "against the regular expression '^[A-Z][A-Za-z0-9]*$'.")
     finally:
         data_set.__del__()
+
+
+def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    data = np.random.random((10, 10))
+    # The data must NOT start with a number.
+    data_type = "RandomArray"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+    provenance_id = "{http://example.org}test"
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters,
+                                provenance_id=provenance_id)
+    data_set.__del__()
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    assert new_data_set.auxiliary_data.RandomArray.test_data.provenance_id \
+      == provenance_id
