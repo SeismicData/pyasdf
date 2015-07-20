@@ -879,3 +879,5 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
     assert err.value.args[0] == (
         "Tag name 'A.B.C' is invalid. It must validate "
         "against the regular expression '^[a-z0-9][a-z0-9_]*[a-z0-9]$'.")
+
+    data_set.__del__()

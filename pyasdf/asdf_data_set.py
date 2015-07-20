@@ -381,6 +381,15 @@ class ASDFDataSet(object):
                 "Data type name '{name}' is invalid. It must validate "
                 "against the regular expression '{pattern}'.".format(
                     name=data_type, pattern=pattern))
+
+        # Assert the tag pattern.
+        tag_pattern = r"^[a-z0-9][a-z0-9_]*[a-z0-9]$"
+        if re.match(tag_pattern, tag) is None:
+            raise ASDFValueError(
+                "Tag name '{name}' is invalid. It must validate "
+                "against the regular expression '{pattern}'.".format(
+                    name=tag, pattern=tag_pattern))
+
         if provenance_id is not None:
             # Will raise an error if not a valid qualified name.
             split_qualified_name(provenance_id)
