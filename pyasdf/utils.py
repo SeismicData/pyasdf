@@ -155,7 +155,7 @@ class ProvenanceAccessor(object):
                             .value.tostring()).hexdigest()
         if hash not in self._cache:
             self._cache[hash] = self.__data_set().get_provenance_document(item)
-        return self._cache[hash]
+        return copy.deepcopy(self._cache[hash])
 
     def __getitem__(self, item):
         try:
