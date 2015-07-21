@@ -134,7 +134,18 @@ class ProvenanceAccessor(object):
 
     def __iter__(self):
         for _i in self.list():
-            yield getattr(self, _i)
+            yield _i
+
+    def keys(self):
+        return self.__iter__()
+
+    def values(self):
+        for _i in self.list():
+            yield self[_i]
+
+    def items(self):
+        for _i in self.list():
+            yield (_i, self[_i])
 
     def __str__(self):
         if not len(self):

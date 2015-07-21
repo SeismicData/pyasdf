@@ -953,3 +953,7 @@ def test_provenance_dicionary_behaviour(tmpdir):
 
     assert new_data_set.provenance["test_provenance"] == doc
     assert getattr(new_data_set.provenance, "test_provenance") == doc
+
+    assert list(new_data_set.provenance.keys()) == ["test_provenance"]
+    assert list(new_data_set.provenance.values()) == [doc]
+    assert list(new_data_set.provenance.items()) == [("test_provenance", doc)]
