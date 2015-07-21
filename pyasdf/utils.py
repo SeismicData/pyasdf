@@ -121,13 +121,24 @@ class ProvenanceAccessor(object):
         self.__data_set().add_provenance_document(document=value, name=key)
 
     def __dir__(self):
-        return self.list()
+        return self.list() + ["list", "keys", "values", "items"]
 
     def list(self):
         """
         Return a list of available provenance documents.
         """
         return sorted((self.__data_set()._provenance_group.keys()))
+
+    def get_provenance_document_for_id(self, provenance_id):
+        """
+        Get the provenance document containing a record with a certain id.
+
+        :param provenance_id: The id of the provenance record whose
+            containing document is searched. Must be given as a qualified name,
+            e.g. ``'{namespace_uri}id'``.
+        """
+        # ko
+        split_qualified_name(provenance_id)
 
     def __len__(self):
         return len(self.list())
@@ -704,3 +715,25 @@ def split_qualified_name(name):
     if not parsed_url.scheme or not parsed_url.netloc:
         raise ASDFValueError("Not a valid qualified name.")
     return url, localname
+
+
+def get_all_ids_for_prov_document(document):
+    """
+    Gets a all ids from a prov document as qualified names in the lxml style.
+    """
+    ids = _get_ids_from_bundle(document)
+    for bundle in document.bundles:
+        ids.extend(_get_ids_from_bundle(bundle))
+
+    return sorted(set(ids))
+
+
+def _get_ids_from_bundle(bundle):
+    all_ids = []
+    for record in bundle._records:
+        if not hasattr(record, "identifier") or not record.identifier:
+            continue
+        identifier = record.identifier
+        all_ids.append("{%s}%s" % (identifier.namespace.uri,
+                                   identifier.localpart))
+    return all_ids

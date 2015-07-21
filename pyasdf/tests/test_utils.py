@@ -11,10 +11,17 @@ Test cases for the inventory utils.
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import inspect
+import os
+
+import prov
 import pytest
 
 from ..exceptions import ASDFValueError
-from ..utils import split_qualified_name
+from ..utils import split_qualified_name, get_all_ids_for_prov_document
+
+data_dir = os.path.join(os.path.dirname(os.path.abspath(
+    inspect.getfile(inspect.currentframe()))), "data")
 
 
 def test_split_qualified_name():
@@ -33,3 +40,17 @@ def test_split_qualified_name():
     with pytest.raises(ASDFValueError) as err:
         split_qualified_name("{http://example.orgbla")
     assert err.value.args[0] == "Not a valid qualified name."
+
+
+def test_get_ids_from_prov_document():
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+    doc = prov.read(filename, format="xml")
+    ids = get_all_ids_for_prov_document(doc)
+    assert ids == [
+        '{http://seisprov.org/seis_prov/0.1/#}sp001_wf_a34j4didj3',
+        '{http://seisprov.org/seis_prov/0.1/#}sp002_dt_f87sf7sf78',
+        '{http://seisprov.org/seis_prov/0.1/#}sp003_wf_js83hf34aj',
+        '{http://seisprov.org/seis_prov/0.1/#}sp004_lp_f87sf7sf78',
+        '{http://seisprov.org/seis_prov/0.1/#}sp005_wf_378f8ks8kd',
+        '{http://seisprov.org/seis_prov/0.1/#}sp006_dc_f87sf7sf78',
+        '{http://seisprov.org/seis_prov/0.1/#}sp007_wf_jude89du8l']
