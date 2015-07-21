@@ -960,6 +960,9 @@ def test_provenance_dicionary_behaviour(tmpdir):
 
 
 def test_str_of_auxiliary_data(tmpdir):
+    """
+    Test the various __str__ method of auxiliary data types.
+    """
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     data_set = ASDFDataSet(asdf_filename)
 
@@ -994,4 +997,10 @@ def test_str_of_auxiliary_data(tmpdir):
         "Data set contains the following auxiliary data types:\n"
         "\tRandomArray (2 item(s))\n"
         "\tSomethingElse (1 item(s))"
+    )
+
+    assert str(data_set.auxiliary_data.RandomArray) == (
+        "2 auxiliary data items of type 'RandomArray' available:\n"
+        "\ttest_data_1\n"
+        "\ttest_data_2"
     )
