@@ -96,6 +96,42 @@ def sizeof_fmt(num):
     return "%3.1f %s" % (num, "TB")
 
 
+class SimpleBuffer(object):
+    """
+    Object that can be used as a cache.
+
+    Will never contain more then the specified number of items. If more then
+    then that are used, it will remove the item with the oldest last access
+    time.
+    """
+    def __init__(self, limit=10):
+        self._limit = limit
+        self._buffer = collections.OrderedDict()
+
+    def __setitem__(self, key, value):
+        self._buffer[key] = value
+        self._check_size_limit()
+
+    def __getitem__(self, key):
+        # Reorder on access.
+        value = self._buffer.pop(key)
+        self._buffer[key] = value
+        return value
+
+    def __len__(self):
+        return len(self._buffer)
+
+    def __contains__(self, item):
+        return item in self._buffer
+
+    def values(self):
+        return self._buffer.values()
+
+    def _check_size_limit(self):
+        while len(self._buffer) > self._limit:
+            self._buffer.popitem(last=False)
+
+
 class ProvenanceAccessor(object):
     """
     Accessor helper for the provenance records.

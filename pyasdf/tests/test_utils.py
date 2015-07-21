@@ -18,7 +18,8 @@ import prov
 import pytest
 
 from ..exceptions import ASDFValueError
-from ..utils import split_qualified_name, get_all_ids_for_prov_document
+from ..utils import (split_qualified_name, get_all_ids_for_prov_document,
+                     SimpleBuffer)
 
 data_dir = os.path.join(os.path.dirname(os.path.abspath(
     inspect.getfile(inspect.currentframe()))), "data")
@@ -54,3 +55,34 @@ def test_get_ids_from_prov_document():
         '{http://seisprov.org/seis_prov/0.1/#}sp005_wf_378f8ks8kd',
         '{http://seisprov.org/seis_prov/0.1/#}sp006_dc_f87sf7sf78',
         '{http://seisprov.org/seis_prov/0.1/#}sp007_wf_jude89du8l']
+
+
+def test_simple_cache_dictionary():
+    xx = SimpleBuffer(limit=2)
+    xx[1] = 1
+    xx[2] = 2
+
+    assert sorted(list(xx.values())) == [1, 2]
+
+    xx[3] = 3
+
+    assert sorted(list(xx.values())) == [2, 3]
+
+    xx = SimpleBuffer(limit=2)
+    xx[1] = 1
+    xx[2] = 2
+
+    # Access reorders the items.
+    xx[1]
+    xx[3] = 3
+    assert sorted(list(xx.values())) == [1, 3]
+
+    xx = SimpleBuffer(limit=2)
+    xx[1] = 1
+    xx[2] = 2
+    xx[3] = 3
+    xx[4] = 4
+    assert sorted(list(xx.values())) == [3, 4]
+    assert 3 in xx
+    assert 4 in xx
+    assert len(xx) == 2
