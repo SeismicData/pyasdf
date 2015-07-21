@@ -917,3 +917,17 @@ def test_adding_arbitrary_files(tmpdir):
 
     with open(test_filename, "rb") as fh:
         assert fh.read() == aux_data.file.read()
+
+
+def test_provenance_list_command(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir,
+                            "example_schematic_processing_chain.xml")
+
+    # Add it as a document.
+    doc = prov.read(filename, format="xml")
+    data_set.add_provenance_document(doc, name="test_provenance")
+
+    assert data_set.provenance.list() == ["test_provenance"]

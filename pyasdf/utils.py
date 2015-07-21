@@ -112,20 +112,26 @@ class ProvenanceAccessor(object):
         return self.__data_set().get_provenance_document(item)
 
     def __dir__(self):
+        return self.list()
+
+    def list(self):
+        """
+        Return a list of available provenance documents.
+        """
         return sorted((self.__data_set()._provenance_group.keys()))
 
     def __len__(self):
-        return len(self.__dir__())
+        return len(self.list())
 
     def __iter__(self):
-        for _i in self.__dir__():
+        for _i in self.list():
             yield getattr(self, _i)
 
     def __str__(self):
         if not len(self):
             return "No provenance document in file."
         ret_str = "%i Provenance Document(s):\n\t%s" % (
-            len(self), "\n\t".join(dir(self)))
+            len(self), "\n\t".join(self.list()))
         return ret_str
 
     def _repr_pretty_(self, p, cycle):
