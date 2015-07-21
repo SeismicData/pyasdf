@@ -11,6 +11,7 @@ from __future__ import (absolute_import, division, print_function,
 
 import copy
 import collections
+import hashlib
 import io
 import os
 import sys
@@ -136,6 +137,9 @@ class ProvenanceAccessor(object):
     """
     Accessor helper for the provenance records.
     """
+    # Cache up to 20 documents. Uses the sha1 hash of the documents.
+    _cache = SimpleBuffer(limit=20)
+
     def __init__(self, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
         # file around.
@@ -145,7 +149,13 @@ class ProvenanceAccessor(object):
         _records = self.list()
         if item not in _records:
             raise AttributeError
-        return self.__data_set().get_provenance_document(item)
+
+        hash = hashlib.sha1(self.__data_set()
+                            ._provenance_group[item]
+                            .value.tostring()).hexdigest()
+        if hash not in self._cache:
+            self._cache[hash] = self.__data_set().get_provenance_document(item)
+        return self._cache[hash]
 
     def __getitem__(self, item):
         try:
