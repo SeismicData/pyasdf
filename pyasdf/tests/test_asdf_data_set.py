@@ -1037,10 +1037,16 @@ def test_item_access_of_waveforms(example_data_set):
 
     assert data_set.waveforms["AE_113A"]["raw_recording"] == \
         data_set.waveforms.AE_113A.raw_recording == \
-           data_set.waveforms["AE.113A"].raw_recording == \
-           data_set.waveforms.AE_113A["raw_recording"]
+        data_set.waveforms["AE.113A"].raw_recording == \
+        data_set.waveforms.AE_113A["raw_recording"]
 
     assert data_set.waveforms["AE_113A"]["StationXML"] == \
-           data_set.waveforms.AE_113A.StationXML == \
-           data_set.waveforms["AE.113A"].StationXML == \
-           data_set.waveforms.AE_113A["StationXML"]
+        data_set.waveforms.AE_113A.StationXML == \
+        data_set.waveforms["AE.113A"].StationXML == \
+        data_set.waveforms.AE_113A["StationXML"]
+
+
+def test_list_method_of_waveform_accessor(example_data_set):
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    assert data_set.list() == ["AE.113A", "TA.POKR"]
