@@ -205,6 +205,9 @@ class AuxiliaryDataContainer(object):
                         "%s: %s" % (_i[0], _i[1]) for _i in
                         sorted(self.parameters.items(), key=lambda x: x[0])])))
 
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.__str__())
+
 
 class AuxiliaryDataAccessor(object):
     """
@@ -235,6 +238,17 @@ class AuxiliaryDataAccessor(object):
 
     def __len__(self):
         return len(self.list())
+
+    def __str__(self):
+        return (
+            "{count} auxiliary data item(s) of type '{type}' available:\n"
+            "\t{items}".format(count=len(self),
+                               type=self.__auxiliary_data_type,
+                               items="\n\t".join(self.list()))
+        )
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.__str__())
 
 
 class AuxiliaryDataGroupAccessor(object):

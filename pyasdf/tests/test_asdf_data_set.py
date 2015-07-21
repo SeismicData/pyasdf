@@ -1000,7 +1000,30 @@ def test_str_of_auxiliary_data(tmpdir):
     )
 
     assert str(data_set.auxiliary_data.RandomArray) == (
-        "2 auxiliary data items of type 'RandomArray' available:\n"
+        "2 auxiliary data item(s) of type 'RandomArray' available:\n"
         "\ttest_data_1\n"
         "\ttest_data_2"
     )
+
+
+def test_item_access_of_auxiliary_data(tmpdir):
+    """
+    Make sure all auxiliary data types, and the data itsself can be accessed
+    via dictionary like accesses.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    assert str(data_set.auxiliary_data) == (
+        "Data set contains no auxiliary data.")
+
+    data = np.random.random((10, 10))
+    data_type = "RandomArray"
+    tag = "test_data_1"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters)
+
+    assert data_set.auxiliary_data["RandomArray"]["test_data_1"].tag == \
+        data_set.auxiliary_data.RandomArray.test_data_1.tag
