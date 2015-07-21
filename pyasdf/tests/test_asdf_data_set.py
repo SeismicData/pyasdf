@@ -1050,3 +1050,22 @@ def test_list_method_of_waveform_accessor(example_data_set):
     data_set = ASDFDataSet(example_data_set.filename)
 
     assert data_set.waveforms.list() == ["AE.113A", "TA.POKR"]
+
+
+def test_detailed_waveform_access(example_data_set):
+    data_set = ASDFDataSet(example_data_set.filename)
+    st = data_set.waveforms.AE_113A
+
+    assert st.get_waveform_tags() == ["raw_recording"]
+    assert st.list() == [
+        'AE.113A..BHE__2013-05-24T05:40:00__2013-05-24T06:50:00'
+        '__raw_recording',
+        'AE.113A..BHN__2013-05-24T05:40:00__2013-05-24T06:50:00'
+        '__raw_recording',
+        'AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00'
+        '__raw_recording',
+        'StationXML']
+
+    assert st['AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00'
+              '__raw_recording'][0] == \
+        st.raw_recording.select(channel='BHZ')[0]

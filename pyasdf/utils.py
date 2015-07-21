@@ -392,6 +392,13 @@ class WaveformAccessor(object):
         except (AttributeError, WaveformNotInFileException):
             raise KeyError
 
+    def get_waveform_tags(self):
+        """
+        Get all available waveform tags for this station.
+        """
+        return sorted(set(_i.split("__")[-1]
+                          for _i in self.list() if _i != "StationXML"))
+
     def __getattr__(self, item):
         # Single trace access
         if item != "StationXML" and item in self.list():
@@ -428,7 +435,9 @@ class WaveformAccessor(object):
         The dir method will list all this object's methods, the StationXML
         if it has one, and all tags.
         """
-        directory = [_i.split("__")[-1] for _i in self.list()]
+        directory = self.get_waveform_tags()
+        if "StationXML" in self.list():
+            directory.append("StationXML")
         directory.extend(["_station_name", "coordinates",
                           "channel_coordinates"])
         return sorted(set(directory))
