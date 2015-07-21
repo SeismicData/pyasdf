@@ -223,6 +223,8 @@ class AuxiliaryDataAccessor(object):
     def __dir__(self):
         __group = self.__data_set()._auxiliary_data_group[
             self.__auxiliary_data_type]
+        # Replace to also be able to deal with invalid data type names. Dots
+        # are not really allowed.
         return sorted([_i.replace(".", "___") for _i in __group.keys()])
 
 

@@ -957,3 +957,38 @@ def test_provenance_dicionary_behaviour(tmpdir):
     assert list(new_data_set.provenance.keys()) == ["test_provenance"]
     assert list(new_data_set.provenance.values()) == [doc]
     assert list(new_data_set.provenance.items()) == [("test_provenance", doc)]
+
+
+def test_str_of_auxiliary_data(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    data = np.random.random((10, 10))
+    data_type = "RandomArray"
+    tag = "test_data_1"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters)
+
+    data = np.random.random((10, 10))
+    data_type = "RandomArray"
+    tag = "test_data_2"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters)
+
+    data = np.random.random((10, 10))
+    data_type = "SomethingElse"
+    tag = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag=tag, parameters=parameters)
+
+    assert str(data_set.auxiliary_data) == (
+        "Data set contains the following auxiliary data types:\n"
+        "\tRandom Array (2 item(s))\n"
+        "\tSomethingElse (1 item(s))"
+    )
