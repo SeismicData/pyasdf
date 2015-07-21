@@ -308,10 +308,16 @@ class StationAccessor(object):
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __getattr__(self, item):
-        __waveforms = self.__data_set()._waveform_group
-        if item.replace("_", ".") not in __waveforms:
+        item = item.replace("_", ".")
+        if item not in self.list():
             raise AttributeError
-        return WaveformAccessor(item.replace("_", "."), self.__data_set())
+        return WaveformAccessor(item, self.__data_set())
+
+    def __getitem__(self, item):
+        try:
+            return self.__getattr__(item)
+        except AttributeError:
+            raise KeyError
 
     def list(self):
         return sorted(self.__data_set()._waveform_group.keys())
@@ -320,11 +326,11 @@ class StationAccessor(object):
         return [_i.replace(".", "_") for _i in self.list()]
 
     def __len__(self):
-        return len(self.__dir__())
+        return len(self.list())
 
     def __iter__(self):
-        for _i in self.__dir__():
-            yield getattr(self, _i.replace("_", "."))
+        for _i in self.list():
+            yield self[_i]
 
 
 class WaveformAccessor(object):
