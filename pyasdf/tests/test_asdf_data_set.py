@@ -1027,3 +1027,20 @@ def test_item_access_of_auxiliary_data(tmpdir):
 
     assert data_set.auxiliary_data["RandomArray"]["test_data_1"].tag == \
         data_set.auxiliary_data.RandomArray.test_data_1.tag
+
+
+def test_item_access_of_waveforms(example_data_set):
+    """
+    Tests that waveforms and stations can be accessed with item access.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+
+    assert data_set.waveforms["AE_113A"]["raw_recording"] == \
+        data_set.waveforms.AE_113A.raw_recording == \
+           data_set.waveforms["AE.113A"].raw_recording == \
+           data_set.waveforms.AE_113A["raw_recording"]
+
+    assert data_set.waveforms["AE_113A"]["StationXML"] == \
+           data_set.waveforms.AE_113A.StationXML == \
+           data_set.waveforms["AE.113A"].StationXML == \
+           data_set.waveforms.AE_113A["StationXML"]
