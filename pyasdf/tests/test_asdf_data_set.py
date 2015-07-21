@@ -1049,4 +1049,4 @@ def test_item_access_of_waveforms(example_data_set):
 def test_list_method_of_waveform_accessor(example_data_set):
     data_set = ASDFDataSet(example_data_set.filename)
 
-    assert data_set.list() == ["AE.113A", "TA.POKR"]
+    assert data_set.waveforms.list() == ["AE.113A", "TA.POKR"]

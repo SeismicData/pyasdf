@@ -1141,19 +1141,13 @@ class ASDFDataSet(object):
             yield st, inv
         raise StopIteration
 
-    def get_station_list(self):
-        """
-        Helper function returning a list of all stations in this ASDF file.
-        """
-        return sorted(self.__file["Waveforms"].keys())
-
     def process_two_files_without_parallel_output(self, other_ds,
                                                   process_function):
         if not self.mpi:
             raise ASDFException("Currently only works with MPI.")
 
-        this_stations = set(self.get_station_list())
-        other_stations = set(other_ds.get_station_list())
+        this_stations = set(self.waveforms.list())
+        other_stations = set(other_ds.waveforms.list())
 
         # Usable stations are those that are part of both.
         usable_stations = list(this_stations.intersection(other_stations))
@@ -1194,7 +1188,7 @@ class ASDFDataSet(object):
             msg = "Output file '%s' already exists." % output_filename
             raise ValueError(msg)
 
-        stations = self.get_station_list()
+        stations = self.waveforms.list()
 
         # Get all possible station and waveform tag combinations and let
         # each process read the data it needs.

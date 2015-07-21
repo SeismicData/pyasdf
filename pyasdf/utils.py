@@ -313,10 +313,11 @@ class StationAccessor(object):
             raise AttributeError
         return WaveformAccessor(item.replace("_", "."), self.__data_set())
 
+    def list(self):
+        return sorted(self.__data_set()._waveform_group.keys())
+
     def __dir__(self):
-        __waveforms = self.__data_set()._waveform_group
-        return sorted(set(
-            [_i.replace(".", "_") for _i in __waveforms.keys()]))
+        return [_i.replace(".", "_") for _i in self.list()]
 
     def __len__(self):
         return len(self.__dir__())
