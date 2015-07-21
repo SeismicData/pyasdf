@@ -931,3 +931,25 @@ def test_provenance_list_command(tmpdir):
     data_set.add_provenance_document(doc, name="test_provenance")
 
     assert data_set.provenance.list() == ["test_provenance"]
+
+
+def test_provenance_dicionary_behaviour(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir,
+                            "example_schematic_processing_chain.xml")
+
+    # Add it as a document.
+    doc = prov.read(filename, format="xml")
+    # Setting via setitem.
+    data_set.provenance["test_provenance"] = doc
+
+    data_set.__del__()
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    assert new_data_set.provenance.list() == ["test_provenance"]
+
+    assert new_data_set.provenance["test_provenance"] == doc
+    assert getattr(new_data_set.provenance, "test_provenance") == doc

@@ -106,10 +106,19 @@ class ProvenanceAccessor(object):
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __getattr__(self, item):
-        _records = self.__data_set()._provenance_group
+        _records = self.list()
         if item not in _records:
             raise AttributeError
         return self.__data_set().get_provenance_document(item)
+
+    def __getitem__(self, item):
+        try:
+            return self.__getattr__(item)
+        except AttributeError:
+            raise KeyError
+
+    def __setitem__(self, key, value):
+        self.__data_set().add_provenance_document(document=value, name=key)
 
     def __dir__(self):
         return self.list()
