@@ -1083,11 +1083,11 @@ def test_get_provenance_document_for_id(tmpdir):
 
     assert data_set.provenance.get_provenance_document_for_id(
             '{http://seisprov.org/seis_prov/0.1/#}sp002_dt_f87sf7sf78') == \
-        doc
+        {"name": "test_provenance", "document": doc}
 
     assert data_set.provenance.get_provenance_document_for_id(
             '{http://seisprov.org/seis_prov/0.1/#}sp004_lp_f87sf7sf78') == \
-        doc
+        {"name": "test_provenance", "document": doc}
 
     # Id not found.
     with pytest.raises(ASDFValueError) as err:

@@ -141,10 +141,10 @@ class ProvenanceAccessor(object):
         url, localname = split_qualified_name(provenance_id)
         name = "{%s}%s" % (url, localname)
 
-        for document in self.values():
+        for key, document in self.items():
             all_ids = get_all_ids_for_prov_document(document)
             if name in all_ids:
-                return document
+                return {"name": key, "document": document}
         raise ASDFValueError(
             "Document containing id '%s' not found in the data set."
             % provenance_id)
