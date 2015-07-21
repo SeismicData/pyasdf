@@ -145,8 +145,9 @@ class ProvenanceAccessor(object):
             all_ids = get_all_ids_for_prov_document(document)
             if name in all_ids:
                 return document
-        raise ASDFValueError("Document for id '%s' not found in the data set."
-                             % provenance_id)
+        raise ASDFValueError(
+            "Document containing id '%s' not found in the data set."
+            % provenance_id)
 
     def __len__(self):
         return len(self.list())

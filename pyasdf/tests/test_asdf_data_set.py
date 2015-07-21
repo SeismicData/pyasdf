@@ -1069,3 +1069,40 @@ def test_detailed_waveform_access(example_data_set):
     assert st['AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00'
               '__raw_recording'][0] == \
         st.raw_recording.select(channel='BHZ')[0]
+
+
+def test_get_provenance_document_for_id(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir,
+                            "example_schematic_processing_chain.xml")
+
+    doc = prov.read(filename)
+    data_set.provenance["test_provenance"] = doc
+
+    assert data_set.provenance.get_provenance_document_for_id(
+            '{http://seisprov.org/seis_prov/0.1/#}sp002_dt_f87sf7sf78') == \
+        doc
+
+    assert data_set.provenance.get_provenance_document_for_id(
+            '{http://seisprov.org/seis_prov/0.1/#}sp004_lp_f87sf7sf78') == \
+        doc
+
+    # Id not found.
+    with pytest.raises(ASDFValueError) as err:
+        data_set.provenance.get_provenance_document_for_id(
+            '{http://seisprov.org/seis_prov/0.1/#}bogus_id')
+
+    assert err.value.args[0] == (
+        "Document containing id "
+        "'{http://seisprov.org/seis_prov/0.1/#}bogus_id'"
+        " not found in the data set.")
+
+    # Not a qualified id.
+    with pytest.raises(ASDFValueError) as err:
+        data_set.provenance.get_provenance_document_for_id("bla")
+
+    assert err.value.args[0] == ("Not a valid qualified name.")
+
+    data_set.__del__()
