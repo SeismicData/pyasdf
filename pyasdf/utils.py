@@ -386,8 +386,18 @@ class WaveformAccessor(object):
 
         return coordinates
 
+    def __getitem__(self, item):
+        try:
+            return self.__getattr__(item)
+        except (AttributeError, WaveformNotInFileException):
+            raise KeyError
+
     def __getattr__(self, item):
-        if item != "StationXML":
+        # Single trace access
+        if item != "StationXML" and item in self.list():
+            return obspy.Stream(traces=[self.__data_set()._get_waveform(item)])
+        # Tag access.
+        elif item != "StationXML" and "__" not in item:
             __station = self.__data_set()._waveform_group[self._station_name]
             keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
@@ -402,17 +412,25 @@ class WaveformAccessor(object):
 
             traces = [self.__data_set()._get_waveform(_i) for _i in keys]
             return obspy.Stream(traces=traces)
+        # StationXML access.
         else:
             return self.__data_set()._get_station(self._station_name)
 
+    def list(self):
+        """
+        Get a list of all data sets for this station.
+        """
+        return sorted(
+            self.__data_set()._waveform_group[self._station_name].keys())
+
     def __dir__(self):
-        __station = self.__data_set()._waveform_group[self._station_name]
-        directory = ["_station_name", "coordinates", "channel_coordinates"]
-        if "StationXML" in __station:
-            directory.append("StationXML")
-        directory.extend([_i.split("__")[-1]
-                          for _i in __station.keys()
-                          if _i != "StationXML"])
+        """
+        The dir method will list all this object's methods, the StationXML
+        if it has one, and all tags.
+        """
+        directory = [_i.split("__")[-1] for _i in self.list()]
+        directory.extend(["_station_name", "coordinates",
+                          "channel_coordinates"])
         return sorted(set(directory))
 
     def __str__(self):
