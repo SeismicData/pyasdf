@@ -362,7 +362,8 @@ class ASDFDataSet(object):
         self.__file["QuakeML"][:] = data
 
     def add_auxiliary_data_file(
-            self, filename_or_object, tag, parameters, provenance_id=None):
+            self, filename_or_object, tag, parameters=None,
+            provenance_id=None):
         """
         Special function adding a file or file like object as an auxiliary
         data object denoting a file. This is very useful to store arbirary
@@ -385,6 +386,9 @@ class ASDFDataSet(object):
             with io.open(filename_or_object, "rb") as fh:
                 data = np.frombuffer(fh.read(),
                                      dtype=np.dtype("byte"))
+
+        if parameters is None:
+            parameters = {}
 
         self.add_auxiliary_data(data=data, data_type="File", tag=tag,
                                 parameters=parameters,
