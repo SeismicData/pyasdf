@@ -208,7 +208,7 @@ class AuxiliaryDataContainer(object):
 
 class AuxiliaryDataAccessor(object):
     """
-    Helper class facilitating access to the actual waveforms and stations.
+    Helper class to access auxiliary data items.
     """
     def __init__(self, auxiliary_data_type, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
@@ -218,14 +218,23 @@ class AuxiliaryDataAccessor(object):
 
     def __getattr__(self, item):
         return self.__data_set()._get_auxiliary_data(
-            self.__auxiliary_data_type, item.replace("___", "."))
+            self.__auxiliary_data_type, item)
+
+    def __getitem__(self, item):
+        try:
+            return getattr(self, item)
+        except AttributeError:
+            raise KeyError
+
+    def list(self):
+        return sorted(self.__data_set()._auxiliary_data_group[
+            self.__auxiliary_data_type].keys())
 
     def __dir__(self):
-        __group = self.__data_set()._auxiliary_data_group[
-            self.__auxiliary_data_type]
-        # Replace to also be able to deal with invalid data type names. Dots
-        # are not really allowed.
-        return sorted([_i.replace(".", "___") for _i in __group.keys()])
+        return self.list() + ["list"]
+
+    def __len__(self):
+        return len(self.list())
 
 
 class AuxiliaryDataGroupAccessor(object):
@@ -243,12 +252,36 @@ class AuxiliaryDataGroupAccessor(object):
             raise AttributeError
         return AuxiliaryDataAccessor(item, self.__data_set())
 
-    def __dir__(self):
+    def __getitem__(self, item):
+        try:
+            return self.__getattr__(item)
+        except AttributeError:
+            raise KeyError
+
+    def list(self):
         __auxiliary_group = self.__data_set()._auxiliary_data_group
         return sorted(__auxiliary_group.keys())
 
+    def __dir__(self):
+        return self.list() + ["list"]
+
     def __len__(self):
         return len(self.__dir__())
+
+    def __str__(self):
+        if not self.list():
+            return "Data set contains no auxiliary data."
+
+        return (
+            "Data set contains the following auxiliary data types:\n"
+            "\t{items}".format(
+                items="\n\t".join(["%s (%i item(s))" % (_i, len(self[_i]))
+                                   for _i in self.list()])
+            )
+        )
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(self.__str__())
 
 
 class StationAccessor(object):

@@ -963,6 +963,9 @@ def test_str_of_auxiliary_data(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     data_set = ASDFDataSet(asdf_filename)
 
+    assert str(data_set.auxiliary_data) == (
+        "Data set contains no auxiliary data.")
+
     data = np.random.random((10, 10))
     data_type = "RandomArray"
     tag = "test_data_1"
@@ -989,6 +992,6 @@ def test_str_of_auxiliary_data(tmpdir):
 
     assert str(data_set.auxiliary_data) == (
         "Data set contains the following auxiliary data types:\n"
-        "\tRandom Array (2 item(s))\n"
+        "\tRandomArray (2 item(s))\n"
         "\tSomethingElse (1 item(s))"
     )
