@@ -137,8 +137,16 @@ class ProvenanceAccessor(object):
             containing document is searched. Must be given as a qualified name,
             e.g. ``'{namespace_uri}id'``.
         """
-        # ko
-        split_qualified_name(provenance_id)
+        # Will raise if not a proper qualified name.
+        url, localname = split_qualified_name(provenance_id)
+        name = "{%s}%s" % (url, localname)
+
+        for document in self.values():
+            all_ids = get_all_ids_for_prov_document(document)
+            if name in all_ids:
+                return document
+        raise ASDFValueError("Document for id '%s' not found in the data set."
+                             % provenance_id)
 
     def __len__(self):
         return len(self.list())
