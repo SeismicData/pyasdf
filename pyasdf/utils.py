@@ -146,6 +146,7 @@ class ProvenanceAccessor(object):
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __getattr__(self, item):
+        item = str(item)
         _records = self.list()
         if item not in _records:
             raise AttributeError
@@ -164,7 +165,8 @@ class ProvenanceAccessor(object):
             raise KeyError
 
     def __setitem__(self, key, value):
-        self.__data_set().add_provenance_document(document=value, name=key)
+        self.__data_set().add_provenance_document(document=value,
+                                                  name=str(key))
 
     def __dir__(self):
         return self.list() + ["list", "keys", "values", "items"]
@@ -287,11 +289,11 @@ class AuxiliaryDataAccessor(object):
 
     def __getattr__(self, item):
         return self.__data_set()._get_auxiliary_data(
-            self.__auxiliary_data_type, item)
+            self.__auxiliary_data_type, str(item))
 
     def __getitem__(self, item):
         try:
-            return getattr(self, item)
+            return self.__getattr__(item)
         except AttributeError:
             raise KeyError
 
@@ -327,6 +329,7 @@ class AuxiliaryDataGroupAccessor(object):
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __getattr__(self, item):
+        item = str(item)
         __auxiliary_data_group = self.__data_set()._auxiliary_data_group
         if item not in __auxiliary_data_group:
             raise AttributeError
@@ -374,7 +377,7 @@ class StationAccessor(object):
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __getattr__(self, item):
-        item = item.replace("_", ".")
+        item = str(item).replace("_", ".")
         if item not in self.list():
             raise AttributeError
         return WaveformAccessor(item, self.__data_set())
