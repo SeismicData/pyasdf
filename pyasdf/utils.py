@@ -234,6 +234,11 @@ class AuxiliaryDataContainer(object):
         if "provenance_id" in parameters:
             parameters = copy.deepcopy(parameters)
             self.provenance_id = parameters.pop("provenance_id")
+            # It might be returned as a byte string on some systems.
+            try:
+                self.provenance_id = self.provenance_id.decode()
+            except:
+                pass
         else:
             self.provenance_id = None
         self.parameters = parameters
