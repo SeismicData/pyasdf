@@ -454,7 +454,8 @@ class ASDFDataSet(object):
         # point it is assumed, that the id is valid.
         if provenance_id is not None:
             parameters = copy.deepcopy(parameters)
-            parameters.update({"provenance_id": provenance_id})
+            parameters.update({"provenance_id":
+                              self._zeropad_ascii_string(provenance_id)})
 
         group_name = "%s/%s" % (data_type, tag)
         if group_name in self._auxiliary_data_group:
