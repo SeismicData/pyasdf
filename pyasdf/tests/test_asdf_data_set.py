@@ -1106,3 +1106,21 @@ def test_get_provenance_document_for_id(tmpdir):
     assert err.value.args[0] == ("Not a valid qualified name.")
 
     data_set.__del__()
+
+
+def test_empty_asdf_file_has_no_quakeml_dataset(tmpdir):
+    """
+    There is no reason an empty ASDF file should have a QuakeML group.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+    data_set.__del__()
+
+    f = h5py.File(asdf_filename)
+    assert "QuakeML" not in f
+
+    # It should still return an empty catalog object if the events are
+    # requested.
+    new_data_set = ASDFDataSet(asdf_filename)
+    assert len(new_data_set.events) == 0
+    new_data_set.__del__()
