@@ -769,7 +769,10 @@ def split_qualified_name(name):
     except ValueError:
         raise ASDFValueError("Not a valid qualified name.")
     url, localname = q_name.namespace, q_name.localname
-    parsed_url = urlparse(url)
+    try:
+        parsed_url = urlparse(url)
+    except AttributeError:
+        raise ASDFValueError("Not a valid qualified name.")
     if not parsed_url.scheme or not parsed_url.netloc:
         raise ASDFValueError("Not a valid qualified name.")
     return url, localname
