@@ -165,12 +165,6 @@ class ASDFDataSet(object):
         self.auxiliary_data = AuxiliaryDataGroupAccessor(self)
         self.provenance = ProvenanceAccessor(self)
 
-        # Create the QuakeML data set if it does not exist.
-        if "QuakeML" not in self.__file:
-            self.__file.create_dataset("QuakeML", dtype=np.dtype("byte"),
-                                       shape=(0,), maxshape=(None,),
-                                       fletcher32=not bool(self.mpi))
-
         # Force synchronous init if run in an MPI environment.
         if self.mpi:
             self.mpi.comm.barrier()
@@ -328,6 +322,8 @@ class ASDFDataSet(object):
 
         :rtype: An ObsPy :class:`~obspy.core.event.Catalog` object.
         """
+        if "QuakeML" not in self.__file:
+            return obspy.core.event.Catalog()
         data = self.__file["QuakeML"]
         if not len(data.value):
             return obspy.core.event.Catalog()
@@ -357,6 +353,12 @@ class ASDFDataSet(object):
             cat.write(buf, format="quakeml")
             buf.seek(0, 0)
             data = np.frombuffer(buf.read(), dtype=np.dtype("byte"))
+
+        # Create the QuakeML data set if it does not exist.
+        if "QuakeML" not in self.__file:
+            self.__file.create_dataset("QuakeML", dtype=np.dtype("byte"),
+                                       shape=(0,), maxshape=(None,),
+                                       fletcher32=not bool(self.mpi))
 
         self.__file["QuakeML"].resize(data.shape)
         self.__file["QuakeML"][:] = data
