@@ -526,7 +526,7 @@ class WaveformAccessor(object):
             "Contents of the data set for station {station}:\n"
             "    - {station_xml}\n"
             "    - {count} Waveform Tag(s):\n"
-            "         {waveforms}"
+            "        {waveforms}"
         )
         return ret_str.format(
             station=self._station_name,
