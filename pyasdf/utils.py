@@ -245,6 +245,25 @@ class AuxiliaryDataContainer(object):
 
         self.__file_cache = None
 
+    def __eq__(self, other):
+        if type(self) is not type(other):
+            return False
+
+        if self.tag != other.tag or self.data_type != other.data_type or \
+                self.provenance_id != self.provenance_id or \
+                self.parameters != self.parameters:
+            return False
+
+        try:
+            np.testing.assert_equal(self.data, other.data)
+        except AssertionError:
+            return False
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __del__(self):
         try:
             self.__file_cache.close()
@@ -291,6 +310,29 @@ class AuxiliaryDataAccessor(object):
         # file around.
         self.__auxiliary_data_type = auxiliary_data_type
         self.__data_set = weakref.ref(asdf_data_set)
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        if self.__auxiliary_data_type != other.__auxiliary_data_type:
+            return False
+
+        ds1 = self.__data_set()
+        ds2 = self.__data_set()
+        try:
+            if None in [ds1, ds2]:
+                return False
+            if ds1 is not ds2:
+                return False
+        finally:
+            del ds1
+            del ds2
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __getattr__(self, item):
         return self.__data_set()._get_auxiliary_data(
@@ -416,6 +458,28 @@ class WaveformAccessor(object):
         # file around.
         self._station_name = station_name
         self.__data_set = weakref.ref(asdf_data_set)
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        if self._station_name != other._station_name:
+            return False
+
+        ds1 = self.__data_set()
+        ds2 = self.__data_set()
+        try:
+            if None in [ds1, ds2]:
+                return False
+            if ds1 is not ds2:
+                return False
+        finally:
+            del ds1
+            del ds2
+
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def coordinates(self):
