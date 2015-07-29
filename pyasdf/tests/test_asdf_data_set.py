@@ -536,7 +536,7 @@ def test_waveform_accessor_printing(example_data_set):
         "Contents of the data set for station AE.113A:\n"
         "    - Has a StationXML file\n"
         "    - 1 Waveform Tag(s):\n"
-        "         raw_recording")
+        "        raw_recording")
 
     data_set.__del__()
     del data_set
