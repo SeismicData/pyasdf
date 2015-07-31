@@ -102,7 +102,7 @@ def _read_string_array(data):
     Helper function taking a string data set and preparing it so it can be
     read to a BytesIO object.
     """
-    return data.value.tostring().strip(b"/x00").strip()
+    return data.value.tostring().strip(b"\x00 ").strip()
 
 
 class SimpleBuffer(object):
