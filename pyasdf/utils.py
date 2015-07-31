@@ -404,7 +404,7 @@ class AuxiliaryDataGroupAccessor(object):
         return self.list() + ["list"]
 
     def __len__(self):
-        return len(self.__dir__())
+        return len(self.list())
 
     def __str__(self):
         if not self.list():

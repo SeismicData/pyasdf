@@ -657,7 +657,7 @@ class ASDFDataSet(object):
         if len(self.auxiliary_data):
             ret += "\n\tContains %i type(s) of auxiliary data: %s" % (
                 len(self.auxiliary_data),
-                ", ".join(sorted(dir(self.auxiliary_data))))
+                ", ".join(sorted(self.auxiliary_data.list())))
         return ret
 
     def _repr_pretty_(self, p, cycle):
