@@ -329,8 +329,24 @@ class ASDFDataSet(object):
             return obspy.core.event.Catalog()
 
         with io.BytesIO(_read_string_array(data)) as buf:
-            cat = obspy.readEvents(buf, format="quakeml")
-
+            try:
+                cat = obspy.readEvents(buf, format="quakeml")
+            except:
+                # ObsPy is not able to read empty QuakeML files but they are
+                # still valid QuakeML files.
+                buf.seek(0, 0)
+                result = None
+                try:
+                    result = obspy.core.quakeml._validate(buf)
+                except:
+                    pass
+                # If validation is successful, but the initial read failed,
+                # it must have been an empty QuakeML object.
+                if result is True:
+                    cat = obspy.core.event.Catalog()
+                else:
+                    # Re-raise exception
+                    raise
         return cat
 
     @events.setter
