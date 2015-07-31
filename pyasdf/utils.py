@@ -97,6 +97,14 @@ def sizeof_fmt(num):
     return "%3.1f %s" % (num, "TB")
 
 
+def _read_string_array(data):
+    """
+    Helper function taking a string data set and preparing it so it can be
+    read to a BytesIO object.
+    """
+    return data.value.tostring().strip(b"/x00").strip()
+
+
 class SimpleBuffer(object):
     """
     Object that can be used as a cache.
@@ -279,7 +287,7 @@ class AuxiliaryDataContainer(object):
         if self.__file_cache is not None:
             return self.__file_cache
 
-        self.__file_cache = io.BytesIO(self.data.value.tostring())
+        self.__file_cache = io.BytesIO(_read_string_array(self.data))
         return self.__file_cache
 
     def __str__(self):
@@ -516,7 +524,7 @@ class WaveformAccessor(object):
             raise NoStationXMLForStation("Station '%s' has no StationXML "
                                          "file." % self._station_name)
         try:
-            with io.BytesIO(station["StationXML"].value.tostring()) as buf:
+            with io.BytesIO(_read_string_array(station["StationXML"])) as buf:
                 coordinates = get_coordinates(buf, level=level)
         finally:
             # HDF5 reference are tricky...

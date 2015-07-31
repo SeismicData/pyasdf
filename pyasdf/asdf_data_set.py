@@ -60,7 +60,7 @@ from .header import COMPRESSIONS, FORMAT_NAME, \
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
-    ProvenanceAccessor, split_qualified_name
+    ProvenanceAccessor, split_qualified_name, _read_string_array
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -328,7 +328,7 @@ class ASDFDataSet(object):
         if not len(data.value):
             return obspy.core.event.Catalog()
 
-        with io.BytesIO(data.value.tostring()) as buf:
+        with io.BytesIO(_read_string_array(data)) as buf:
             cat = obspy.readEvents(buf, format="quakeml")
 
         return cat
@@ -849,7 +849,7 @@ class ASDFDataSet(object):
 
         data = self._provenance_group[document_name]
 
-        with io.BytesIO(data.value.tostring()) as buf:
+        with io.BytesIO(_read_string_array(data)) as buf:
             doc = prov.read(buf, format="xml")
         return doc
 
@@ -1014,7 +1014,7 @@ class ASDFDataSet(object):
 
         data = self.__file["Waveforms"][station_name]["StationXML"]
 
-        with io.BytesIO(data.value.tostring()) as buf:
+        with io.BytesIO(_read_string_array(data)) as buf:
             inv = obspy.read_inventory(buf, format="stationxml")
 
         return inv
