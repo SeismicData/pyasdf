@@ -467,6 +467,65 @@ class WaveformAccessor(object):
         self._station_name = station_name
         self.__data_set = weakref.ref(asdf_data_set)
 
+    @property
+    def __hdf5_group(self):
+        """
+        For internal use only! Returns the hdf5 group associated with this
+        station. Make sure to delete the reference afterwards as HDF5 is
+        very picky about dangling references especially with parallel I/O.
+        """
+        return self.__data_set()._waveform_group[self._station_name]
+
+    def filter_waveforms(self, event_id=None, origin_id=None,
+                         magnitude_id=None, focal_mechanism_id=None):
+        """
+        Return a list of waveform data set names for this station with the
+        given event (or other) id. One or more id types can be given. It will
+        only yield waveforms which satisfy all the given constraints.
+
+        :type event_id: str or :class:`obspy.core.event.ResourceIdentifier`
+        :param event_id: Return only waveforms associated with this event id.
+        :type origin_id: str or :class:`obspy.core.event.ResourceIdentifier`
+        :param origin_id:Return only waveforms associated with this origin id.
+        :type magnitude_id: str or :class:`obspy.core.event.ResourceIdentifier`
+        :param magnitude_id:Return only waveforms associated with this
+            magnitude id.
+        :type focal_mechanism_id: str or
+            :class:`obspy.core.event.ResourceIdentifier`
+        :param focal_mechanism_id:Return only waveforms associated with this
+            focal mechanism id.
+        """
+        match = {}
+        if event_id is not None:
+            match["event_id"] = str(event_id)
+        if origin_id is not None:
+            match["origin_id"] = str(origin_id)
+        if magnitude_id is not None:
+            match["magnitude_id"] = str(magnitude_id)
+        if focal_mechanism_id is not None:
+            match["focal_mechanism_id"] = str(focal_mechanism_id)
+
+        if not match:
+            raise ValueError("At least one id must be given.")
+
+        wfs = []
+
+        group = self.__hdf5_group
+
+        try:
+            for wf in [_i for _i in self.list() if _i != "StationXML"]:
+                attrs = group[wf].attrs
+                for key, value in match.items():
+                    if key not in attrs or \
+                            attrs[key].tostring().decode() != value:
+                        break
+                else:
+                    wfs.append(wf)
+        finally:
+            del group
+
+        return wfs
+
     def __eq__(self, other):
         if type(self) != type(other):
             return False
