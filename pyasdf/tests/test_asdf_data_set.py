@@ -427,7 +427,7 @@ def test_tag_iterator(example_data_set):
     expected_ids = ["AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ",
                     "TA.POKR..BHE", "TA.POKR..BHN", "TA.POKR..BHZ"]
 
-    for st, inv in data_set.itertag("raw_recording"):
+    for st, inv in data_set.iter_tag("raw_recording"):
         for tr in st:
             assert tr.id in expected_ids
             expected_ids.remove(tr.id)
@@ -439,7 +439,7 @@ def test_tag_iterator(example_data_set):
 
     # It will only return matching tags.
     count = 0
-    for _ in data_set.itertag("random"):
+    for _ in data_set.iter_tag("random"):
         count += 1
     assert count == 0
 

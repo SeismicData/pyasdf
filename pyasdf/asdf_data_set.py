@@ -1139,18 +1139,18 @@ class ASDFDataSet(object):
               summary["no_waveforms"])
         print("\t%i good stations" % summary["good_stations"])
 
-    def itertag(self, tag):
+    def iter_tag(self, tag):
         """
         Iterate over stations. Yields a tuple of an obspy Stream object and
         an inventory object for the station information. The returned
         inventory object can be None.
 
-        >>> for st, inv in data_set.itertag("raw_recording"):
+        >>> for st, inv in data_set.iter_tag("raw_recording"):
         ...     st.detrend("linear")
         """
         for station in dir(self.waveforms):
             station = getattr(self.waveforms, station)
-            if tag not in dir(station):
+            if tag not in station.get_waveform_tags():
                 continue
             if "StationXML" in dir(station):
                 inv = station.StationXML
