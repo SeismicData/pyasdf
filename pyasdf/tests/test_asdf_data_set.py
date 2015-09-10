@@ -1124,3 +1124,91 @@ def test_empty_asdf_file_has_no_quakeml_dataset(tmpdir):
     new_data_set = ASDFDataSet(asdf_filename)
     assert len(new_data_set.events) == 0
     new_data_set.__del__()
+
+
+def test_iter_event(example_data_set):
+    """
+    Tests the iter_event() method.
+    """
+    data_set = ASDFDataSet(example_data_set.filename)
+    # Store a new waveform.
+    event_id = "quakeml:random/event"
+    origin_id = "quakeml:random/origin"
+    magnitude_id = "quakeml:random/magnitude"
+    focmec_id = "quakeml:random/focmec"
+
+    tr = obspy.read()[0]
+
+    # Has all four.
+    tr.stats.network = "AA"
+    tr.stats.station = "AA"
+    data_set.add_waveforms(tr, tag="random_a", event_id=event_id,
+                           origin_id=origin_id, focal_mechanism_id=focmec_id,
+                           magnitude_id=magnitude_id)
+    # Only event.
+    tr.stats.network = "BB"
+    tr.stats.station = "BB"
+    data_set.add_waveforms(tr, tag="random_b", event_id=event_id)
+
+    # Only origin.
+    tr.stats.network = "CC"
+    tr.stats.station = "CC"
+    data_set.add_waveforms(tr, tag="random_c", origin_id=origin_id)
+
+    # Only magnitude.
+    tr.stats.network = "DD"
+    tr.stats.station = "DD"
+    data_set.add_waveforms(tr, tag="random_d", magnitude_id=magnitude_id)
+
+    # Only focal mechanism.
+    tr.stats.network = "EE"
+    tr.stats.station = "EE"
+    data_set.add_waveforms(tr, tag="random_e", focal_mechanism_id=focmec_id)
+
+    # Nothing.
+    tr.stats.network = "FF"
+    tr.stats.station = "FF"
+    data_set.add_waveforms(tr, tag="random_f")
+
+    # Test with random ids..should all return nothing.
+    random_ids = [
+        "test", "random",
+        obspy.core.event.ResourceIdentifier(
+            "smi:service.iris.edu/fdsnws/event/1/query?random_things")]
+    for r_id in random_ids:
+        assert list(data_set.iter_event(event_id=r_id)) == []
+        assert list(data_set.iter_event(magnitude_id=r_id)) == []
+        assert list(data_set.iter_event(origin_id=r_id)) == []
+        assert list(data_set.iter_event(focal_mechanism_id=r_id)) == []
+
+    # Event as a resource identifier and as a string.
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+              event_id=event_id)]
+    assert result == ["AA", "BB"]
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        event_id=str(event_id))]
+    assert result == ["AA", "BB"]
+
+    # Origin as a resource identifier and as a string.
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        origin_id=origin_id)]
+    assert result == ["AA", "CC"]
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        origin_id=str(origin_id))]
+    assert result == ["AA", "CC"]
+
+    # Magnitude as a resource identifier and as a string.
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        magnitude_id=magnitude_id)]
+    assert result == ["AA", "DD"]
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        magnitude_id=str(magnitude_id))]
+    assert result == ["AA", "DD"]
+
+    # focmec as a resource identifier and as a string.
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        focal_mechanism_id=focmec_id)]
+    assert result == ["AA", "EE"]
+    result = [_i[0][0].stats.network for _i in data_set.iter_event(
+        focal_mechanism_id=str(focmec_id))]
+    assert result == ["AA", "EE"]
