@@ -1313,3 +1313,7 @@ def test_more_queries(example_data_set):
     # Number of samples.
     assert collect_ids(ds.ifilter(ds.q.npts > 1000, ds.q.npts < 5000)) == {
         "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+
+    # All vertical channels.
+    assert collect_ids(ds.ifilter(ds.q.channel == "*Z")) == {
+        "BW.RJOB..EHZ", "TA.POKR..BHZ", "AE.113A..BHZ"}
