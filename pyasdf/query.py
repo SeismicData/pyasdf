@@ -124,22 +124,22 @@ class Query(object):
 
         return QueryObject(name=item, type=keywords[item])
 
-    @staticmethod
-    def merge(functions):
-        query = {}
 
-        for item in keywords:
-            fcts = []
-            for name, fct in functions:
-                if name != item:
-                    continue
-                fcts.append(fct)
-            if not fcts:
-                query[item] = None
-            else:
-                query[item] = compose_and(fcts)
+def merge_query_functions(functions):
+    query = {}
 
-        return query
+    for item in keywords:
+        fcts = []
+        for name, fct in functions:
+            if name != item:
+                continue
+            fcts.append(fct)
+        if not fcts:
+            query[item] = None
+        else:
+            query[item] = compose_and(fcts)
+
+    return query
 
 
 class QueryObject(object):

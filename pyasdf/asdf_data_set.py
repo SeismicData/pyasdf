@@ -57,7 +57,7 @@ from .exceptions import ASDFException, ASDFWarning, ASDFValueError, \
 from .header import COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL, \
     PROV_FILENAME_REGEX
-from .query import Query
+from .query import Query, merge_query_functions
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
@@ -1169,7 +1169,7 @@ class ASDFDataSet(object):
 
         >>> for res in data_set.ifilter()
         """
-        queries = self.q.merge(query_objects)
+        queries = merge_query_functions(query_objects)
 
         for station in self.waveforms:
             # Cheap checks first.

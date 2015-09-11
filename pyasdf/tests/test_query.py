@@ -376,12 +376,10 @@ def test_focmec_id():
 
 
 def test_query_merging():
-    query = q.Query()
-
     # Names are fixed here and must be as in the query files. This is not a
     # general purpose library but specific for this module here.
 
-    merged_queries = query.merge([
+    merged_queries = q.merge_query_functions([
         q.QueryObject(name="sampling_rate", type=float) < 2,
         q.QueryObject(name="sampling_rate", type=float) >= 0
     ])
@@ -400,7 +398,7 @@ def test_query_merging():
     # One more test combining complex string queries.
     _w = q._wildcarded_list
 
-    merged_queries = query.merge([
+    merged_queries = q.merge_query_functions([
         q.QueryObject(name="network", type=_w) == ["BW", "AL?", "B*A"],
         q.QueryObject(name="network", type=_w) != "AL2"
     ])
