@@ -39,3 +39,8 @@ div.highlight > pre {
     border-color: #659872;
     color: #555555;
 }
+
+.admonition > .highlight-python {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}

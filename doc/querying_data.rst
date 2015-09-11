@@ -16,7 +16,8 @@ and a sampling rate of more than 10 *Hz*. The
 meaning one has to loop over it to cause it to extract the required
 information. It yields a :class:`~pyasdf.utils.FilteredWaveformAccessor` which
 works the same as the normal waveform accessor object but with a potentially
-limited dataset.
+limited dataset. Have a look at the syntax and it should be pretty
+self-explanatory.
 
 .. code-block:: python
 
@@ -69,11 +70,11 @@ all waveforms with a network starting with ``T``, but not the ``TA``
                               ds.q.network != "TA"):
         ...
 
-String attributes (network, station, channel, ...) can also be queried by
-passing a list of potentially wildcarded strings. **Each element in such a
-list is joined by a logical** ``OR``, e.g. the next query will select all
-stations starting with ``B``, or the ``CA`` station, or any two letter station
-starting with ``T``.
+String attributes (``network``, ``station``, ``channel``, ...) can also be
+queried by passing a list of potentially wildcarded strings. **Each element in
+such a list is joined by a logical** ``OR``, e.g. the next query will select
+all stations starting with ``B``, or the ``CA`` station, or any two letter
+station starting with ``T``:
 
 
 .. code-block:: python
@@ -91,5 +92,115 @@ form of StationXML.
 .. code-block:: python
 
     for station in ds.ifilter(ds.q.latitude >= 10.0, ds.q.latitude <= 20,
-                              ds.q.longitude)
+                              ds.q.longitude <= -101.2,
+                              ds.q.elevation_in_m > 200.0)
         ...
+
+
+Get all vertical component channels from USArray with a sampling rate of at
+least 5 *Hz* that are not processed (``raw_recording`` tag by convention) in
+January 2015:
+
+.. code-block:: python
+
+    for station in ds.ifilter(ds.q.network == "TA",
+                              ds.q.channel == "*Z",
+                              ds.q.sampling_rate >= 5,
+                              ds.q.tag == "raw_recording",
+                              ds.q.starttime >= obspy.UTCDateTime(2015, 1, 1),
+                              ds.q.endtime <= obspy.UTCDateTime(2015, 2, 1))
+        ...
+
+
+Query Types
+-----------
+
+
+.. warning::
+
+    Most of the queries work as one would intuitively expect, the exception are
+    ``!=`` queries for ``latitude``, ``longitude``, ``elevation_in_m``,
+    ``event``, ``origin``, ``magnitude``, and ``focal_mechanism``. These are
+    all optional pieces of meta information for a waveform trace. If any of
+    these keys is part of a query and a given trace does not have that piece of
+    information that trace will not be returned no matter what the query
+    actually asks for. Assume that a trace has no associated event, the
+    following query will not return it even though it is logically true:
+
+    .. code-block:: python
+
+        for station in ds.ifilter(ds.q.event != "smi:local/net"):
+            ...
+
+    This is a consequence of how the queries are internally implemented.
+    Working around this would require much more code or less flexibility in
+    other areas. Just be aware of this and it should prove no issue.
+
+
+.. raw:: html
+
+    <div style="height:10px"></div>
+
+The available query keys alongside other information regarding their usage are
+listed in the following table:
+
+.. raw:: html
+
+    <div style="height:10px"></div>
+
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| Name                | Allowed Types                                                        | Description                                                                       |
++=====================+======================================================================+===================================================================================+
+| **String Parameters:**                                                                                                                                                         |
+| These can be given as a single (wildcarded) string or as a list of (wildcarded) strings which will be connected via a logical ``OR``.                                          |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``network``         | ``str`` or list of ``str``                                           | The network code.                                                                 |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``station``         | ``str`` or list of ``str``                                           | The station code.                                                                 |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``location``        | ``str`` or list of ``str``                                           | The location code.                                                                |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``channel``         | ``str`` or list of ``str``                                           | The channel code.                                                                 |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``tag``             | ``str`` or list of ``str``                                           | The hierarchical tag associated with the trace.                                   |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| **Geographical Parameters:**                                                                                                                                                   |
+| Search over geographical parameters stored in the StationXML files. If any of these three parameter is given: A station that has no StationXML file (or no coordinates),       |
+| will not be returned, no matter what the query actually asks for.                                                                                                              |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``longitude``       | ``float``                                                            | The longitude of the recording station.                                           |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``latitude``        | ``float``                                                            | The latitude of the recording station.                                            |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``elevation_in_m``  |  ``float``                                                           | The elevation in meters of the recording station.                                 |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| **Temporal Parameters:**                                                                                                                                                       |
+| Pass as a :class:`~obspy.core.utcdatetime.UTCDateTime` object or any string or number that can be parsed to one.                                                               |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``starttime``       | :class:`~obspy.core.utcdatetime.UTCDateTime`, ``str``, or ``float``  | The start time of the waveform.                                                   |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``endtime``         | :class:`~obspy.core.utcdatetime.UTCDateTime`, ``str``, or ``float``  | The end time of the waveform.                                                     |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| **Waveform Attribute Parameters:**                                                                                                                                             |
+| Evaluated per waveform trace. Don't use ``==`` for floats but rather a combination of ``>=`` and ``<=``.                                                                       |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``sampling_rate``   | ``float``                                                            | The sampling rate of the waveform in *Hz*.                                        |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``npts``            | ``int``                                                              | The number of samples of the waveform.                                            |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| **Event Relation Parameters:**                                                                                                                                                 |
+| For any one of these that is given: If a trace does not have it, it will not be returned no matter what the query actually asks for. **These are not wildcarded** as ``?`` and |
+| ``*`` are perfectly valid URL components and most IDs are URLs.                                                                                                                |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``event``           | :class:`~obspy.core.event.Event`,                                    | The event associated with the waveform.                                           |
+|                     | :class:`~obspy.core.event.ResourceIdentifier`, or ``str``            |                                                                                   |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``magnitude``       | :class:`~obspy.core.event.Magnitude`,                                | The magnitude associated with the waveform.                                       |
+|                     | :class:`~obspy.core.event.ResourceIdentifier`, or ``str``            |                                                                                   |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``origin``          | :class:`~obspy.core.event.Origin`,                                   | The origin associated with the waveform.                                          |
+|                     | :class:`~obspy.core.event.ResourceIdentifier`, or ``str``            |                                                                                   |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``focal_mechanism`` | :class:`~obspy.core.event.FocalMechanism`,                           | The focal mechanism associated with the waveform.                                 |
+|                     | :class:`~obspy.core.event.ResourceIdentifier`, or ``str``            |                                                                                   |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
