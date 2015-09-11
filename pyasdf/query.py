@@ -124,6 +124,12 @@ class Query(object):
 
         return QueryObject(name=item, type=keywords[item])
 
+    def __dir__(self):
+        """
+        Makes tab completion work for nice interactive usage.
+        """
+        return sorted(list(keywords.keys()))
+
 
 def merge_query_functions(functions):
     query = {}

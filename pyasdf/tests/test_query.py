@@ -12,6 +12,7 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import obspy
+import pytest
 
 from .. import query as q
 
@@ -412,3 +413,15 @@ def test_query_merging():
     assert fct("Hello") is False
     assert fct("AL2") is False
     assert fct("BAB") is False
+
+
+def test_query_object():
+    """
+    Basic tests about the behaviour of the query object.
+    """
+    query = q.Query()
+    # Makes tab completion work.
+    assert "network" in dir(query)
+
+    with pytest.raises(ValueError):
+        _ = query.random  # NOQA
