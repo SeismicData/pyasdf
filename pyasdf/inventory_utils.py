@@ -57,7 +57,8 @@ def isolate_and_merge_station(inv, network_id, station_id):
     :param station_id: The station id.
     :type station_id: str
     """
-    inv = copy.deepcopy(inv.select(network=network_id, station=station_id))
+    inv = copy.deepcopy(inv.select(network=network_id, station=station_id,
+                                   keep_empty=True))
 
     # Merge networks if necessary.
     if len(inv.networks) != 1:

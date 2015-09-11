@@ -145,3 +145,22 @@ def test_quick_coordinate_extraction():
          'local_depth_in_m': 0.0,
          'longitude': 12.795714,
          'starttime': UTCDateTime(2007, 12, 17, 0, 0)}]
+
+
+def test_isolate_and_merge_with_station_level_information():
+    """
+    Tests isolte and merge with a station level station files which used to
+    cause an error.
+    """
+    inv = obspy.read_inventory()
+    for net in inv:
+        for sta in net:
+            sta.channels = []
+
+    inv = isolate_and_merge_station(inv, network_id="GR", station_id="FUR")
+    assert len(inv.networks) == 1
+    assert len(inv[0].stations) == 1
+
+    assert inv[0].code == "GR"
+    assert inv[0][0].code == "FUR"
+
