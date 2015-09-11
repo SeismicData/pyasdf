@@ -513,13 +513,13 @@ class WaveformAccessor(object):
                             continue
 
                     if queries["npts"]:
-                        if queries["npts"](len(group)) is False:
+                        if queries["npts"](len(group[wf])) is False:
                             continue
 
                     if queries["starttime"] or queries["endtime"]:
                         starttime = obspy.UTCDateTime(
-                            float(group.attrs["starttime"]) / 1.0E9)
-                        endtime = starttime + (len(group) - 1) * \
+                            float(attrs["starttime"]) / 1.0E9)
+                        endtime = starttime + (len(group[wf]) - 1) * \
                             1.0 / float(attrs["sampling_rate"])
 
                         if queries["starttime"]:
@@ -532,15 +532,18 @@ class WaveformAccessor(object):
 
                     ids = ["event", "origin", "magnitude", "focal_mechanism"]
 
-                    for id in ids:
-                        if queries[id]:
-                            key = id + "_id"
-                            if key not in attrs or queries[id](
-                                    attrs[key].tostring().decode()) is False:
-                                continue
-                            break
-                    else:
-                        continue
+                    if queries["event"] or queries["magnitude"] or \
+                            queries["origin"] or queries["focal_mechanism"]:
+                        for id in ids:
+                            if queries[id]:
+                                key = id + "_id"
+                                if key not in attrs or queries[id](
+                                        attrs[key].tostring().decode()) \
+                                        is False:
+                                    continue
+                                break
+                        else:
+                            continue
                 finally:
                     del group
             wfs.append(wf)
@@ -626,14 +629,20 @@ class WaveformAccessor(object):
                           for _i in self.list() if _i != "StationXML"))
 
     def __getattr__(self, item):
+        _l = self.list()
+
         # Single trace access
-        if item != "StationXML" and item in self.list():
+        if item != "StationXML" and item in _l:
             return obspy.Stream(traces=[self.__data_set()._get_waveform(item)])
         # Tag access.
         elif item != "StationXML" and "__" not in item:
             __station = self.__data_set()._waveform_group[self._station_name]
             keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
+
+            # Filter by everything in self.list(). Once to make sure its
+            # up-to-date and also for the filtered subclasses of this.
+            keys = [_i for _i in keys if _i in _l]
 
             if not keys:
                 # Important as __del__() for the waveform group is otherwise
@@ -988,7 +997,9 @@ def wf_name2seed_codes(tag):
     >>> wf_name2seed_codes("BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth")
     ("BW", "ALTM", "00", "EHE")
     """
-    return tag.split(".")[:4]
+    tag = tag.split(".")[:4]
+    tag[-1] = tag[-1].split("__")[0]
+    return tag
 
 
 def wf_name2tag(tag):

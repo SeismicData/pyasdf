@@ -163,4 +163,3 @@ def test_isolate_and_merge_with_station_level_information():
 
     assert inv[0].code == "GR"
     assert inv[0][0].code == "FUR"
-

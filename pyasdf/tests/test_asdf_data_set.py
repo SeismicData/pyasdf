@@ -1211,3 +1211,105 @@ def test_event_iteration(example_data_set):
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id))]
     assert result == ["AA.AA", "EE.EE"]
+
+
+def test_more_queries(example_data_set):
+    """
+    Test more queries.
+
+    Example data set contains (with tag "raw_recording"):
+
+    AE.113A..BHE | 2013-05-24T05:40:00-2013-05-24T06:50:00.000000Z |
+        40.0 Hz, 168001 samples
+    AE.113A..BHN | 2013-05-24T05:40:00-2013-05-24T06:50:00.000000Z |
+        40.0 Hz, 168001 samples
+    AE.113A..BHZ | 2013-05-24T05:40:00-2013-05-24T06:50:00.000000Z |
+        40.0 Hz, 168001 samples
+    TA.POKR..BHE | 2013-05-24T05:40:00-2013-05-24T06:50:00.000001Z |
+        40.0 Hz, 168001 samples
+    TA.POKR..BHN | 2013-05-24T05:40:00-2013-05-24T06:50:00.000000Z |
+        40.0 Hz, 168001 samples
+    TA.POKR..BHZ | 2013-05-24T05:40:00-2013-05-24T06:50:00.000001Z |
+        40.0 Hz, 168001 samples
+
+    complete with StationXML information:
+
+    >>> ds.waveforms.AE_113A.coordinates
+    {'elevation_in_m': 118.0, 'latitude': 32.7683, 'longitude': -113.7667}
+    >>> ds.waveforms.TA_POKR.coordinates
+    {'elevation_in_m': 501.0, 'latitude': 65.1171, 'longitude': -147.4335}
+
+    We'll add some more with:
+
+    BW.RJOB..EHZ | 2009-08-24T00:20:03-2009-08-24T00:20:32.990000Z |
+        100.0 Hz, 3000 samples
+    BW.RJOB..EHN | 2009-08-24T00:20:03-2009-08-24T00:20:32.990000Z |
+        100.0 Hz, 3000 samples
+    BW.RJOB..EHE | 2009-08-24T00:20:03-2009-08-24T00:20:32.990000Z |
+        100.0 Hz, 3000 samples
+
+    with no station information.
+    """
+    ds = ASDFDataSet(example_data_set.filename)
+    ds.add_waveforms(obspy.read(), tag="random")
+
+    # Helper function.
+    def collect_ids(it):
+        collection = set()
+        for _i in it:
+            for tag in _i.get_waveform_tags():
+                st = _i[tag]
+                for tr in st:
+                    collection.add(tr.id)
+        return collection
+
+    # Get a single trace.
+    assert collect_ids(ds.ifilter(ds.q.network == "TA",
+                                  ds.q.station == "POKR",
+                                  ds.q.location == "",
+                                  ds.q.channel == "BHZ")) == {
+        "TA.POKR..BHZ"
+    }
+
+    # Get the three 100 Hz traces.
+    assert collect_ids(ds.ifilter(ds.q.sampling_rate >= 100.0)) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+
+    # Get the "random" tagged traces in different ways.
+    assert collect_ids(ds.ifilter(ds.q.tag == "random")) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+    assert collect_ids(ds.ifilter(ds.q.tag == ["random"])) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+    assert collect_ids(ds.ifilter(ds.q.tag == ["dummy", "r*m"])) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+
+    # Geographic constraints. Will never return the BW channels as they have
+    # no coordinate information.
+    assert collect_ids(ds.ifilter(ds.q.latitude >= 30.0,
+                                  ds.q.latitude <= 40.0)) == {
+        "AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
+    assert collect_ids(ds.ifilter(ds.q.longitude >= -120.0,
+                                  ds.q.longitude <= -110.0)) == {
+               "AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
+    assert collect_ids(ds.ifilter(ds.q.elevation_in_m < 200.0)) == {
+               "AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
+
+    # Temporal constraints.
+    assert collect_ids(ds.ifilter(ds.q.starttime <= "2010-01-01")) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+
+    # Exact endtime
+    assert collect_ids(ds.ifilter(
+            ds.q.endtime <=
+            obspy.UTCDateTime("2009-08-24T00:20:32.990000Z"))) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
+    assert collect_ids(ds.ifilter(
+        ds.q.endtime <=
+        obspy.UTCDateTime("2009-08-24T00:20:32.990000Z") - 1)) == set()
+    assert collect_ids(ds.ifilter(
+        ds.q.endtime <
+        obspy.UTCDateTime("2009-08-24T00:20:32.990000Z"))) == set()
+
+    # Number of samples.
+    assert collect_ids(ds.ifilter(ds.q.npts > 1000, ds.q.npts < 5000)) == {
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
