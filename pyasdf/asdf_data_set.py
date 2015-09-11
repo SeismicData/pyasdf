@@ -1167,9 +1167,12 @@ class ASDFDataSet(object):
         """
         Return an iterator containing only the filtered information. Usage
         is fairly complex, a separate documentation page for
-        :doc:`querying_data` is available.
+        :doc:`querying_data` is available - here is just a quick example:
 
-        >>> for stat in data_set.ifilter()
+        >>> for station in ds.ifilter(ds.q.network == "B?",
+        ...                           ds.q.channel == "*Z",
+        ...                           ds.q.starttime >= "2015-01-01")
+        ...     ...
         """
         queries = merge_query_functions(query_objects)
 
