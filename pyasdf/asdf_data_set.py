@@ -1165,9 +1165,11 @@ class ASDFDataSet(object):
 
     def ifilter(self, *query_objects):
         """
-        Return an iterator containing only the filtered information.
+        Return an iterator containing only the filtered information. Usage
+        is fairly complex, a separate documentation page for
+        :doc:`querying_data` is available.
 
-        >>> for res in data_set.ifilter()
+        >>> for stat in data_set.ifilter()
         """
         queries = merge_query_functions(query_objects)
 
