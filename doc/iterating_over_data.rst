@@ -31,3 +31,9 @@ for each station that has at least one waveform with the desired tag:
         st.remove_response()
         ...
 
+
+Iterating over Event/Origin/Magnitude/Focal Mechanism IDs
+---------------------------------------------------------
+
+The ASDF format allows the association of waveforms with event, origin,
+magnitude, or focal mechanism IDs from a QuakeML files. It is possible

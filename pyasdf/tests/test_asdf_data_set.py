@@ -420,15 +420,16 @@ def test_detailed_event_association_is_persistent_through_processing(
 
 def test_tag_iterator(example_data_set):
     """
-    Tests the tag iterator.
+    Tests the iteration over tags with the ifilter() method.
     """
-    data_set = ASDFDataSet(example_data_set.filename)
+    ds = ASDFDataSet(example_data_set.filename)
 
     expected_ids = ["AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ",
                     "TA.POKR..BHE", "TA.POKR..BHN", "TA.POKR..BHZ"]
 
-    for st, inv in data_set.iter_tag("raw_recording"):
-        for tr in st:
+    for station in ds.ifilter(ds.q.tag == "raw_recording"):
+        inv = station.StationXML
+        for tr in station.raw_recording:
             assert tr.id in expected_ids
             expected_ids.remove(tr.id)
             assert bool(inv.select(
@@ -439,7 +440,7 @@ def test_tag_iterator(example_data_set):
 
     # It will only return matching tags.
     count = 0
-    for _ in data_set.iter_tag("random"):
+    for _ in ds.ifilter(ds.q.tag == "random"):
         count += 1
     assert count == 0
 
@@ -1126,11 +1127,11 @@ def test_empty_asdf_file_has_no_quakeml_dataset(tmpdir):
     new_data_set.__del__()
 
 
-def test_iter_event(example_data_set):
+def test_event_iteration(example_data_set):
     """
-    Tests the iter_event() method.
+    Tests the iteration over a dataset by event attributes.
     """
-    data_set = ASDFDataSet(example_data_set.filename)
+    ds = ASDFDataSet(example_data_set.filename)
     # Store a new waveform.
     event_id = "quakeml:random/event"
     origin_id = "quakeml:random/origin"
@@ -1142,33 +1143,33 @@ def test_iter_event(example_data_set):
     # Has all four.
     tr.stats.network = "AA"
     tr.stats.station = "AA"
-    data_set.add_waveforms(tr, tag="random_a", event_id=event_id,
-                           origin_id=origin_id, focal_mechanism_id=focmec_id,
-                           magnitude_id=magnitude_id)
+    ds.add_waveforms(tr, tag="random_a", event_id=event_id,
+                     origin_id=origin_id, focal_mechanism_id=focmec_id,
+                     magnitude_id=magnitude_id)
     # Only event.
     tr.stats.network = "BB"
     tr.stats.station = "BB"
-    data_set.add_waveforms(tr, tag="random_b", event_id=event_id)
+    ds.add_waveforms(tr, tag="random_b", event_id=event_id)
 
     # Only origin.
     tr.stats.network = "CC"
     tr.stats.station = "CC"
-    data_set.add_waveforms(tr, tag="random_c", origin_id=origin_id)
+    ds.add_waveforms(tr, tag="random_c", origin_id=origin_id)
 
     # Only magnitude.
     tr.stats.network = "DD"
     tr.stats.station = "DD"
-    data_set.add_waveforms(tr, tag="random_d", magnitude_id=magnitude_id)
+    ds.add_waveforms(tr, tag="random_d", magnitude_id=magnitude_id)
 
     # Only focal mechanism.
     tr.stats.network = "EE"
     tr.stats.station = "EE"
-    data_set.add_waveforms(tr, tag="random_e", focal_mechanism_id=focmec_id)
+    ds.add_waveforms(tr, tag="random_e", focal_mechanism_id=focmec_id)
 
     # Nothing.
     tr.stats.network = "FF"
     tr.stats.station = "FF"
-    data_set.add_waveforms(tr, tag="random_f")
+    ds.add_waveforms(tr, tag="random_f")
 
     # Test with random ids..should all return nothing.
     random_ids = [
@@ -1176,39 +1177,37 @@ def test_iter_event(example_data_set):
         obspy.core.event.ResourceIdentifier(
             "smi:service.iris.edu/fdsnws/event/1/query?random_things")]
     for r_id in random_ids:
-        assert list(data_set.iter_event(event_id=r_id)) == []
-        assert list(data_set.iter_event(magnitude_id=r_id)) == []
-        assert list(data_set.iter_event(origin_id=r_id)) == []
-        assert list(data_set.iter_event(focal_mechanism_id=r_id)) == []
+        assert list(ds.ifilter(ds.q.event == r_id)) == []
+        assert list(ds.ifilter(ds.q.magnitude == r_id)) == []
+        assert list(ds.ifilter(ds.q.origin == r_id)) == []
+        assert list(ds.ifilter(ds.q.focal_mechanism == r_id)) == []
 
     # Event as a resource identifier and as a string.
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-              event_id=event_id)]
-    assert result == ["AA", "BB"]
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        event_id=str(event_id))]
-    assert result == ["AA", "BB"]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_id)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == str(event_id))]
+    assert result == ["AA.AA", "BB.BB"]
 
     # Origin as a resource identifier and as a string.
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        origin_id=origin_id)]
-    assert result == ["AA", "CC"]
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        origin_id=str(origin_id))]
-    assert result == ["AA", "CC"]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.origin == origin_id)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == str(origin_id))]
+    assert result == ["AA.AA", "CC.CC"]
 
     # Magnitude as a resource identifier and as a string.
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        magnitude_id=magnitude_id)]
-    assert result == ["AA", "DD"]
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        magnitude_id=str(magnitude_id))]
-    assert result == ["AA", "DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == magnitude_id)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id))]
+    assert result == ["AA.AA", "DD.DD"]
 
     # focmec as a resource identifier and as a string.
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        focal_mechanism_id=focmec_id)]
-    assert result == ["AA", "EE"]
-    result = [_i[0][0].stats.network for _i in data_set.iter_event(
-        focal_mechanism_id=str(focmec_id))]
-    assert result == ["AA", "EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == focmec_id)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id))]
+    assert result == ["AA.AA", "EE.EE"]

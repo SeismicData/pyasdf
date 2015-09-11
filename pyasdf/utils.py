@@ -476,53 +476,74 @@ class WaveformAccessor(object):
         """
         return self.__data_set()._waveform_group[self._station_name]
 
-    def filter_waveforms(self, event_id=None, origin_id=None,
-                         magnitude_id=None, focal_mechanism_id=None):
+    def filter_waveforms(self, queries):
         """
-        Return a list of waveform data set names for this station with the
-        given event (or other) id. One or more id types can be given. It will
-        only yield waveforms which satisfy all the given constraints.
-
-        :type event_id: str or :class:`obspy.core.event.ResourceIdentifier`
-        :param event_id: Return only waveforms associated with this event id.
-        :type origin_id: str or :class:`obspy.core.event.ResourceIdentifier`
-        :param origin_id:Return only waveforms associated with this origin id.
-        :type magnitude_id: str or :class:`obspy.core.event.ResourceIdentifier`
-        :param magnitude_id:Return only waveforms associated with this
-            magnitude id.
-        :type focal_mechanism_id: str or
-            :class:`obspy.core.event.ResourceIdentifier`
-        :param focal_mechanism_id:Return only waveforms associated with this
-            focal mechanism id.
         """
-        match = {}
-        if event_id is not None:
-            match["event_id"] = str(event_id)
-        if origin_id is not None:
-            match["origin_id"] = str(origin_id)
-        if magnitude_id is not None:
-            match["magnitude_id"] = str(magnitude_id)
-        if focal_mechanism_id is not None:
-            match["focal_mechanism_id"] = str(focal_mechanism_id)
-
-        if not match:
-            raise ValueError("At least one id must be given.")
-
         wfs = []
 
-        group = self.__hdf5_group
+        for wf in [_i for _i in self.list() if _i != "StationXML"]:
+            # Location and channel codes.
+            if queries["location"] or queries["channel"]:
+                _, _, loc_code, cha_code = wf_name2seed_codes(wf)
+                if queries["location"] is not None:
+                    if queries["location"](loc_code) is False:
+                        continue
+                if queries["channel"] is not None:
+                    if queries["channel"](cha_code) is False:
+                        continue
+            # Tag
+            if queries["tag"]:
+                tag = wf_name2tag(wf)
+                if queries["tag"](tag) is False:
+                    continue
 
-        try:
-            for wf in [_i for _i in self.list() if _i != "StationXML"]:
-                attrs = group[wf].attrs
-                for key, value in match.items():
-                    if key not in attrs or \
-                            attrs[key].tostring().decode() != value:
-                        break
-                else:
-                    wfs.append(wf)
-        finally:
-            del group
+            # Any of the other queries requires parsing the attribute tag.
+            if queries["starttime"] or queries["endtime"] or \
+                    queries["sampling_rate"] or queries["npts"] or \
+                    queries["event"] or queries["magnitude"] or \
+                    queries["origin"] or queries["focal_mechanism"]:
+
+                group = self.__hdf5_group
+                try:
+                    attrs = group[wf].attrs
+
+                    if queries["sampling_rate"]:
+                        if queries["sampling_rate"](attrs["sampling_rate"]) \
+                                is False:
+                            continue
+
+                    if queries["npts"]:
+                        if queries["npts"](len(group)) is False:
+                            continue
+
+                    if queries["starttime"] or queries["endtime"]:
+                        starttime = obspy.UTCDateTime(
+                            float(group.attrs["starttime"]) / 1.0E9)
+                        endtime = starttime + (len(group) - 1) * \
+                            1.0 / float(attrs["sampling_rate"])
+
+                        if queries["starttime"]:
+                            if queries["starttime"](starttime) is False:
+                                continue
+
+                        if queries["endtime"]:
+                            if queries["endtime"](endtime) is False:
+                                continue
+
+                    ids = ["event", "origin", "magnitude", "focal_mechanism"]
+
+                    for id in ids:
+                        if queries[id]:
+                            key = id + "_id"
+                            if key not in attrs or queries[id](
+                                    attrs[key].tostring().decode()) is False:
+                                continue
+                            break
+                    else:
+                        continue
+                finally:
+                    del group
+            wfs.append(wf)
 
         return wfs
 
@@ -669,6 +690,30 @@ class WaveformAccessor(object):
 
     def _repr_pretty_(self, p, cycle):
         p.text(self.__str__())
+
+
+class FilteredWaveformAccessor(WaveformAccessor):
+    """
+    A version of the waveform accessor returning a limited number of waveforms.
+    """
+    def __init__(self, station_name, asdf_data_set, filtered_items):
+        WaveformAccessor.__init__(self, station_name=station_name,
+                                  asdf_data_set=asdf_data_set)
+        self._filtered_items = filtered_items
+
+    def list(self):
+        # Get all keys and accept only the filtered items and the station
+        # information. This makes sure the filtered waveforms are somewhat
+        # up-to-date.
+        items = sorted(self._WaveformAccessor__data_set()._waveform_group[
+                self._station_name].keys())
+
+        return [_i for _i in items if _i in self._filtered_items or
+                _i == "StationXML"]
+
+    def __str__(self):
+        content = WaveformAccessor.__str__(self)
+        return "Filtered contents" + content.lstrip("Contents")
 
 
 def is_mpi_env():
@@ -934,3 +979,23 @@ def _get_ids_from_bundle(bundle):
         all_ids.append("{%s}%s" % (identifier.namespace.uri,
                                    identifier.localpart))
     return all_ids
+
+
+def wf_name2seed_codes(tag):
+    """
+    Converts an ASDF waveform name to the corresponding SEED identifiers.
+
+    >>> wf_name2seed_codes("BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth")
+    ("BW", "ALTM", "00", "EHE")
+    """
+    return tag.split(".")[:4]
+
+
+def wf_name2tag(tag):
+    """
+    Extract the tag from an ASDF waveform name.
+
+    >>> wf_name2seed_codes("BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth")
+    "synth"
+    """
+    return tag.split("__")[-1]

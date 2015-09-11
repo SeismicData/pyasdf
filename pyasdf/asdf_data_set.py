@@ -57,10 +57,12 @@ from .exceptions import ASDFException, ASDFWarning, ASDFValueError, \
 from .header import COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL, \
     PROV_FILENAME_REGEX
+from .query import Query
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
-    ProvenanceAccessor, split_qualified_name, _read_string_array
+    ProvenanceAccessor, split_qualified_name, _read_string_array, \
+    FilteredWaveformAccessor
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -70,6 +72,8 @@ class ASDFDataSet(object):
 
     Central object of this Python package.
     """
+    q = Query()
+
     def __init__(self, filename, compression="gzip-3", debug=False,
                  mpi=None):
         """
@@ -1157,6 +1161,65 @@ class ASDFDataSet(object):
                 inv = None
             st = station[tag]
             yield st, inv
+        raise StopIteration
+
+    def ifilter(self, *query_objects):
+        """
+        Return an iterator containing only the filtered information.
+
+        >>> for res in data_set.ifilter()
+        """
+        queries = self.q.merge(query_objects)
+
+        for station in self.waveforms:
+            # Cheap checks first.
+            # Test network and station codes if either is given.
+            if queries["network"] or queries["station"]:
+                net_code, sta_code = station._station_name.split(".")
+                if queries["network"]:
+                    if queries["network"](net_code) is False:
+                        continue
+                if queries["station"]:
+                    if queries["station"](sta_code) is False:
+                        continue
+
+            # Check if the coordinates have to be parsed. Only station level
+            # coordinates are used.
+            if queries["latitude"] or queries["longitude"] or \
+                    queries["elevation_in_m"]:
+                # This will parse the StationXML files in a very fast manner
+                # (but this is still an I/O heavy process!)
+                try:
+                    coords = station.coordinates
+                except NoStationXMLForStation:
+                    # If not there, then the station is not part of the
+                    # final result set if any coordinates are required.
+                    # Simple as that.
+                    continue
+
+                if queries["latitude"]:
+                    if queries["latitude"](coords["latitude"]) is False:
+                        continue
+
+                if queries["longitude"]:
+                    if queries["longitude"](coords["longitude"]) is False:
+                        continue
+
+                if queries["elevation_in_m"]:
+                    if queries["elevation_in_m"](coords["elevation_in_m"]) \
+                            is False:
+                        continue
+
+            wfs = station.filter_waveforms(queries)
+
+            if not wfs:
+                continue
+
+            yield FilteredWaveformAccessor(
+                station_name=station._station_name,
+                asdf_data_set=station._WaveformAccessor__data_set(),
+                filtered_items=wfs)
+
         raise StopIteration
 
     def iter_event(self, event_id=None, origin_id=None, magnitude_id=None,
