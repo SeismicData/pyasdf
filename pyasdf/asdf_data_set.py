@@ -1143,26 +1143,6 @@ class ASDFDataSet(object):
               summary["no_waveforms"])
         print("\t%i good stations" % summary["good_stations"])
 
-    def iter_tag(self, tag):
-        """
-        Iterate over stations. Yields a tuple of an obspy Stream object and
-        an inventory object for the station information. The returned
-        inventory object can be None.
-
-        >>> for st, inv in data_set.iter_tag("raw_recording"):
-        ...     st.detrend("linear")
-        """
-        for station in self.waveforms:
-            if tag not in station.get_waveform_tags():
-                continue
-            if "StationXML" in dir(station):
-                inv = station.StationXML
-            else:
-                inv = None
-            st = station[tag]
-            yield st, inv
-        raise StopIteration
-
     def ifilter(self, *query_objects):
         """
         Return an iterator containing only the filtered information. Usage
@@ -1225,51 +1205,6 @@ class ASDFDataSet(object):
                 asdf_data_set=station._WaveformAccessor__data_set(),
                 filtered_items=wfs)
 
-        raise StopIteration
-
-    def iter_event(self, event_id=None, origin_id=None, magnitude_id=None,
-                   focal_mechanism_id=None):
-        """
-        Iterate over all waveforms with certain event, origin, magnitude,
-        or focal mechanism ids. One or more id types can be given. It will
-        only yield waveforms which satisfy all the given constraints.
-
-        :type event_id: str or :class:`obspy.core.event.ResourceIdentifier`
-        :param event_id: Return only waveforms associated with this event id.
-        :type origin_id: str or :class:`obspy.core.event.ResourceIdentifier`
-        :param origin_id: Return only waveforms associated with this origin id.
-        :type magnitude_id: str or :class:`obspy.core.event.ResourceIdentifier`
-        :param magnitude_id: Return only waveforms associated with this
-            magnitude id.
-        :type focal_mechanism_id: str or
-            :class:`obspy.core.event.ResourceIdentifier`
-        :param focal_mechanism_id: Return only waveforms associated with this
-            focal mechanism id.
-
-        >>> for st, inv in data_set.iter_event(event_id="smi:service.iris..."):
-        ...     st.detrend("linear")
-        """
-        if event_id is None and origin_id is None and magnitude_id is None \
-                and focal_mechanism_id is None:
-            raise ValueError("At least one id must be given.")
-
-        for station in self.waveforms:
-            wfs = station.filter_waveforms(
-                event_id=event_id, origin_id=origin_id,
-                magnitude_id=magnitude_id,
-                focal_mechanism_id=focal_mechanism_id)
-            if not wfs:
-                continue
-            st = obspy.Stream()
-            for wf in wfs:
-                st += station[wf]
-
-            if "StationXML" in dir(station):
-                inv = station.StationXML
-            else:
-                inv = None
-
-            yield st, inv
         raise StopIteration
 
     def process_two_files_without_parallel_output(self, other_ds,
