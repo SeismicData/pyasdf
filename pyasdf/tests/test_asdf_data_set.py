@@ -1182,35 +1182,71 @@ def test_event_iteration(example_data_set):
         assert list(ds.ifilter(ds.q.origin == r_id)) == []
         assert list(ds.ifilter(ds.q.focal_mechanism == r_id)) == []
 
-    # Event as a resource identifier and as a string.
+    # Event as a resource identifier and as a string, and with others equal to
+    # None.
     result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_id)]
     assert result == ["AA.AA", "BB.BB"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.event == str(event_id))]
     assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == str(event_id),
+                                   ds.q.magnitude == "",
+                                   ds.q.focal_mechanism == "")]
+    assert result == ["BB.BB"]
 
-    # Origin as a resource identifier and as a string.
+    # Origin as a resource identifier and as a string, and with others equal to
+    # None.
     result = [_i._station_name for _i in ds.ifilter(ds.q.origin == origin_id)]
     assert result == ["AA.AA", "CC.CC"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.origin == str(origin_id))]
     assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == str(origin_id),
+                                   ds.q.event == "")]
+    assert result == ["CC.CC"]
 
-    # Magnitude as a resource identifier and as a string.
+    # Magnitude as a resource identifier and as a string, and with others equal
+    # to None.
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.magnitude == magnitude_id)]
     assert result == ["AA.AA", "DD.DD"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id))]
     assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id),
+                                   ds.q.origin == "")]
+    assert result == ["DD.DD"]
 
-    # focmec as a resource identifier and as a string.
+    # focmec as a resource identifier and as a string, and with others equal to
+    # None.
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.focal_mechanism == focmec_id)]
     assert result == ["AA.AA", "EE.EE"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id))]
     assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id),
+                                   ds.q.origin == "")]
+    assert result == ["EE.EE"]
+
+    # No existing ids are treated like empty ids.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == "",
+                                   ds.q.magnitude == "",
+                                   ds.q.origin == "",
+                                   ds.q.focal_mechanism == "")]
+    assert result == ["FF.FF"]
+
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event != "",
+                                   ds.q.magnitude != "",
+                                   ds.q.origin != "",
+                                   ds.q.focal_mechanism != "")]
+    assert result == ["AA.AA"]
 
 
 def test_more_queries(example_data_set):

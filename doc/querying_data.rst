@@ -119,22 +119,24 @@ Query Types
 .. warning::
 
     Most of the queries work as one would intuitively expect, the exception are
-    ``!=`` queries for ``latitude``, ``longitude``, ``elevation_in_m``,
-    ``event``, ``origin``, ``magnitude``, and ``focal_mechanism``. These are
-    all optional pieces of meta information for a waveform trace. If any of
-    these keys is part of a query and a given trace does not have that piece of
-    information that trace will not be returned no matter what the query
-    actually asks for. Assume that a trace has no associated event, the
-    following query will not return it even though it is logically true:
+    ``!=`` queries for ``latitude``, ``longitude``, and  ``elevation_in_m``.
+    These are all optional pieces of meta information for a waveform trace. If
+    any of these keys is part of a query and a given trace does not have that
+    piece of information that trace will not be returned no matter what the
+    query actually asks for. Assume that a trace has no associated StationXML,
+    the following query will not return it even though it is logically true:
 
     .. code-block:: python
 
-        for station in ds.ifilter(ds.q.event != "smi:local/net"):
+        for station in ds.ifilter(ds.q.latitude != 10.0):
             ...
 
     This is a consequence of how the queries are internally implemented.
     Working around this would require much more code or less flexibility in
     other areas. Just be aware of this and it should prove no issue.
+
+    The ``ifilter()`` method will furthermore see missing ``event``, ``origin``,
+    ``magnitude``, and ``focal_mechanism`` ids as an empty string.
 
 
 .. raw:: html
@@ -189,7 +191,7 @@ listed in the following table:
 | ``npts``            | ``int``                                                              | The number of samples of the waveform.                                            |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | **Event Relation Parameters:**                                                                                                                                                 |
-| For any one of these that is given: If a trace does not have it, it will not be returned no matter what the query actually asks for. **These are not wildcarded** as ``?`` and |
+| If a trace does not have any of these, the ``ifilter()`` method will see it as though it is an empty string. **These are not wildcarded** as ``?`` and                         |
 | ``*`` are perfectly valid URL components and most IDs are URLs.                                                                                                                |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | ``event``           | :class:`~obspy.core.event.Event`,                                    | The event associated with the waveform.                                           |

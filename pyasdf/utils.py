@@ -530,20 +530,26 @@ class WaveformAccessor(object):
                             if queries["endtime"](endtime) is False:
                                 continue
 
-                    ids = ["event", "origin", "magnitude", "focal_mechanism"]
-
                     if queries["event"] or queries["magnitude"] or \
                             queries["origin"] or queries["focal_mechanism"]:
-                        for id in ids:
+                        any_fails = False
+                        for id in ["event", "origin", "magnitude",
+                                   "focal_mechanism"]:
                             if queries[id]:
                                 key = id + "_id"
-                                if key not in attrs or queries[id](
-                                        attrs[key].tostring().decode()) \
-                                        is False:
-                                    continue
-                                break
-                        else:
+
+                                # Defaults to an empty id.
+                                if key in attrs:
+                                    value = attrs[key].tostring().decode()
+                                else:
+                                    value = ""
+
+                                if queries[id](value) is False:
+                                    any_fails = True
+                                    break
+                        if any_fails is True:
                             continue
+
                 finally:
                     del group
             wfs.append(wf)
