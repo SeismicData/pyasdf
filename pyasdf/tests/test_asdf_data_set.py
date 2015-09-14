@@ -1457,3 +1457,59 @@ def test_labels_are_persistent_through_processing(tmpdir):
 
     del data_set
     os.remove(filename)
+
+
+def test_queries_for_labels(example_data_set):
+    """
+    Tests the iteration over a dataset by labels.
+    """
+    ds = ASDFDataSet(example_data_set.filename)
+
+    # Store a new waveform.
+    labels_b = ["what", "is", "happening"]
+    labels_c = [u"?⸘‽", u"^§#⁇❦"]
+    labels_d = ["single_label"]
+
+    tr = obspy.read()[0]
+
+    # Has no label.
+    tr.stats.network = "AA"
+    tr.stats.station = "AA"
+    ds.add_waveforms(tr, tag="random_a")
+
+    tr.stats.network = "BB"
+    tr.stats.station = "BB"
+    ds.add_waveforms(tr, tag="random_b", labels=labels_b)
+
+    tr.stats.network = "CC"
+    tr.stats.station = "CC"
+    ds.add_waveforms(tr, tag="random_c", labels=labels_c)
+
+    tr.stats.network = "DD"
+    tr.stats.station = "DD"
+    ds.add_waveforms(tr, tag="random_d", labels=labels_d)
+
+
+    # Test with random labels..should all return nothing.
+    assert list(ds.ifilter(ds.q.labels == ["hello", "hello2"])) == []
+    assert list(ds.ifilter(ds.q.labels == ["random"])) == []
+
+    # One of each.
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.tags == ["what", u"?⸘‽", "single_label"])]
+    assert result == ["BB.BB", "CC.CC", "DD.DD"]
+
+    # No tag.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.labels == "")]
+    assert result == ["AA.AA"]
+
+    # Unicode wildcard.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.labels == u"^§#⁇*")]
+    assert result == ["CC.CC"]
+
+    # BB and DD.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.labels == ["wha?", "sin_*"])]
+    assert result == ["BB.BB", "DD.DD"]
