@@ -62,7 +62,7 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
-    FilteredWaveformAccessor
+    FilteredWaveformAccessor, label2string
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -790,13 +790,7 @@ class ASDFDataSet(object):
             split_qualified_name(provenance_id)
 
         # Parse labels to a single comma separated string.
-        if labels is not None:
-            for _i in labels:
-                if "," in _i:
-                    raise ValueError(
-                        "The labels must not contain a comma as it is used "
-                        "as the separator for the different values.")
-            labels = u",".join([_i.strip() for _i in labels])
+        labels = label2string(labels)
 
         # Extract the event_id from the different possibilities.
         if event_id:
@@ -1017,8 +1011,14 @@ class ASDFDataSet(object):
             }
         }
 
-        # Add the labels if they are given.
+        # Add the labels if they are given. Given labels overwrite the one
+        # in the attributes.
         if labels:
+            info["dataset_attrs"]["labels"] = labels
+        elif hasattr(trace.stats, "asdf") and \
+                hasattr(trace.stats.asdf, "labels") and \
+                trace.stats.asdf.labels:
+            labels = label2string(trace.stats.asdf.labels)
             info["dataset_attrs"]["labels"] = labels
 
         # Add all the event ids.

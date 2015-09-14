@@ -1016,3 +1016,17 @@ def wf_name2tag(tag):
     "synth"
     """
     return tag.split("__")[-1]
+
+
+def label2string(labels):
+    """
+    List of labels to a comma-seperated string.
+    """
+    if labels is not None:
+        for _i in labels:
+            if "," in _i:
+                raise ValueError(
+                    "The labels must not contain a comma as it is used "
+                    "as the separator for the different values.")
+        labels = u",".join([_i.strip() for _i in labels])
+    return labels

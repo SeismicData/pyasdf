@@ -1393,3 +1393,67 @@ def test_saving_trace_labels(tmpdir):
         assert tr.stats.asdf.labels == labels
     del data_set
     os.remove(filename)
+
+
+def test_labels_are_persistent_through_processing(tmpdir):
+    """
+    Processing a file with an associated label and storing it again should
+    keep the association.
+    """
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    data_set = ASDFDataSet(filename)
+    waveform = obspy.read(os.path.join(data_path, "TA.*.mseed")).sort()
+    data_set.add_waveforms(
+        waveform, "raw_recording",
+        labels=["hello", "what", "is", "going", "on?"])
+
+    # Close an reopen.
+    del data_set
+    data_set = ASDFDataSet(filename)
+
+    st = data_set.waveforms.TA_POKR.raw_recording
+    labels = st[0].stats.asdf.labels
+
+    # Process and store.
+    st.taper(max_percentage=0.05, type="cosine")
+    data_set.add_waveforms(st, tag="processed")
+
+    # Close an reopen.
+    del data_set
+    data_set = ASDFDataSet(filename)
+
+    processed_st = data_set.waveforms.TA_POKR.processed
+    assert labels == processed_st[0].stats.asdf.labels
+
+    del data_set
+    os.remove(filename)
+
+    # Same again but for unicode.
+    data_set = ASDFDataSet(filename)
+    waveform = obspy.read(os.path.join(data_path, "TA.*.mseed")).sort()
+    data_set.add_waveforms(
+        waveform, "raw_recording",
+        labels=[u"?⸘‽", u"^§#⁇❦"])
+
+    # Close an reopen.
+    del data_set
+    data_set = ASDFDataSet(filename)
+
+    st = data_set.waveforms.TA_POKR.raw_recording
+    labels = st[0].stats.asdf.labels
+
+    # Process and store.
+    st.taper(max_percentage=0.05, type="cosine")
+    data_set.add_waveforms(st, tag="processed")
+
+    # Close an reopen.
+    del data_set
+    data_set = ASDFDataSet(filename)
+
+    processed_st = data_set.waveforms.TA_POKR.processed
+    assert labels == processed_st[0].stats.asdf.labels
+
+    del data_set
+    os.remove(filename)
