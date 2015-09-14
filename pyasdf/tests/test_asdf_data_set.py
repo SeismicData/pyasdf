@@ -1353,3 +1353,44 @@ def test_more_queries(example_data_set):
     # All vertical channels.
     assert collect_ids(ds.ifilter(ds.q.channel == "*Z")) == {
         "BW.RJOB..EHZ", "TA.POKR..BHZ", "AE.113A..BHZ"}
+
+
+def test_saving_trace_labels(tmpdir):
+    """
+    Tests that the labels can be saved and retrieved automatically.
+    """
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    data_set = ASDFDataSet(filename)
+    waveform = obspy.read(os.path.join(data_path, "TA.*.mseed")).sort()
+    data_set.add_waveforms(
+        waveform, "raw_recording",
+        labels=["hello", "what", "is", "going", "on?"])
+
+    # Close and reopen.
+    del data_set
+    data_set = ASDFDataSet(filename)
+
+
+    st = data_set.waveforms.TA_POKR.raw_recording
+    for tr in st:
+        assert tr.stats.asdf.labels == ["hello", "what", "is", "going", "on?"]
+    del data_set
+    os.remove(filename)
+
+    # Try again but this time with unicode.
+    data_set = ASDFDataSet(filename)
+    waveform = obspy.read(os.path.join(data_path, "TA.*.mseed")).sort()
+    labels = [u"?⸘‽", u"^§#⁇❦"]
+    data_set.add_waveforms(waveform, "raw_recording", labels=labels)
+
+    # Close and reopen.
+    del data_set
+    data_set = ASDFDataSet(filename)
+
+    st = data_set.waveforms.TA_POKR.raw_recording
+    for tr in st:
+        assert tr.stats.asdf.labels == labels
+    del data_set
+    os.remove(filename)
