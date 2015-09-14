@@ -638,6 +638,10 @@ class ASDFDataSet(object):
         if "provenance_id" in data.attrs:
             details.provenance_id = \
                 data.attrs["provenance_id"].tostring().decode()
+
+        if "labels" in data.attrs:
+            details.labels = [_i.strip()
+                              for _i in data.attrs["labels"].split(",")]
         return tr
 
     def _get_auxiliary_data(self, data_type, tag):
@@ -685,7 +689,7 @@ class ASDFDataSet(object):
 
     def add_waveforms(self, waveform, tag, event_id=None, origin_id=None,
                       magnitude_id=None, focal_mechanism_id=None,
-                      provenance_id=None):
+                      provenance_id=None, labels=None):
         """
         Adds one or more waveforms to the current ASDF file.
 
@@ -721,6 +725,9 @@ class ASDFDataSet(object):
         :param provenance_id: The id of the provenance of this data. The
             provenance information itself must be added separately. Must be
             given as a qualified name, e.g. ``'{namespace_uri}id'``.
+        :type labels: list of str
+        :param labels: A list of labels to associate with all the added
+            traces. Must not contain a comma as that is used as a separator.
 
         .. rubric:: Examples
 
@@ -781,6 +788,16 @@ class ASDFDataSet(object):
         if provenance_id is not None:
             # Will raise an error if not a valid qualified name.
             split_qualified_name(provenance_id)
+
+        # Parse labels to a single comma separated string.
+        if labels is not None:
+            for _i in labels:
+                if "," in _i:
+                    raise ValueError(
+                        "The labels must not contain a comma as it is used "
+                        "as the separator for the different values.")
+            labels = u",".join([_i.strip() for _i in labels])
+
         # Extract the event_id from the different possibilities.
         if event_id:
             if isinstance(event_id, obspy.core.event.Event):
@@ -856,7 +873,7 @@ class ASDFDataSet(object):
                 trace, tag, event_id=event_id, origin_id=origin_id,
                 magnitude_id=magnitude_id,
                 focal_mechanism_id=focal_mechanism_id,
-                provenance_id=provenance_id)
+                provenance_id=provenance_id, labels=labels)
             if info is None:
                 continue
             self._add_trace_write_collective_information(info)
@@ -945,7 +962,7 @@ class ASDFDataSet(object):
     def _add_trace_get_collective_information(
             self, trace, tag, event_id=None, origin_id=None,
             magnitude_id=None, focal_mechanism_id=None,
-            provenance_id=None):
+            provenance_id=None, labels=None):
         """
         The information required for the collective part of adding a trace.
 
@@ -999,6 +1016,10 @@ class ASDFDataSet(object):
                 "sampling_rate": trace.stats.sampling_rate
             }
         }
+
+        # Add the labels if they are given.
+        if labels:
+            info["dataset_attrs"]["labels"] = labels
 
         # Add all the event ids.
         ids = {

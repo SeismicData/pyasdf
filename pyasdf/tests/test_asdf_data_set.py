@@ -1372,7 +1372,6 @@ def test_saving_trace_labels(tmpdir):
     del data_set
     data_set = ASDFDataSet(filename)
 
-
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
         assert tr.stats.asdf.labels == ["hello", "what", "is", "going", "on?"]
