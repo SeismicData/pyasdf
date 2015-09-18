@@ -27,6 +27,12 @@ To get started, please follow the :doc:`installation` instructions.
 Tutorial
 --------
 
+.. admonition:: Example Data Set
+
+    For the time being we will attempt to curate an up-to-date example data set
+    which you can use to get started. `Download it here (220 MB).
+    <https://www.geophysik.uni-muenchen.de/~krischer/asdf_example.h5>`_
+
 Learning Python and ObsPy
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
