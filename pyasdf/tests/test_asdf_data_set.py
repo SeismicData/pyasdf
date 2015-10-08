@@ -1512,3 +1512,33 @@ def test_queries_for_labels(example_data_set):
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.labels == ["wha?", "sin_*"])]
     assert result == ["BB.BB", "DD.DD"]
+
+
+def test_waveform_accessor_attribute_access_error_handling(example_data_set):
+    """
+    Tests the error handling of the waveform accessors.
+    """
+    ds = ASDFDataSet(example_data_set.filename)
+
+    # Add new data.
+    ds.add_waveforms(obspy.read(), tag="random")
+
+    # The existing station has a stationxml file.
+    assert "StationXML" in ds.waveforms.AE_113A
+    assert hasattr(ds.waveforms.AE_113A, "StationXML")
+
+    # The new one has no StationXML file.
+    assert "StationXML" not in ds.waveforms.BW_RJOB
+    assert hasattr(ds.waveforms.BW_RJOB, "StationXML") is False
+
+    with pytest.raises(AttributeError) as e:
+        ds.waveforms.BW_RJOB.StationXML
+    assert e.value.args[0] == \
+        "'WaveformAccessor' object has no attribute 'StationXML'"
+
+    with pytest.raises(KeyError) as e:
+        ds.waveforms.BW_RJOB["StationXML"]
+    assert e.value.args[0] == \
+        "'WaveformAccessor' object has no attribute 'StationXML'"
+
+    del ds

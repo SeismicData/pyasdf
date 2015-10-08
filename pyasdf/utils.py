@@ -169,8 +169,8 @@ class ProvenanceAccessor(object):
     def __getitem__(self, item):
         try:
             return self.__getattr__(item)
-        except AttributeError:
-            raise KeyError
+        except AttributeError as e:
+            raise KeyError(str(e))
 
     def __setitem__(self, key, value):
         self.__data_set().add_provenance_document(document=value,
@@ -349,8 +349,8 @@ class AuxiliaryDataAccessor(object):
     def __getitem__(self, item):
         try:
             return self.__getattr__(item)
-        except AttributeError:
-            raise KeyError
+        except AttributeError as e:
+            raise KeyError(str(e))
 
     def list(self):
         return sorted(self.__data_set()._auxiliary_data_group[
@@ -393,8 +393,8 @@ class AuxiliaryDataGroupAccessor(object):
     def __getitem__(self, item):
         try:
             return self.__getattr__(item)
-        except AttributeError:
-            raise KeyError
+        except AttributeError as e:
+            raise KeyError(str(e))
 
     def list(self):
         __auxiliary_group = self.__data_set()._auxiliary_data_group
@@ -440,8 +440,8 @@ class StationAccessor(object):
     def __getitem__(self, item):
         try:
             return self.__getattr__(item)
-        except AttributeError:
-            raise KeyError
+        except AttributeError as e:
+            raise KeyError(str(e))
 
     def list(self):
         return sorted(self.__data_set()._waveform_group.keys())
@@ -624,8 +624,8 @@ class WaveformAccessor(object):
     def __getitem__(self, item):
         try:
             return self.__getattr__(item)
-        except (AttributeError, WaveformNotInFileException):
-            raise KeyError
+        except (AttributeError, WaveformNotInFileException) as e:
+            raise KeyError(str(e))
 
     def get_waveform_tags(self):
         """
@@ -633,6 +633,11 @@ class WaveformAccessor(object):
         """
         return sorted(set(_i.split("__")[-1]
                           for _i in self.list() if _i != "StationXML"))
+
+    def __contains__(self, item):
+        contents = self.list()
+        contents.extend(self.__dir__())
+        return item in contents
 
     def __getattr__(self, item):
         _l = self.list()
@@ -662,7 +667,11 @@ class WaveformAccessor(object):
             return obspy.Stream(traces=traces)
         # StationXML access.
         else:
-            return self.__data_set()._get_station(self._station_name)
+            station = self.__data_set()._get_station(self._station_name)
+            if station is None:
+                raise AttributeError("'%s' object has no attribute '%s'" % (
+                    self.__class__.__name__, str(item)))
+            return station
 
     def list(self):
         """
