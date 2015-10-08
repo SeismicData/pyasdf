@@ -994,17 +994,36 @@ def test_str_of_auxiliary_data(tmpdir):
     data_set.add_auxiliary_data(data=data, data_type=data_type,
                                 tag=tag, parameters=parameters)
 
+    # Add a nested one.
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                tag="some/deep/path",
+                                parameters=parameters)
+
     assert str(data_set.auxiliary_data) == (
         "Data set contains the following auxiliary data types:\n"
         "\tRandomArray (2 item(s))\n"
-        "\tSomethingElse (1 item(s))"
-    )
+        "\tSomethingElse (2 item(s))")
 
     assert str(data_set.auxiliary_data.RandomArray) == (
         "2 auxiliary data item(s) of type 'RandomArray' available:\n"
         "\ttest_data_1\n"
-        "\ttest_data_2"
-    )
+        "\ttest_data_2")
+
+    assert str(data_set.auxiliary_data.SomethingElse) == (
+        "1 auxiliary data sub group(s) of type 'SomethingElse' available:\n"
+        "\tsome\n"
+        "1 auxiliary data item(s) of type 'SomethingElse' available:\n"
+        "\ttest_data")
+
+    assert str(data_set.auxiliary_data.SomethingElse.some) == (
+        "1 auxiliary data sub group(s) of type 'SomethingElse/some' "
+        "available:\n"
+        "\tdeep")
+
+    assert str(data_set.auxiliary_data.SomethingElse.some.deep) == (
+        "1 auxiliary data item(s) of type 'SomethingElse/some/deep' "
+        "available:\n"
+        "\tpath")
 
 
 def test_item_access_of_auxiliary_data(tmpdir):
