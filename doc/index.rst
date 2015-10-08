@@ -209,13 +209,13 @@ up with conventions of how to use this.
     # The type always should be camel case.
     >>> data_type = "RandomArrays"
     # Name to identify the particular piece of data.
-    >>> tag = "example_array"
+    >>> path = "example_array"
     # Any additional parameters as a Python dictionary which will end up as
     # attributes of the array.
     >>> parameters = {
     ...     "a": 1,
     ...     "b": 2.0}
-    >>> ds.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    >>> ds.add_auxiliary_data(data=data, data_type=data_type, path=path,
     ...                       parameters=parameters)
     >>> print(ds)
     ASDF file [format version: b'0.0.1b']: 'new_file.h5' (188.3 MB)
@@ -451,7 +451,7 @@ Accessing a single item once again by attribute or key access.
 
     >>> ds.auxiliary_data.AdjointSource.BW_ALFO_EHE
     Auxiliary Data of Type 'AdjointSource'
-        Tag: 'BW_ALFO_EHE'
+        Path 'BW_ALFO_EHE'
         Provenance ID: '{http://seisprov.org/seis_prov/0.1/#}sp012_as_cd84e87'
         Data shape: '(20000,)', dtype: 'float64'
         Parameters:
