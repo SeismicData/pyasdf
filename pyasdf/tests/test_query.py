@@ -210,6 +210,16 @@ def test_event_id():
     assert (q.QueryObject(name="_r", type=_t) != ev_a)[1](r_a) is False
     assert (q.QueryObject(name="_r", type=_t) != ev_a)[1](r_b) is True
 
+    # Test queries with None.
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
+
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True
+
+    assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
+
 
 def test_origin_id():
     # Wildcards don't work here as a question mark and asterix are perfectly
@@ -265,6 +275,16 @@ def test_origin_id():
     assert (q.QueryObject(name="_r", type=_t) == org_a)[1](r_b) is False
     assert (q.QueryObject(name="_r", type=_t) != org_a)[1](r_a) is False
     assert (q.QueryObject(name="_r", type=_t) != org_a)[1](r_b) is True
+
+    # Test queries with None.
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
+
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True
+
+    assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
 
 
 def test_magnitude_id():
@@ -322,6 +342,16 @@ def test_magnitude_id():
     assert (q.QueryObject(name="_r", type=_t) != mag_a)[1](r_a) is False
     assert (q.QueryObject(name="_r", type=_t) != mag_a)[1](r_b) is True
 
+    # Test queries with None.
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
+
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True
+
+    assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
+
 
 def test_focmec_id():
     # Wildcards don't work here as a question mark and asterix are perfectly
@@ -374,6 +404,157 @@ def test_focmec_id():
     assert (q.QueryObject(name="_r", type=_t) == focmec_a)[1](r_b) is False
     assert (q.QueryObject(name="_r", type=_t) != focmec_a)[1](r_a) is False
     assert (q.QueryObject(name="_r", type=_t) != focmec_a)[1](r_b) is True
+
+    # Test queries with None.
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
+
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True
+
+    assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
+
+
+def test_none_float():
+    """
+    Test queries with floats that can also be None.
+    """
+    _t = q._type_or_none(float)
+
+    assert (q.QueryObject(name="_f", type=_t) == 1.0)[1](1.0) is True
+    assert (q.QueryObject(name="_f", type=_t) == 1.0)[1](0.0) is False
+    assert (q.QueryObject(name="_f", type=_t) != 1.0)[1](1.0) is False
+    assert (q.QueryObject(name="_f", type=_t) != 1.0)[1](0.0) is True
+
+    # Identity for None.
+    assert (q.QueryObject(name="_f", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_f", type=_t) != None)[1](None) is False
+
+    # Zero is not None.
+    assert (q.QueryObject(name="_f", type=_t) == 0.0)[1](None) is False
+    assert (q.QueryObject(name="_f", type=_t) != 0.0)[1](None) is True
+    assert (q.QueryObject(name="_f", type=_t) == None)[1](0.0) is False
+    assert (q.QueryObject(name="_f", type=_t) != None)[1](0.0) is True
+
+    # Other queries still for for normal floats.
+    assert (q.QueryObject(name="_f", type=_t) <= 0.0)[1](0.0) is True
+    assert (q.QueryObject(name="_f", type=_t) < 0.0)[1](0.0) is False
+    assert (q.QueryObject(name="_f", type=_t) >= 0.0)[1](0.0) is True
+    assert (q.QueryObject(name="_f", type=_t) > 0.0)[1](0.0) is False
+
+    # These make no sense for None and thus their creation should fail.
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=_t) <= None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=_t) < None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=_t) >= None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=_t) > None
+
+    # To be able to keep the rest working, evaluation still has to work.
+    assert (q.QueryObject(name="_f", type=_t) <= 0.0)[1](None) is False
+    assert (q.QueryObject(name="_f", type=_t) < 0.0)[1](None) is False
+    assert (q.QueryObject(name="_f", type=_t) >= 0.0)[1](None) is False
+    assert (q.QueryObject(name="_f", type=_t) > 0.0)[1](None) is False
+
+    # If a normal not None float is used a type error should be raised no
+    # matter where None is used.
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=float) <= None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=float) < None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=float) >= None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=float) > None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=float) == None
+    with pytest.raises(TypeError):
+        q.QueryObject(name="_f", type=float) != None
+
+    with pytest.raises(TypeError):
+        (q.QueryObject(name="_f", type=float) <= 1.0)[1](None)
+    with pytest.raises(TypeError):
+        (q.QueryObject(name="_f", type=float) < 1.0)[1](None)
+    with pytest.raises(TypeError):
+        (q.QueryObject(name="_f", type=float) >= 1.0)[1](None)
+    with pytest.raises(TypeError):
+        (q.QueryObject(name="_f", type=float) > 1.0)[1](None)
+    with pytest.raises(TypeError):
+        (q.QueryObject(name="_f", type=float) == 1.0)[1](None)
+    with pytest.raises(TypeError):
+        (q.QueryObject(name="_f", type=float) != 1.0)[1](None)
+
+
+def test_event_id_none():
+    """
+    Tests that event ids can be none if desired.
+    """
+    _t = q._type_or_none(q._event_or_id)
+
+    a = "smi:local/dummy_a"
+    b = "smi:local/dummy_b"
+
+    r_a = obspy.core.event.ResourceIdentifier(a)
+    r_b = obspy.core.event.ResourceIdentifier(b)
+
+    ev_a = obspy.readEvents()[0]
+    ev_a.resource_id = r_a
+
+    ev_b = obspy.readEvents()[0]
+    ev_b.resource_id = r_b
+
+    # First return value is the name.
+    assert (q.QueryObject(name="_r", type=_t) == a)[0] == "_r"
+
+    # All normal queries should still work.
+    assert (q.QueryObject(name="_r", type=_t) == a)[1](a) is True
+    assert (q.QueryObject(name="_r", type=_t) == a)[1](b) is False
+    assert (q.QueryObject(name="_r", type=_t) != a)[1](a) is False
+    assert (q.QueryObject(name="_r", type=_t) != a)[1](b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == a)[1](r_a) is True
+    assert (q.QueryObject(name="_r", type=_t) == a)[1](r_b) is False
+    assert (q.QueryObject(name="_r", type=_t) != a)[1](r_a) is False
+    assert (q.QueryObject(name="_r", type=_t) != a)[1](r_b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == r_a)[1](a) is True
+    assert (q.QueryObject(name="_r", type=_t) == r_a)[1](b) is False
+    assert (q.QueryObject(name="_r", type=_t) != r_a)[1](a) is False
+    assert (q.QueryObject(name="_r", type=_t) != r_a)[1](b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == a)[1](ev_a) is True
+    assert (q.QueryObject(name="_r", type=_t) == a)[1](ev_b) is False
+    assert (q.QueryObject(name="_r", type=_t) != a)[1](ev_a) is False
+    assert (q.QueryObject(name="_r", type=_t) != a)[1](ev_b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == ev_a)[1](a) is True
+    assert (q.QueryObject(name="_r", type=_t) == ev_a)[1](b) is False
+    assert (q.QueryObject(name="_r", type=_t) != ev_a)[1](a) is False
+    assert (q.QueryObject(name="_r", type=_t) != ev_a)[1](b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == r_a)[1](ev_a) is True
+    assert (q.QueryObject(name="_r", type=_t) == r_a)[1](ev_b) is False
+    assert (q.QueryObject(name="_r", type=_t) != r_a)[1](ev_a) is False
+    assert (q.QueryObject(name="_r", type=_t) != r_a)[1](ev_b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == ev_a)[1](r_a) is True
+    assert (q.QueryObject(name="_r", type=_t) == ev_a)[1](r_b) is False
+    assert (q.QueryObject(name="_r", type=_t) != ev_a)[1](r_a) is False
+    assert (q.QueryObject(name="_r", type=_t) != ev_a)[1](r_b) is True
+
+    # But queries with None also should yield something.
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](a) is False
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](b) is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](a) is True
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](b) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
 
 
 def test_query_merging():

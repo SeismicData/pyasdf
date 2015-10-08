@@ -15,6 +15,7 @@ import sys
 
 if sys.version_info.major == 3:
     string_types = (bytes, str)
-
+    unicode_type = str
 else:
     string_types = (bytes, str, unicode)  # NOQA
+    unicode_type = unicode  # NOQA

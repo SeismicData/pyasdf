@@ -543,7 +543,8 @@ class WaveformAccessor(object):
             if queries["starttime"] or queries["endtime"] or \
                     queries["sampling_rate"] or queries["npts"] or \
                     queries["event"] or queries["magnitude"] or \
-                    queries["origin"] or queries["focal_mechanism"]:
+                    queries["origin"] or queries["focal_mechanism"] or \
+                    queries["labels"]:
 
                 group = self.__hdf5_group
                 try:
@@ -570,6 +571,15 @@ class WaveformAccessor(object):
 
                         if queries["endtime"]:
                             if queries["endtime"](endtime) is False:
+                                continue
+
+                    if queries["labels"]:
+                        if "labels" in attrs:
+                            labels = labelstring2list(attrs["labels"])
+                            if not any(map(queries["labels"], labels)):
+                                continue
+                        else:
+                            if queries["labels"](None) is False:
                                 continue
 
                     if queries["event"] or queries["magnitude"] or \
@@ -1071,7 +1081,7 @@ def wf_name2tag(tag):
 
 def label2string(labels):
     """
-    List of labels to a comma-seperated string.
+    List of labels to a comma-saperated string.
     """
     if labels is not None:
         for _i in labels:
@@ -1081,3 +1091,10 @@ def label2string(labels):
                     "as the separator for the different values.")
         labels = u",".join([_i.strip() for _i in labels])
     return labels
+
+
+def labelstring2list(labels):
+    """
+    String to a list of labels.
+    """
+    return [_i.strip() for _i in labels.split(",")]

@@ -62,7 +62,8 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
-    FilteredWaveformAccessor, label2string, AuxiliaryDataAccessor
+    FilteredWaveformAccessor, label2string, labelstring2list, \
+    AuxiliaryDataAccessor
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -679,8 +680,8 @@ class ASDFDataSet(object):
                 data.attrs["provenance_id"].tostring().decode()
 
         if "labels" in data.attrs:
-            details.labels = [_i.strip()
-                              for _i in data.attrs["labels"].split(",")]
+            details.labels = labelstring2list(data.attrs["labels"])
+
         return tr
 
     def _get_auxiliary_data(self, data_type, tag):

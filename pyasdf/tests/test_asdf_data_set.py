@@ -1408,6 +1408,12 @@ def test_more_queries(example_data_set):
     assert collect_ids(ds.ifilter(ds.q.channel == "*Z")) == {
         "BW.RJOB..EHZ", "TA.POKR..BHZ", "AE.113A..BHZ"}
 
+    # Many keys cannot be None, as their value must always be given.
+    for key in ["network", "station", "location", "channel", "tag",
+                "starttime", "endtime", "sampling_rate", "npts"]:
+        with pytest.raises(TypeError):
+            ds.ifilter(getattr(ds.q, key) == None)
+
 
 def test_saving_trace_labels(tmpdir):
     """
@@ -1513,11 +1519,12 @@ def test_labels_are_persistent_through_processing(tmpdir):
     os.remove(filename)
 
 
-def test_queries_for_labels(example_data_set):
+def test_queries_for_labels(tmpdir):
     """
     Tests the iteration over a dataset by labels.
     """
-    ds = ASDFDataSet(example_data_set.filename)
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+    ds = ASDFDataSet(filename)
 
     # Store a new waveform.
     labels_b = ["what", "is", "happening"]
@@ -1543,18 +1550,24 @@ def test_queries_for_labels(example_data_set):
     tr.stats.station = "DD"
     ds.add_waveforms(tr, tag="random_d", labels=labels_d)
 
-    # Test with random labels..should all return nothing.
+    # Test with random labels...should all return nothing.
     assert list(ds.ifilter(ds.q.labels == ["hello", "hello2"])) == []
     assert list(ds.ifilter(ds.q.labels == ["random"])) == []
 
+
+    assert list(ds.ifilter(ds.q.labels == ["what", u"?⸘‽", "single_label"])) \
+        == [1]
     # One of each.
+    fct = (ds.q.labels == ["what", u"?⸘‽", "single_label"])[1]
+    fct(None)
+
     result = [_i._station_name for _i in ds.ifilter(
-        ds.q.tags == ["what", u"?⸘‽", "single_label"])]
+        ds.q.labels == ["what", u"?⸘‽", "single_label"])]
     assert result == ["BB.BB", "CC.CC", "DD.DD"]
 
-    # No path.
+    # No labels.
     result = [_i._station_name
-              for _i in ds.ifilter(ds.q.labels == "")]
+              for _i in ds.ifilter(ds.q.labels == None)]  # NOQA
     assert result == ["AA.AA"]
 
     # Unicode wildcard.
@@ -1566,6 +1579,15 @@ def test_queries_for_labels(example_data_set):
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.labels == ["wha?", "sin_*"])]
     assert result == ["BB.BB", "DD.DD"]
+
+    # result = [_i._station_name
+    #           for _i in ds.ifilter(ds.q.labels == u"^§#⁇*")]
+    # assert result == ["CC.CC"]
+    #
+    # # BB and DD.
+    # result = [_i._station_name
+    #           for _i in ds.ifilter(ds.q.labels == ["wha?", "sin_*"])]
+    # assert result == ["BB.BB", "DD.DD"]
 
 
 def test_waveform_accessor_attribute_access_error_handling(example_data_set):
