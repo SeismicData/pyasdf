@@ -486,10 +486,10 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     # Define some auxiliary data and add it.
     data = np.random.random(100)
     data_type = "RandomArrays"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
                                 parameters=parameters)
     del data_set
 
@@ -497,8 +497,28 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == tag
+    aux_data.tag == path
     aux_data.parameters == parameters
+
+    # Test the same thing, but with nested data.
+    data = np.random.random(100)
+    data_type = "RandomArrays"
+    path = "some/nested/path/test_data"
+    parameters = {"a": 2, "b": 3.0, "e": "hallo_again"}
+
+    new_data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
+                                    parameters=parameters)
+    del new_data_set
+
+    newer_data_set = ASDFDataSet(asdf_filename)
+    aux_data = newer_data_set.auxiliary_data.RandomArrays.some.nested\
+        .path.test_data
+    np.testing.assert_equal(data, aux_data.data)
+    aux_data.data_type == data_type
+    aux_data.tag == path
+    aux_data.parameters == parameters
+
+    del newer_data_set
 
 
 def test_looping_over_stations(example_data_set):
