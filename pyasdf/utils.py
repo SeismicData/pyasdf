@@ -25,6 +25,7 @@ try:
 except ImportError:
     from urllib.parse import urlparse
 
+import h5py
 from lxml.etree import QName
 import numpy as np
 import obspy
@@ -363,12 +364,48 @@ class AuxiliaryDataAccessor(object):
         return len(self.list())
 
     def __str__(self):
-        return (
-            "{count} auxiliary data item(s) of type '{type}' available:\n"
-            "\t{items}".format(count=len(self),
-                               type=self.__auxiliary_data_type,
-                               items="\n\t".join(self.list()))
-        )
+        items = self.list()
+
+        groups = []
+        data_arrays = []
+
+        ds = self.__data_set()
+
+        try:
+            for item in items:
+                reference = ds._auxiliary_data_group[
+                    self.__auxiliary_data_type][item]
+
+                if isinstance(reference, h5py.Group):
+                    groups.append(item)
+                else:
+                    data_arrays.append(item)
+
+                del reference
+        finally:
+            del ds
+
+        ret_str = ""
+
+        if groups:
+            ret_str += (
+                "{count} auxiliary data sub group(s) of type '{type}' "
+                "available:\n"
+                "\t{items}".format(count=len(groups),
+                                   type=self.__auxiliary_data_type,
+                                   items="\n\t".join(groups)))
+        if data_arrays:
+            if ret_str:
+                ret_str += "\n"
+            ret_str += (
+                "{count} auxiliary data item(s) of type '{type}' available:\n"
+                "\t{items}".format(count=len(data_arrays),
+                                   type=self.__auxiliary_data_type,
+                                   items="\n\t".join(data_arrays)))
+        if not groups and not data_arrays:
+            ret_str += "Empty auxiliary data group."
+
+        return ret_str
 
     def _repr_pretty_(self, p, cycle):
         p.text(self.__str__())
