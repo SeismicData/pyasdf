@@ -1542,3 +1542,31 @@ def test_waveform_accessor_attribute_access_error_handling(example_data_set):
         "'WaveformAccessor' object has no attribute 'StationXML'"
 
     del ds
+
+
+def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
+    """
+    Tests reading and writing auxiliary nested data.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # Define some auxiliary data and add it.
+    data = np.random.random(100)
+    data_type = "RandomArrays"
+    # The tag can be a path. At that point it will be a nested structure.
+    tag = "some/deeper/path/test_data"
+
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+                                parameters=parameters)
+    del data_set
+
+    new_data_set = ASDFDataSet(asdf_filename)
+    aux_data = \
+        new_data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data
+    np.testing.assert_equal(data, aux_data.data)
+    aux_data.data_type == data_type
+    aux_data.tag == tag
+    aux_data.parameters == parameters
