@@ -384,17 +384,17 @@ class ASDFDataSet(object):
         self.__file["QuakeML"][:] = data
 
     def add_auxiliary_data_file(
-            self, filename_or_object, tag, parameters=None,
+            self, filename_or_object, path, parameters=None,
             provenance_id=None):
         """
         Special function adding a file or file like object as an auxiliary
         data object denoting a file. This is very useful to store arbirary
-        files in ASDF>
+        files in ASDF.
 
         :param filename_or_object: Filename, open-file or file-like object.
             File should really be opened in binary mode, but this i not
             checked.
-        :param tag: The path of the file. Has the same limitations as normal
+        :param path: The path of the file. Has the same limitations as normal
             tags.
         :param parameters: Any additional options, as a Python dictionary.
         :param provenance_id: The id of the provenance of this data. The
@@ -412,7 +412,7 @@ class ASDFDataSet(object):
         if parameters is None:
             parameters = {}
 
-        self.add_auxiliary_data(data=data, data_type="File", path=tag,
+        self.add_auxiliary_data(data=data, data_type="File", path=path,
                                 parameters=parameters,
                                 provenance_id=provenance_id)
 
@@ -1012,7 +1012,7 @@ class ASDFDataSet(object):
         """
         station_name = "%s.%s" % (trace.stats.network, trace.stats.station)
         # Generate the name of the data within its station folder.
-        data_name = "{net}.{sta}.{loc}.{cha}__{start}__{end}__{path}".format(
+        data_name = "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
             net=trace.stats.network,
             sta=trace.stats.station,
             loc=trace.stats.location,

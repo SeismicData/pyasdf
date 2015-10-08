@@ -497,7 +497,7 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == path
+    aux_data.path == path
     aux_data.parameters == parameters
 
     # Test the same thing, but with nested data.
@@ -515,7 +515,7 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
         .path.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == path
+    aux_data.path == path
     aux_data.parameters == parameters
 
     del newer_data_set
@@ -695,10 +695,10 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
 
     data = np.random.random((10, 10))
     data_type = "RandomArrays"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
                                 parameters=parameters)
     del data_set
 
@@ -706,7 +706,7 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == tag
+    aux_data.path == path
     aux_data.parameters == parameters
 
     del new_data_set
@@ -717,10 +717,10 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
 
     data = np.random.random((5, 5, 5))
     data_type = "RandomArrays"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
                                 parameters=parameters)
     del data_set
 
@@ -728,7 +728,7 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == tag
+    aux_data.path == path
     aux_data.parameters == parameters
 
     del new_data_set
@@ -739,10 +739,10 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
 
     data = np.random.random((2, 3, 4, 5))
     data_type = "RandomArrays"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
                                 parameters=parameters)
     del data_set
 
@@ -750,7 +750,7 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == tag
+    aux_data.path == path
     aux_data.parameters == parameters
 
     del new_data_set
@@ -763,13 +763,13 @@ def test_adding_auxiliary_data_with_invalid_data_type_name_raises(tmpdir):
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
     data_type = "2DRandomArray"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     try:
         with pytest.raises(ASDFValueError) as err:
             data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                        path=tag, parameters=parameters)
+                                        path=path, parameters=parameters)
 
         assert err.value.args[0] == (
             "Data type name '2DRandomArray' is invalid. It must validate "
@@ -785,12 +785,12 @@ def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
     data_type = "RandomArray"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
     provenance_id = "{http://example.org}test"
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters,
+                                path=path, parameters=parameters,
                                 provenance_id=provenance_id)
     data_set.__del__()
     del data_set
@@ -808,12 +808,12 @@ def test_str_method_of_aux_data(tmpdir):
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
     data_type = "RandomArray"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
     provenance_id = "{http://example.org}test"
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters,
+                                path=path, parameters=parameters,
                                 provenance_id=provenance_id)
     assert \
         str(data_set.auxiliary_data.RandomArray.test_data) == (
@@ -830,11 +830,11 @@ def test_str_method_of_aux_data(tmpdir):
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
     data_type = "RandomArray"
-    tag = "test_data_2"
+    path = "test_data_2"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters)
+                                path=path, parameters=parameters)
     assert \
         str(data_set.auxiliary_data.RandomArray.test_data_2) == (
             "Auxiliary Data of Type 'RandomArray'\n"
@@ -906,12 +906,12 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
     data_type = "RandomArray"
-    tag = "A.B.C"
+    path = "A.B.C"
 
     with pytest.raises(ASDFValueError) as err:
         data_set.add_auxiliary_data(
             data=data, data_type=data_type,
-            path=tag, parameters={})
+            path=path, parameters={})
 
     assert err.value.args[0] == (
         "Tag name 'A.B.C' is invalid. It must validate "
@@ -934,7 +934,7 @@ def test_adding_arbitrary_files(tmpdir):
     data_set = ASDFDataSet(asdf_filename)
 
     data_set.add_auxiliary_data_file(
-        test_filename, tag="test_file", parameters={"1": 1})
+        test_filename, path="test_file", parameters={"1": 1})
 
     data_set.__del__()
     del data_set
@@ -944,7 +944,7 @@ def test_adding_arbitrary_files(tmpdir):
     # that returns the data as a BytesIO.
     aux_data = new_data_set.auxiliary_data.File.test_file
     assert aux_data.parameters == {"1": 1}
-    assert aux_data.tag == "test_file"
+    assert aux_data.path == "test_file"
 
     new_test_dict = json.loads(aux_data.file.read().decode())
     assert test_dict == new_test_dict
@@ -1007,27 +1007,27 @@ def test_str_of_auxiliary_data_accessor(tmpdir):
 
     data = np.random.random((10, 10))
     data_type = "RandomArray"
-    tag = "test_data_1"
+    path = "test_data_1"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters)
+                                path=path, parameters=parameters)
 
     data = np.random.random((10, 10))
     data_type = "RandomArray"
-    tag = "test_data_2"
+    path = "test_data_2"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters)
+                                path=path, parameters=parameters)
 
     data = np.random.random((10, 10))
     data_type = "SomethingElse"
-    tag = "test_data"
+    path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters)
+                                path=path, parameters=parameters)
 
     # Add a nested one.
     data_set.add_auxiliary_data(data=data, data_type=data_type,
@@ -1074,14 +1074,14 @@ def test_item_access_of_auxiliary_data(tmpdir):
 
     data = np.random.random((10, 10))
     data_type = "RandomArray"
-    tag = "test_data_1"
+    path = "test_data_1"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                path=tag, parameters=parameters)
+                                path=path, parameters=parameters)
 
-    assert data_set.auxiliary_data["RandomArray"]["test_data_1"].tag == \
-        data_set.auxiliary_data.RandomArray.test_data_1.tag
+    assert data_set.auxiliary_data["RandomArray"]["test_data_1"].path == \
+        data_set.auxiliary_data.RandomArray.test_data_1.path
 
 
 def test_item_access_of_waveforms(example_data_set):
@@ -1609,11 +1609,11 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
     data = np.random.random(100)
     data_type = "RandomArrays"
     # The path can be a path. At that point it will be a nested structure.
-    tag = "some/deeper/path/test_data"
+    path = "some/deeper/path/test_data"
 
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
                                 parameters=parameters)
     del data_set
 
@@ -1623,5 +1623,5 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
         new_data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
-    aux_data.tag == tag
+    aux_data.path == path
     aux_data.parameters == parameters

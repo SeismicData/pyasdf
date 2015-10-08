@@ -304,7 +304,7 @@ class AuxiliaryDataContainer(object):
             "\tData shape: '{data_shape}', dtype: '{dtype}'\n"
             "\tParameters:\n\t\t{parameters}"
             .format(data_type=split_dt[0], data_shape=self.data.shape,
-                    dtype=self.data.dtype, tag="/".join(path),
+                    dtype=self.data.dtype, path="/".join(path),
                     provenance="" if self.provenance_id is None else
                     "\tProvenance ID: '%s'\n" % self.provenance_id,
                     parameters="\n\t\t".join([
@@ -534,9 +534,9 @@ class WaveformAccessor(object):
                     if queries["channel"](cha_code) is False:
                         continue
             # Tag
-            if queries["path"]:
+            if queries["tag"]:
                 tag = wf_name2tag(wf)
-                if queries["path"](tag) is False:
+                if queries["tag"](tag) is False:
                     continue
 
             # Any of the other queries requires parsing the attribute path.
