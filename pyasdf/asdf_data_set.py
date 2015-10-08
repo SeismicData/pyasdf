@@ -1233,27 +1233,33 @@ class ASDFDataSet(object):
         if not self.mpi:
             raise ASDFException("Currently only works with MPI.")
 
-        this_stations = set(self.waveforms.list())
-        other_stations = set(other_ds.waveforms.list())
+        # Collect the work that needs to be done on rank 0.
+        if self.mpi.comm.rank == 0:
 
-        # Usable stations are those that are part of both.
-        usable_stations = list(this_stations.intersection(other_stations))
+            def split(container, count):
+                """
+                Simple function splitting a container into equal length chunks.
+                Order is not preserved but this is potentially an advantage
+                depending on the use case.
+                """
+                return [container[_i::count] for _i in range(count)]
 
-        # Divide into chunks, each rank takes their corresponding chunks.
-        def chunks(l, n):
-            """
-            Yield successive n-sized chunks from l.
-            From http://stackoverflow.com/a/312464/1657047
-            """
-            for i in range(0, len(l), n):
-                yield l[i:i+n]
+            this_stations = set(self.waveforms.list())
+            other_stations = set(other_ds.waveforms.list())
 
-        chunksize = int(math.ceil(len(usable_stations) / self.mpi.size))
-        all_chunks = list(chunks(usable_stations, chunksize))
+            # Usable stations are those that are part of both.
+            usable_stations = list(this_stations.intersection(other_stations))
+            jobs = split(usable_stations, self.mpi.comm.size)
+        else:
+            jobs = None
 
+        # Scatter jobs.
+        jobs = self.mpi.comm.scatter(jobs, root=0)
+
+        # Dictionary collecting results.
         results = {}
 
-        for station in all_chunks[self.mpi.rank]:
+        for station in jobs:
             try:
                 result = process_function(
                     getattr(self.waveforms, station),
@@ -1265,10 +1271,12 @@ class ASDFDataSet(object):
 
         # Gather and create a final dictionary of results.
         gathered_results = self.mpi.comm.gather(results, root=0)
+
         results = {}
         if self.mpi.rank == 0:
             for result in gathered_results:
                 results.update(result)
+
         return results
 
     def process(self, process_function, output_filename, tag_map):
