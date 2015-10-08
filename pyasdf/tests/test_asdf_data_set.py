@@ -1564,6 +1564,7 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
     del data_set
 
     new_data_set = ASDFDataSet(asdf_filename)
+
     aux_data = \
         new_data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data
     np.testing.assert_equal(data, aux_data.data)

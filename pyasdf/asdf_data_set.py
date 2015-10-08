@@ -62,7 +62,7 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
-    FilteredWaveformAccessor, label2string
+    FilteredWaveformAccessor, label2string, AuxiliaryDataAccessor
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -423,7 +423,9 @@ class ASDFDataSet(object):
 
         :param data: The actual data as a n-dimensional numpy array.
         :param data_type: The type of data, think of it like a subfolder.
-        :param tag: The tag of the data. Must be unique per data_type.
+        :param tag: The tag of the data. Must be unique per data_type. Can
+            be a path separated by forward slashes at which point it will be
+            stored in a nested structure.
         :param parameters: Any additional options, as a Python dictionary.
         :param provenance_id: The id of the provenance of this data. The
             provenance information itself must be added separately. Must be
@@ -437,13 +439,17 @@ class ASDFDataSet(object):
                 "against the regular expression '{pattern}'.".format(
                     name=data_type, pattern=pattern))
 
-        # Assert the tag pattern.
-        tag_pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$"
-        if re.match(tag_pattern, tag) is None:
-            raise ASDFValueError(
-                "Tag name '{name}' is invalid. It must validate "
-                "against the regular expression '{pattern}'.".format(
-                    name=tag, pattern=tag_pattern))
+        # Split the tag.
+        tag_path = tag.split("/")
+
+        for tag in tag_path:
+            # Assert each path piece.
+            tag_pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$"
+            if re.match(tag_pattern, tag) is None:
+                raise ASDFValueError(
+                    "Tag name '{name}' is invalid. It must validate "
+                    "against the regular expression '{pattern}'.".format(
+                        name=tag, pattern=tag_pattern))
 
         if provenance_id is not None:
             # Will raise an error if not a valid qualified name.
@@ -451,14 +457,16 @@ class ASDFDataSet(object):
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(
-            data, data_type, tag, parameters, provenance_id=provenance_id)
+            data=data, data_type=data_type, tag_path=tag_path,
+            parameters=parameters, provenance_id=provenance_id)
         if info is None:
             return
-        self._add_auxiliary_data_write_collective_information(info)
-        self._add_auxiliary_data_write_independent_information(info, data)
+        self._add_auxiliary_data_write_collective_information(info=info)
+        self._add_auxiliary_data_write_independent_information(info=info,
+                                                               data=data)
 
     def _add_auxiliary_data_get_collective_information(
-            self, data, data_type, tag, parameters, provenance_id=None):
+            self, data, data_type, tag_path, parameters, provenance_id=None):
         """
         The information required for the collective part of adding some
         auxiliary data.
@@ -477,7 +485,7 @@ class ASDFDataSet(object):
             parameters.update({"provenance_id":
                               self._zeropad_ascii_string(provenance_id)})
 
-        group_name = "%s/%s" % (data_type, tag)
+        group_name = "%s/%s" % (data_type, "/".join(tag_path))
         if group_name in self._auxiliary_data_group:
             msg = "Data '%s' already exists in file. Will not be added!" % \
                   group_name
@@ -495,7 +503,7 @@ class ASDFDataSet(object):
             "data_name": group_name,
             "data_type": data_type,
             "dataset_creation_params": {
-                "name": tag,
+                "name": "/".join(tag_path),
                 "shape": data.shape,
                 "dtype": data.dtype,
                 "compression": self.__compression[0],
@@ -646,6 +654,9 @@ class ASDFDataSet(object):
 
     def _get_auxiliary_data(self, data_type, tag):
         group = self._auxiliary_data_group[data_type][tag]
+        if isinstance(group, h5py.Group):
+            return AuxiliaryDataAccessor(auxiliary_data_type=group.name,
+                                         asdf_data_set=self)
         return AuxiliaryDataContainer(
             data=group, data_type=data_type, tag=tag,
             parameters={i: j for i, j in group.attrs.items()})
