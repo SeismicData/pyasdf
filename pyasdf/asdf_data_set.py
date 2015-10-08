@@ -412,24 +412,55 @@ class ASDFDataSet(object):
         if parameters is None:
             parameters = {}
 
-        self.add_auxiliary_data(data=data, data_type="File", tag=tag,
+        self.add_auxiliary_data(data=data, data_type="File", path=tag,
                                 parameters=parameters,
                                 provenance_id=provenance_id)
 
-    def add_auxiliary_data(self, data, data_type, tag, parameters,
+    def add_auxiliary_data(self, data, data_type, path, parameters,
                            provenance_id=None):
         """
         Adds auxiliary data to the file.
 
         :param data: The actual data as a n-dimensional numpy array.
         :param data_type: The type of data, think of it like a subfolder.
-        :param tag: The tag of the data. Must be unique per data_type. Can
+        :param path: The path of the data. Must be unique per data_type. Can
             be a path separated by forward slashes at which point it will be
             stored in a nested structure.
         :param parameters: Any additional options, as a Python dictionary.
         :param provenance_id: The id of the provenance of this data. The
             provenance information itself must be added separately. Must be
             given as a qualified name, e.g. ``'{namespace_uri}id'``.
+
+
+        The data type is the category of the data and the path the name of
+        that particular piece of data within that category.
+
+        >>> ds.add_auxiliary_data(numpy.random.random(10),
+        ...                       data_type="RandomArray",
+        ...                       path="test_data",
+        ...                       parameters={"a": 1, "b": 2})
+        >>> ds.auxiliary_data.RandomArray.test_data
+        Auxiliary Data of Type 'RandomArray'
+        Path: 'test_data'
+        Data shape: '(10, )', dtype: 'float64'
+        Parameters:
+            a: 1
+            b: 2
+
+        The path can contain forward slashes to create a nested hierarchy of
+        auxiliary data.
+
+        >>> ds.add_auxiliary_data(numpy.random.random(10),
+        ...                       data_type="RandomArray",
+        ...                       path="some/nested/path/test_data",
+        ...                       parameters={"a": 1, "b": 2})
+        >>> ds.auxiliary_data.RandomArray.some.nested.path.test_data
+        Auxiliary Data of Type 'RandomArray'
+        Path: 'some/nested/path/test_data'
+        Data shape: '(10, )', dtype: 'float64'
+        Parameters:
+            a: 1
+            b: 2
         """
         # Assert the data type name.
         pattern = r"^[A-Z][A-Za-z0-9]*$"
@@ -439,17 +470,17 @@ class ASDFDataSet(object):
                 "against the regular expression '{pattern}'.".format(
                     name=data_type, pattern=pattern))
 
-        # Split the tag.
-        tag_path = tag.split("/")
+        # Split the path.
+        tag_path = path.strip("/").split("/")
 
-        for tag in tag_path:
+        for path in tag_path:
             # Assert each path piece.
             tag_pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$"
-            if re.match(tag_pattern, tag) is None:
+            if re.match(tag_pattern, path) is None:
                 raise ASDFValueError(
                     "Tag name '{name}' is invalid. It must validate "
                     "against the regular expression '{pattern}'.".format(
-                        name=tag, pattern=tag_pattern))
+                        name=path, pattern=tag_pattern))
 
         if provenance_id is not None:
             # Will raise an error if not a valid qualified name.
@@ -654,6 +685,7 @@ class ASDFDataSet(object):
 
     def _get_auxiliary_data(self, data_type, tag):
         group = self._auxiliary_data_group[data_type][tag]
+
         if isinstance(group, h5py.Group):
             return AuxiliaryDataAccessor(
                 auxiliary_data_type=group.name.lstrip("/AuxiliaryData/"),

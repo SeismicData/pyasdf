@@ -489,7 +489,7 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     tag = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
                                 parameters=parameters)
     del data_set
 
@@ -678,7 +678,7 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
     tag = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
                                 parameters=parameters)
     del data_set
 
@@ -700,7 +700,7 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
     tag = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
                                 parameters=parameters)
     del data_set
 
@@ -722,7 +722,7 @@ def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
     tag = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
                                 parameters=parameters)
     del data_set
 
@@ -749,7 +749,7 @@ def test_adding_auxiliary_data_with_invalid_data_type_name_raises(tmpdir):
     try:
         with pytest.raises(ASDFValueError) as err:
             data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                        tag=tag, parameters=parameters)
+                                        path=tag, parameters=parameters)
 
         assert err.value.args[0] == (
             "Data type name '2DRandomArray' is invalid. It must validate "
@@ -770,7 +770,7 @@ def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
     provenance_id = "{http://example.org}test"
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters,
+                                path=tag, parameters=parameters,
                                 provenance_id=provenance_id)
     data_set.__del__()
     del data_set
@@ -793,12 +793,12 @@ def test_str_method_of_aux_data(tmpdir):
     provenance_id = "{http://example.org}test"
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters,
+                                path=tag, parameters=parameters,
                                 provenance_id=provenance_id)
     assert \
         str(data_set.auxiliary_data.RandomArray.test_data) == (
             "Auxiliary Data of Type 'RandomArray'\n"
-            "\tTag: 'test_data'\n"
+            "\tPath: 'test_data'\n"
             "\tProvenance ID: '{http://example.org}test'\n"
             "\tData shape: '(10, 10)', dtype: 'float64'\n"
             "\tParameters:\n"
@@ -814,11 +814,26 @@ def test_str_method_of_aux_data(tmpdir):
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters)
+                                path=tag, parameters=parameters)
     assert \
         str(data_set.auxiliary_data.RandomArray.test_data_2) == (
             "Auxiliary Data of Type 'RandomArray'\n"
-            "\tTag: 'test_data_2'\n"
+            "\tPath: 'test_data_2'\n"
+            "\tData shape: '(10, 10)', dtype: 'float64'\n"
+            "\tParameters:\n"
+            "\t\ta: 1\n"
+            "\t\tb: 2.0\n"
+            "\t\te: hallo")
+
+    # Nested structure.
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                path="some/deeper/path/test_data",
+                                parameters=parameters)
+
+    assert str(
+        data_set.auxiliary_data.RandomArray.some.deeper.path.test_data) == (
+            "Auxiliary Data of Type 'RandomArray'\n"
+            "\tPath: 'some/deeper/path/test_data'\n"
             "\tData shape: '(10, 10)', dtype: 'float64'\n"
             "\tParameters:\n"
             "\t\ta: 1\n"
@@ -876,7 +891,7 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
     with pytest.raises(ASDFValueError) as err:
         data_set.add_auxiliary_data(
             data=data, data_type=data_type,
-            tag=tag, parameters={})
+            path=tag, parameters={})
 
     assert err.value.args[0] == (
         "Tag name 'A.B.C' is invalid. It must validate "
@@ -960,7 +975,7 @@ def test_provenance_dicionary_behaviour(tmpdir):
     assert list(new_data_set.provenance.items()) == [("test_provenance", doc)]
 
 
-def test_str_of_auxiliary_data(tmpdir):
+def test_str_of_auxiliary_data_accessor(tmpdir):
     """
     Test the various __str__ method of auxiliary data types.
     """
@@ -976,7 +991,7 @@ def test_str_of_auxiliary_data(tmpdir):
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters)
+                                path=tag, parameters=parameters)
 
     data = np.random.random((10, 10))
     data_type = "RandomArray"
@@ -984,7 +999,7 @@ def test_str_of_auxiliary_data(tmpdir):
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters)
+                                path=tag, parameters=parameters)
 
     data = np.random.random((10, 10))
     data_type = "SomethingElse"
@@ -992,11 +1007,11 @@ def test_str_of_auxiliary_data(tmpdir):
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters)
+                                path=tag, parameters=parameters)
 
     # Add a nested one.
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag="some/deep/path",
+                                path="some/deep/path",
                                 parameters=parameters)
 
     assert str(data_set.auxiliary_data) == (
@@ -1043,7 +1058,7 @@ def test_item_access_of_auxiliary_data(tmpdir):
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
-                                tag=tag, parameters=parameters)
+                                path=tag, parameters=parameters)
 
     assert data_set.auxiliary_data["RandomArray"]["test_data_1"].tag == \
         data_set.auxiliary_data.RandomArray.test_data_1.tag
@@ -1578,7 +1593,7 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
 
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
-    data_set.add_auxiliary_data(data=data, data_type=data_type, tag=tag,
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=tag,
                                 parameters=parameters)
     del data_set
 

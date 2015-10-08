@@ -292,14 +292,19 @@ class AuxiliaryDataContainer(object):
         return self.__file_cache
 
     def __str__(self):
+        # Deal with nested paths.
+        split_dt = self.data_type.split("/")
+        tag = split_dt[1:]
+        tag.append(self.tag)
+
         return (
             "Auxiliary Data of Type '{data_type}'\n"
-            "\tTag: '{tag}'\n"
+            "\tPath: '{tag}'\n"
             "{provenance}"
             "\tData shape: '{data_shape}', dtype: '{dtype}'\n"
             "\tParameters:\n\t\t{parameters}"
-            .format(data_type=self.data_type, data_shape=self.data.shape,
-                    dtype=self.data.dtype, tag=self.tag,
+            .format(data_type=split_dt[0], data_shape=self.data.shape,
+                    dtype=self.data.dtype, tag="/".join(tag),
                     provenance="" if self.provenance_id is None else
                     "\tProvenance ID: '%s'\n" % self.provenance_id,
                     parameters="\n\t\t".join([
