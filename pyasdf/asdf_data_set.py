@@ -1264,10 +1264,11 @@ class ASDFDataSet(object):
             results[station] = result
 
         # Gather and create a final dictionary of results.
-        gathered_results = self.mpi.comm.allgather(results)
+        gathered_results = self.mpi.comm.gather(results, root=0)
         results = {}
-        for result in gathered_results:
-            results.update(result)
+        if self.mpi.rank == 0:
+            for result in gathered_results:
+                results.update(result)
         return results
 
     def process(self, process_function, output_filename, tag_map):
