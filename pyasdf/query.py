@@ -74,7 +74,7 @@ keywords = {
     "station": _wildcarded_list,
     "location": _wildcarded_list,
     "channel": _wildcarded_list,
-    "tag": _wildcarded_list,
+    "path": _wildcarded_list,
     # Coordinates; require a StationXML file to be around.
     "longitude": float,
     "latitude": float,

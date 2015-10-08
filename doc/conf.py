@@ -192,7 +192,7 @@ html_theme_options = {
 #html_show_copyright = True
 
 # If true, an OpenSearch description file will be output, and all pages will
-# contain a <link> tag referring to it.  The value of this option must be the
+# contain a <link> path referring to it.  The value of this option must be the
 # base URL from which the finished HTML is served.
 #html_use_opensearch = ''
 

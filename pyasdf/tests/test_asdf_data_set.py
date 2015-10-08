@@ -310,7 +310,7 @@ def test_dot_accessors(example_data_set):
 
 def test_stationxml_is_invalid_tag_name(tmpdir):
     """
-    StationXML is an invalid waveform tag.
+    StationXML is an invalid waveform path.
     """
     filename = os.path.join(tmpdir.strpath, "example.h5")
 
@@ -322,7 +322,7 @@ def test_stationxml_is_invalid_tag_name(tmpdir):
     with pytest.raises(ValueError):
         data_set.add_waveforms(st, tag="stationxml")
 
-    # Adding with a proper tag works just fine.
+    # Adding with a proper path works just fine.
     data_set.add_waveforms(st, tag="random_waveform")
 
 
@@ -1307,7 +1307,7 @@ def test_more_queries(example_data_set):
     """
     Test more queries.
 
-    Example data set contains (with tag "raw_recording"):
+    Example data set contains (with path "raw_recording"):
 
     AE.113A..BHE | 2013-05-24T05:40:00-2013-05-24T06:50:00.000000Z |
         40.0 Hz, 168001 samples
@@ -1552,7 +1552,7 @@ def test_queries_for_labels(example_data_set):
         ds.q.tags == ["what", u"?⸘‽", "single_label"])]
     assert result == ["BB.BB", "CC.CC", "DD.DD"]
 
-    # No tag.
+    # No path.
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.labels == "")]
     assert result == ["AA.AA"]
@@ -1608,7 +1608,7 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
     # Define some auxiliary data and add it.
     data = np.random.random(100)
     data_type = "RandomArrays"
-    # The tag can be a path. At that point it will be a nested structure.
+    # The path can be a path. At that point it will be a nested structure.
     tag = "some/deeper/path/test_data"
 
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}

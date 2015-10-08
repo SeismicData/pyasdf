@@ -394,7 +394,7 @@ class ASDFDataSet(object):
         :param filename_or_object: Filename, open-file or file-like object.
             File should really be opened in binary mode, but this i not
             checked.
-        :param tag: The tag of the file. Has the same limitations as normal
+        :param tag: The path of the file. Has the same limitations as normal
             tags.
         :param parameters: Any additional options, as a Python dictionary.
         :param provenance_id: The id of the provenance of this data. The
@@ -625,12 +625,12 @@ class ASDFDataSet(object):
     def get_data_for_tag(self, station_name, tag):
         """
         Returns the waveform and station data for the requested station and
-        tag.
+        path.
 
         :param station_name: A string with network id and station id,
             e.g. ``"IU.ANMO"``
         :type station_name: str
-        :param tag: The tag of the waveform.
+        :param tag: The path of the waveform.
         :type tag: str
         :return: tuple of the waveform and the inventory.
         :rtype: (:class:`~obspy.core.stream.Stream`,
@@ -644,7 +644,7 @@ class ASDFDataSet(object):
 
     def _get_waveform(self, waveform_name):
         """
-        Retrieves the waveform for a certain tag name as a Trace object. For
+        Retrieves the waveform for a certain path name as a Trace object. For
         internal use only, use the dot accessors for outside access.
         """
         network, station, location, channel = waveform_name.split(".")[:4]
@@ -741,9 +741,9 @@ class ASDFDataSet(object):
             Trace object or something ObsPy can read.
         :type waveform: :class:`obspy.core.stream.Stream`,
             :class:`obspy.core.trace.Trace`, str, ...
-        :param tag: The tag that will be given to all waveform files. It is
+        :param tag: The path that will be given to all waveform files. It is
             mandatory for all traces and facilitates identification of the data
-            within one ASDF volume. The ``"raw_record"`` tag is,
+            within one ASDF volume. The ``"raw_record"`` path is,
             by convention, reserved to raw, recorded, unprocessed data.
         :type tag: str
         :param event_id: The event or id which the waveform is associated
@@ -785,11 +785,11 @@ class ASDFDataSet(object):
         Now assume we have a MiniSEED file that is an unprocessed
         observation of that earthquake straight from a datacenter called
         ``recording.mseed``. We will now add it to the file, give it the
-        ``"raw_recording"`` tag (which is reserved for raw, recorded,
+        ``"raw_recording"`` path (which is reserved for raw, recorded,
         and unproceseed data) and associate it with the event. Keep in mind
         that this association is optional.
 
-        >>> ds.add_waveforms("recording.mseed", tag="raw_recording",
+        >>> ds.add_waveforms("recording.mseed", path="raw_recording",
         ...                  event_id=event)
 
         It is also possible to directly add
@@ -803,7 +803,7 @@ class ASDFDataSet(object):
         BW.RJOB..EHZ | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
         BW.RJOB..EHN | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
         BW.RJOB..EHE | 2009-08-24T00:20:03.00Z - ... | 100.0 Hz, 3000 samples
-        >>> ds.add_waveforms(st, tag="obspy_example")
+        >>> ds.add_waveforms(st, path="obspy_example")
 
         Just to demonstrate that all waveforms can also be retrieved again.
 
@@ -1008,11 +1008,11 @@ class ASDFDataSet(object):
         be created, and the attributes of the dataset.
 
         :param trace: The trace to add.
-        :param tag: The tag of the trace.
+        :param tag: The path of the trace.
         """
         station_name = "%s.%s" % (trace.stats.network, trace.stats.station)
         # Generate the name of the data within its station folder.
-        data_name = "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
+        data_name = "{net}.{sta}.{loc}.{cha}__{start}__{end}__{path}".format(
             net=trace.stats.network,
             sta=trace.stats.station,
             loc=trace.stats.location,
@@ -1330,7 +1330,7 @@ class ASDFDataSet(object):
 
         stations = self.waveforms.list()
 
-        # Get all possible station and waveform tag combinations and let
+        # Get all possible station and waveform path combinations and let
         # each process read the data it needs.
         station_tags = []
         for station in stations:
@@ -1354,7 +1354,7 @@ class ASDFDataSet(object):
                 station_tags.append((station, tag))
 
         if not station_tags:
-            raise ValueError("No data matching the tag map found.")
+            raise ValueError("No data matching the path map found.")
 
         # Copy the station and event data only on the master process.
         if not self.mpi or (self.mpi and self.mpi.rank == 0):
@@ -1473,7 +1473,7 @@ class ASDFDataSet(object):
                 if jobs.queue_empty:
                     self._send_mpi(POISON_PILL, source, "MASTER_SENDS_ITEM")
                 else:
-                    # And send a new station tag to process it.
+                    # And send a new station path to process it.
                     station_tag = jobs.get_job_for_worker(source)
                     self._send_mpi(station_tag, source, "MASTER_SENDS_ITEM")
 

@@ -394,7 +394,7 @@ def test_query_merging():
     assert fct(-0.1) is False
 
     # Not-given parameters are None.
-    assert merged_queries["tag"] is None
+    assert merged_queries["path"] is None
 
     # One more test combining complex string queries.
     _w = q._wildcarded_list

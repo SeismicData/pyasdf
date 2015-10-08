@@ -239,7 +239,7 @@ class AuxiliaryDataContainer(object):
     def __init__(self, data, data_type, tag, parameters):
         self.data = data
         self.data_type = data_type
-        self.tag = tag
+        self.path = tag
         if "provenance_id" in parameters:
             parameters = copy.deepcopy(parameters)
             self.provenance_id = parameters.pop("provenance_id")
@@ -258,7 +258,7 @@ class AuxiliaryDataContainer(object):
         if type(self) is not type(other):
             return False
 
-        if self.tag != other.tag or self.data_type != other.data_type or \
+        if self.path != other.tag or self.data_type != other.data_type or \
                 self.provenance_id != self.provenance_id or \
                 self.parameters != self.parameters:
             return False
@@ -294,17 +294,17 @@ class AuxiliaryDataContainer(object):
     def __str__(self):
         # Deal with nested paths.
         split_dt = self.data_type.split("/")
-        tag = split_dt[1:]
-        tag.append(self.tag)
+        path = split_dt[1:]
+        path.append(self.path)
 
         return (
             "Auxiliary Data of Type '{data_type}'\n"
-            "\tPath: '{tag}'\n"
+            "\tPath: '{path}'\n"
             "{provenance}"
             "\tData shape: '{data_shape}', dtype: '{dtype}'\n"
             "\tParameters:\n\t\t{parameters}"
             .format(data_type=split_dt[0], data_shape=self.data.shape,
-                    dtype=self.data.dtype, tag="/".join(tag),
+                    dtype=self.data.dtype, tag="/".join(path),
                     provenance="" if self.provenance_id is None else
                     "\tProvenance ID: '%s'\n" % self.provenance_id,
                     parameters="\n\t\t".join([
@@ -534,12 +534,12 @@ class WaveformAccessor(object):
                     if queries["channel"](cha_code) is False:
                         continue
             # Tag
-            if queries["tag"]:
+            if queries["path"]:
                 tag = wf_name2tag(wf)
-                if queries["tag"](tag) is False:
+                if queries["path"](tag) is False:
                     continue
 
-            # Any of the other queries requires parsing the attribute tag.
+            # Any of the other queries requires parsing the attribute path.
             if queries["starttime"] or queries["endtime"] or \
                     queries["sampling_rate"] or queries["npts"] or \
                     queries["event"] or queries["magnitude"] or \
@@ -1061,7 +1061,7 @@ def wf_name2seed_codes(tag):
 
 def wf_name2tag(tag):
     """
-    Extract the tag from an ASDF waveform name.
+    Extract the path from an ASDF waveform name.
 
     >>> wf_name2seed_codes("BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth")
     "synth"
