@@ -1489,7 +1489,6 @@ def test_queries_for_labels(example_data_set):
     tr.stats.station = "DD"
     ds.add_waveforms(tr, tag="random_d", labels=labels_d)
 
-
     # Test with random labels..should all return nothing.
     assert list(ds.ifilter(ds.q.labels == ["hello", "hello2"])) == []
     assert list(ds.ifilter(ds.q.labels == ["random"])) == []
