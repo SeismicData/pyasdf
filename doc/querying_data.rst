@@ -112,36 +112,35 @@ January 2015:
         ...
 
 
+Get waveforms for all stations that have no coordinates:
+
+.. code-block:: python
+
+    for station in ds.ifilter(ds.q.latitude == None):
+        ...
+
+
+Get all waveforms associated with a certain event:
+
+.. code-block:: python
+
+    event = obspy.read_events(...)[0]
+
+    for station in ds.ifilter(ds.q.event == event):
+        ...
+
+
+Get all waveforms if any label is either "Fun" or matches the pattern "A*C":
+
+
+.. code-block:: python
+
+    for station in ds.ifilter(ds.q.labels == ["Fun", "A*C"]):
+        ...
+
+
 Query Types
 -----------
-
-
-.. warning::
-
-    Most of the queries work as one would intuitively expect, the exception are
-    ``!=`` queries for ``latitude``, ``longitude``, and  ``elevation_in_m``.
-    These are all optional pieces of meta information for a waveform trace. If
-    any of these keys is part of a query and a given trace does not have that
-    piece of information that trace will not be returned no matter what the
-    query actually asks for. Assume that a trace has no associated StationXML,
-    the following query will not return it even though it is logically true:
-
-    .. code-block:: python
-
-        for station in ds.ifilter(ds.q.latitude != 10.0):
-            ...
-
-    This is a consequence of how the queries are internally implemented.
-    Working around this would require much more code or less flexibility in
-    other areas. Just be aware of this and it should prove no issue.
-
-    The ``ifilter()`` method will furthermore see missing ``event``, ``origin``,
-    ``magnitude``, and ``focal_mechanism`` ids as an empty string.
-
-
-.. raw:: html
-
-    <div style="height:10px"></div>
 
 The available query keys alongside other information regarding their usage are
 listed in the following table:
@@ -166,9 +165,10 @@ listed in the following table:
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | ``tag``             | ``str`` or list of ``str``                                           | The hierarchical tag associated with the trace.                                   |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
+| ``labels``          | ``str`` or list of ``str``                                           | Search over the labels of each waveforms.                                         |
++---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | **Geographical Parameters:**                                                                                                                                                   |
-| Search over geographical parameters stored in the StationXML files. If any of these three parameter is given: A station that has no StationXML file (or no coordinates),       |
-| will not be returned, no matter what the query actually asks for.                                                                                                              |
+| Search over geographical parameters stored in the StationXML files.                                                                                                            |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | ``longitude``       | ``float``                                                            | The longitude of the recording station.                                           |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
@@ -191,8 +191,7 @@ listed in the following table:
 | ``npts``            | ``int``                                                              | The number of samples of the waveform.                                            |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | **Event Relation Parameters:**                                                                                                                                                 |
-| If a trace does not have any of these, the ``ifilter()`` method will see it as though it is an empty string. **These are not wildcarded** as ``?`` and                         |
-| ``*`` are perfectly valid URL components and most IDs are URLs.                                                                                                                |
+| These are not wildcarded as ``?`` and ``*`` are perfectly valid URL components and most IDs are URLs.                                                                          |
 +---------------------+----------------------------------------------------------------------+-----------------------------------------------------------------------------------+
 | ``event``           | :class:`~obspy.core.event.Event`,                                    | The event associated with the waveform.                                           |
 |                     | :class:`~obspy.core.event.ResourceIdentifier`, or ``str``            |                                                                                   |
