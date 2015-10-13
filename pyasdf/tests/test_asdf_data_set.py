@@ -1554,12 +1554,7 @@ def test_queries_for_labels(tmpdir):
     assert list(ds.ifilter(ds.q.labels == ["hello", "hello2"])) == []
     assert list(ds.ifilter(ds.q.labels == ["random"])) == []
 
-    assert list(ds.ifilter(ds.q.labels == ["what", u"?⸘‽", "single_label"])) \
-        == [1]
-    # One of each.
-    fct = (ds.q.labels == ["what", u"?⸘‽", "single_label"])[1]
-    fct(None)
-
+    # Once of each.
     result = [_i._station_name for _i in ds.ifilter(
         ds.q.labels == ["what", u"?⸘‽", "single_label"])]
     assert result == ["BB.BB", "CC.CC", "DD.DD"]
@@ -1569,6 +1564,11 @@ def test_queries_for_labels(tmpdir):
               for _i in ds.ifilter(ds.q.labels == None)]  # NOQA
     assert result == ["AA.AA"]
 
+    # Any label.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.labels != None)]  # NOQA
+    assert result == ["BB.BB", "CC.CC", "DD.DD"]
+
     # Unicode wildcard.
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.labels == u"^§#⁇*")]
@@ -1576,17 +1576,13 @@ def test_queries_for_labels(tmpdir):
 
     # BB and DD.
     result = [_i._station_name
-              for _i in ds.ifilter(ds.q.labels == ["wha?", "sin_*"])]
+              for _i in ds.ifilter(ds.q.labels == ["wha?", "sin*"])]
     assert result == ["BB.BB", "DD.DD"]
 
-    # result = [_i._station_name
-    #           for _i in ds.ifilter(ds.q.labels == u"^§#⁇*")]
-    # assert result == ["CC.CC"]
-    #
-    # # BB and DD.
-    # result = [_i._station_name
-    #           for _i in ds.ifilter(ds.q.labels == ["wha?", "sin_*"])]
-    # assert result == ["BB.BB", "DD.DD"]
+    # CC
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.labels == u"^§#⁇*")]
+    assert result == ["CC.CC"]
 
 
 def test_waveform_accessor_attribute_access_error_handling(example_data_set):
