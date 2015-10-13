@@ -26,7 +26,11 @@ def _wildcarded_list(value):
         value = [_i.strip() for _i in unicode_type(value).split(",")]
     if not isinstance(value, collections.Iterable):
         raise TypeError
-    return list(value)
+
+    if None in value:
+        raise TypeError("List cannot contain a None value.")
+
+    return [unicode_type(_i) for _i in value]
 
 
 def _type_or_none(type):
@@ -215,15 +219,50 @@ class QueryObject(object):
     def __eq__(self, other):
         other = self.type(other)
 
-        if self.type is _wildcarded_list:
-            def get_match_fct(_i):
-                def match(value):
-                    return fnmatch.fnmatch(value, _i)
-                return match
+        # Deal with potentially wildcarded lists.
+        _t = self.type
+        if hasattr(_t, "_original_type"):
+            _t = self.type._original_type
+        if _t is _wildcarded_list:
+            none_allowed = hasattr(self.type, "_original_type")
 
-            return self.name, \
-                compose_or([get_match_fct(_i) for _i in other])
+            def get_is_none_fct():
+                def is_none(v):
+                    return v is None
+                return is_none
 
+            # Deal with being compared to None.
+            if other is None:
+                # None not allowed.
+                if not none_allowed:
+                    raise TypeError("None not allowed.")
+
+                return self.name, get_is_none_fct()
+
+            # And actual values.
+            else:
+                def get_match_fct(_i):
+                    def match(value):
+                        if value is None:
+                            return _i is None
+
+                        # Convert to list of things.
+                        value = self.type(value)
+
+                        # As soon as one compares True, its good.
+                        def get_inner_match_fct(_j):
+                            def inner_match(_v):
+                                return fnmatch.fnmatch(_j, _v)
+                            return inner_match
+
+                        return compose_or([get_inner_match_fct(_j) for _j in
+                                           value])(_i)
+                    return match
+
+                return self.name, \
+                    compose_or([get_match_fct(_i) for _i in other])
+
+        # Anything thats not a wildcarded list is much, much simpler.
         return self.name, self._get_comp_fct(operator.eq, other,
                                              none_allowed=True)
 

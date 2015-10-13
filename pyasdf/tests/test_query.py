@@ -557,6 +557,85 @@ def test_event_id_none():
     assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
 
 
+def test_queries_with_optional_and_wildcarded_lists():
+    _t = q._type_or_none(q._wildcarded_list)
+
+    # Simple tests.
+    assert (q.QueryObject(name="_r", type=_t) == "a")[1]("a") is True
+    assert (q.QueryObject(name="_r", type=_t) == "a")[1]("b") is False
+    assert (q.QueryObject(name="_r", type=_t) != "a")[1]("a") is False
+    assert (q.QueryObject(name="_r", type=_t) != "a")[1]("b") is True
+
+    assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("a") is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("a") is True
+
+    # Try some lists.
+    assert (q.QueryObject(name="_r", type=_t) == "a")[1](["a"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == "a")[1](["b"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != "a")[1](["a"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != "a")[1](["b"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == ["a"])[1](["a"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == ["a"])[1](["b"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a"])[1](["a"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a"])[1](["b"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == ["a"])[1](["a"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == ["a"])[1](["b"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a"])[1](["a"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a"])[1](["b"]) is True
+
+    assert (q.QueryObject(name="_r", type=_t) == ["a"])[1](None) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a"])[1](None) is True
+
+    # None in lists should raise an error.
+    with pytest.raises(TypeError) as e:
+        (q.QueryObject(name="_r", type=_t) == ["a"])[1]([None])
+    assert e.value.args[0] == "List cannot contain a None value."
+
+    with pytest.raises(TypeError) as e:
+        (q.QueryObject(name="_r", type=_t) != ["a"])[1]([None])
+    assert e.value.args[0] == "List cannot contain a None value."
+
+    with pytest.raises(TypeError) as e:
+        (q.QueryObject(name="_r", type=_t) != [None])[1]("a")
+    assert e.value.args[0] == "List cannot contain a None value."
+
+    with pytest.raises(TypeError) as e:
+        (q.QueryObject(name="_r", type=_t) == [None])[1]("a")
+    assert e.value.args[0] == "List cannot contain a None value."
+
+    with pytest.raises(TypeError) as e:
+        (q.QueryObject(name="_r", type=_t) == ["a"])[1](["a", None])
+    assert e.value.args[0] == "List cannot contain a None value."
+
+    with pytest.raises(TypeError) as e:
+        (q.QueryObject(name="_r", type=_t) == ["a", None])[1]("a")
+    assert e.value.args[0] == "List cannot contain a None value."
+
+    # A bit more complex queries.
+    assert (q.QueryObject(name="_r", type=_t) == ["a", "b"])[1]("a") is True
+    assert (q.QueryObject(name="_r", type=_t) == "a")[1](["a", "b"]) is True
+    assert (q.QueryObject(name="_r", type=_t) != ["a", "b"])[1]("a") is False
+    assert (q.QueryObject(name="_r", type=_t) != "a")[1](["a", "b"]) is False
+
+    # Wildcards.
+    assert (q.QueryObject(name="_r", type=_t) == "a*")[1]("ab") is True
+    assert (q.QueryObject(name="_r", type=_t) != "a*")[1]("ab") is False
+    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1]("ab") is True
+    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1]("ab") is False
+
+    # List againts lists.
+    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1](
+        ["b", "c"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1](
+        ["b", "c"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1](
+        ["ab", "c"]) is True
+    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1](
+        ["ab", "c"]) is False
+
+
 def test_query_merging():
     # Names are fixed here and must be as in the query files. This is not a
     # general purpose library but specific for this module here.
