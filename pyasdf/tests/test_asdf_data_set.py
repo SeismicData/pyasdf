@@ -1554,7 +1554,6 @@ def test_queries_for_labels(tmpdir):
     assert list(ds.ifilter(ds.q.labels == ["hello", "hello2"])) == []
     assert list(ds.ifilter(ds.q.labels == ["random"])) == []
 
-
     assert list(ds.ifilter(ds.q.labels == ["what", u"?⸘‽", "single_label"])) \
         == [1]
     # One of each.
