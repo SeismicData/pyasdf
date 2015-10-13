@@ -576,11 +576,10 @@ class WaveformAccessor(object):
                     if queries["labels"]:
                         if "labels" in attrs:
                             labels = labelstring2list(attrs["labels"])
-                            if not any(map(queries["labels"], labels)):
-                                continue
                         else:
-                            if queries["labels"](None) is False:
-                                continue
+                            labels = None
+                        if queries["labels"](labels) is False:
+                            continue
 
                     if queries["event"] or queries["magnitude"] or \
                             queries["origin"] or queries["focal_mechanism"]:
@@ -594,7 +593,7 @@ class WaveformAccessor(object):
                                 if key in attrs:
                                     value = attrs[key].tostring().decode()
                                 else:
-                                    value = ""
+                                    value = None
 
                                 if queries[id](value) is False:
                                     any_fails = True

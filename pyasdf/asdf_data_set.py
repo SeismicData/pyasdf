@@ -1242,22 +1242,24 @@ class ASDFDataSet(object):
                 # (but this is still an I/O heavy process!)
                 try:
                     coords = station.coordinates
+                    latitude = coords["latitude"]
+                    longitude = coords["longitude"]
+                    elevation_in_m = coords["elevation_in_m"]
                 except NoStationXMLForStation:
-                    # If not there, then the station is not part of the
-                    # final result set if any coordinates are required.
-                    # Simple as that.
-                    continue
+                    latitude = None
+                    longitude = None
+                    elevation_in_m = None
 
                 if queries["latitude"]:
-                    if queries["latitude"](coords["latitude"]) is False:
+                    if queries["latitude"](latitude) is False:
                         continue
 
                 if queries["longitude"]:
-                    if queries["longitude"](coords["longitude"]) is False:
+                    if queries["longitude"](longitude) is False:
                         continue
 
                 if queries["elevation_in_m"]:
-                    if queries["elevation_in_m"](coords["elevation_in_m"]) \
+                    if queries["elevation_in_m"](elevation_in_m) \
                             is False:
                         continue
 

@@ -1245,8 +1245,8 @@ def test_event_iteration(example_data_set):
     assert result == ["AA.AA", "BB.BB"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.event == str(event_id),
-                                   ds.q.magnitude == "",
-                                   ds.q.focal_mechanism == "")]
+                                   ds.q.magnitude == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
     assert result == ["BB.BB"]
 
     # Origin as a resource identifier and as a string, and with others equal to
@@ -1258,7 +1258,7 @@ def test_event_iteration(example_data_set):
     assert result == ["AA.AA", "CC.CC"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.origin == str(origin_id),
-                                   ds.q.event == "")]
+                                   ds.q.event == None)]  # NOQA
     assert result == ["CC.CC"]
 
     # Magnitude as a resource identifier and as a string, and with others equal
@@ -1271,7 +1271,7 @@ def test_event_iteration(example_data_set):
     assert result == ["AA.AA", "DD.DD"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id),
-                                   ds.q.origin == "")]
+                                   ds.q.origin == None)]  # NOQA
     assert result == ["DD.DD"]
 
     # focmec as a resource identifier and as a string, and with others equal to
@@ -1284,22 +1284,22 @@ def test_event_iteration(example_data_set):
     assert result == ["AA.AA", "EE.EE"]
     result = [_i._station_name
               for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id),
-                                   ds.q.origin == "")]
+                                   ds.q.origin == None)]  # NOQA
     assert result == ["EE.EE"]
 
     # No existing ids are treated like empty ids.
     result = [_i._station_name
-              for _i in ds.ifilter(ds.q.event == "",
-                                   ds.q.magnitude == "",
-                                   ds.q.origin == "",
-                                   ds.q.focal_mechanism == "")]
+              for _i in ds.ifilter(ds.q.event == None,
+                                   ds.q.magnitude == None,
+                                   ds.q.origin == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
     assert result == ["FF.FF"]
 
     result = [_i._station_name
-              for _i in ds.ifilter(ds.q.event != "",
-                                   ds.q.magnitude != "",
-                                   ds.q.origin != "",
-                                   ds.q.focal_mechanism != "")]
+              for _i in ds.ifilter(ds.q.event != None,
+                                   ds.q.magnitude != None,
+                                   ds.q.origin != None,
+                                   ds.q.focal_mechanism != None)]  # NOQA
     assert result == ["AA.AA"]
 
 
@@ -1383,6 +1383,14 @@ def test_more_queries(example_data_set):
                "AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
     assert collect_ids(ds.ifilter(ds.q.elevation_in_m < 200.0)) == {
                "AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
+
+    # Make sure coordinates exist.
+    assert collect_ids(ds.ifilter(ds.q.latitude != None)) == {  # NOQA
+        "AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ", "TA.POKR..BHE",
+        "TA.POKR..BHZ", "TA.POKR..BHN"}
+    # Opposite query
+    assert collect_ids(ds.ifilter(ds.q.latitude == None)) == {  # NOQA
+        "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
 
     # Temporal constraints.
     assert collect_ids(ds.ifilter(ds.q.starttime <= "2010-01-01")) == {
