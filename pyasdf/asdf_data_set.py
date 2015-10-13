@@ -63,7 +63,7 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
     FilteredWaveformAccessor, label2string, labelstring2list, \
-    AuxiliaryDataAccessor
+    AuxiliaryDataAccessor, wf_name2tag
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -681,6 +681,9 @@ class ASDFDataSet(object):
 
         if "labels" in data.attrs:
             details.labels = labelstring2list(data.attrs["labels"])
+
+        # Add the tag to the stats dictionary.
+        details.tag = wf_name2tag(waveform_name)
 
         return tr
 
