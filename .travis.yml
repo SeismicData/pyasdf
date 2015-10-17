@@ -26,6 +26,7 @@ before_install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
   # Build docs on Python 3.4 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then conda install --yes sphinx; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
   - pip install coveralls mpi4py prov
 
 install:
