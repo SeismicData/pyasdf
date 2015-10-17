@@ -21,9 +21,9 @@ before_install:
   # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
   # NOTE: Remove nose when matplotlib/matplotlib#4188 is fixed.
   - conda install --yes -c obspy obspy python=$TRAVIS_PYTHON_VERSION nose
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
   # Build docs on Python 2.7 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda install --yes sphinx; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then pip install sphinx-bootstrap-theme; fi
