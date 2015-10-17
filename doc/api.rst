@@ -1,6 +1,12 @@
 API
 ===
 
-:doc:`asdf_data_set`
+.. toctree::
+    :maxdepth: 2
 
-:doc:`utils`
+    asdf_data_set
+    exceptions
+    inventory_utils
+    query
+    utils
+    watermark

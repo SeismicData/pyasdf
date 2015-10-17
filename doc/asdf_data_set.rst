@@ -1,6 +1,5 @@
 ASDF Data Set
 =============
 
-.. autoclass:: pyasdf.asdf_data_set.ASDFDataSet
+.. automodule:: pyasdf.asdf_data_set
     :members:
-

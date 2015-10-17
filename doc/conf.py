@@ -15,7 +15,7 @@
 import sys
 import os
 
-import sphinx_bootstrap_theme
+import sphinx_rtd_theme
 import pyasdf
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -115,24 +115,14 @@ pygments_style = 'monokai'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'bootstrap'
-html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    "navbar_title": "pyasdf",
-    "bootswatch_theme": "sandstone",
-    "navbar_links": [
-        ("ObsPy", "http://obspy.org", True),
-        ("GitHub", "http://github.com/SeismicData/pyasdf", True),
-    ],
-    "navbar_pagenav": False,
-    "navbar_sidebarrel": False,
-    "source_link_position": False,
-    "navbar_class": "navbar navbar-inverse"
-    }
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
@@ -146,7 +136,7 @@ html_theme_options = {
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = "./logo/pyasdf_logo.svg"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32

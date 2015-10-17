@@ -1,15 +1,6 @@
 Utils
 =====
 
-WaveformAccessor
-----------------
-
-.. autoclass:: pyasdf.utils.WaveformAccessor
+.. automodule:: pyasdf.utils
     :members:
 
-
-FilteredWaveformAccessor
-------------------------
-
-.. autoclass:: pyasdf.utils.FilteredWaveformAccessor
-    :members:

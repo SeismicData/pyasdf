@@ -33,7 +33,7 @@ installed with ``conda``, the remaining one is installed with ``pip``:
 Dependencies for the parallel I/O version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. admonition:: A note of Warnings
+.. note::
 
     There currently are some issues in combination of Python 3 and MPI so if
     you want to utilize parallel I/O best stick to Python 2.7 for now.
@@ -49,7 +49,7 @@ installable via ``conda`` has no parallel I/O support.
     $ pip install prov
 
 
-For all the following make sure that the MPI package of your local
+For all of the following steps make sure that the MPI package of your local
 supercomputer/cluster is loaded. The ``mpi4py`` potentially shipping with
 Anaconda might not work on your cluster so uninstall it and reinstall with
 ``pip`` at which point it should link against your cluster's MPI
@@ -131,8 +131,8 @@ To assert that your installation is working properly, execute
 and make sure all tests pass. Otherwise please contact the developers.
 
 
-Build the Documentation
------------------------
+Building the Documentation
+--------------------------
 
 The documentation requires ``sphinx`` and the Bootstrap theme. Install both
 with
