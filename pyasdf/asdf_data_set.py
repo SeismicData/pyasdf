@@ -1185,6 +1185,8 @@ class ASDFDataSet(object):
         """
         Validate and ASDF file. It currently checks that each waveform file
         has a corresponding station file.
+
+        This does not (by far) replace the actual ASDF format validator.
         """
         summary = {"no_station_information": 0, "no_waveforms": 0,
                    "good_stations": 0}
