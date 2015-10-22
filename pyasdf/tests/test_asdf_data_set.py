@@ -1650,3 +1650,18 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
     aux_data.data_type == data_type
     aux_data.path == path
     aux_data.parameters == parameters
+
+
+def test_usage_as_context_manager(tmpdir):
+    """
+    Tests the usage of a pyasdf as a context manager.
+    """
+    tmpdir = str(tmpdir)
+
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    with ASDFDataSet(asdf_filename) as ds:
+        ds.add_waveforms(obspy.read())
+
+    with ASDFDataSet(asdf_filename) as ds:
+        assert ds.waveforms.list() == "BW.RJOB"
