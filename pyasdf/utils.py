@@ -736,7 +736,8 @@ class WaveformAccessor(object):
         The dir method will list all this object's methods, the StationXML
         if it has one, and all tags.
         """
-        directory = self.get_waveform_tags()
+        directory = object.__dir__(self)
+        directory.extend(self.get_waveform_tags())
         if "StationXML" in self.list():
             directory.append("StationXML")
         directory.extend(["_station_name", "coordinates",
@@ -745,9 +746,7 @@ class WaveformAccessor(object):
 
     def __str__(self):
         contents = self.__dir__()
-        waveform_contents = [_i for _i in contents if _i not in [
-                             "StationXML", "_station_name", "coordinates",
-                             "channel_coordinates"]]
+        waveform_contents = sorted(self.get_waveform_tags())
 
         ret_str = (
             "Contents of the data set for station {station}:\n"

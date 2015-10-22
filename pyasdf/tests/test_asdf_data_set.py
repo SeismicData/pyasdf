@@ -274,12 +274,8 @@ def test_dot_accessors(example_data_set):
 
     # Get the contents, this also asserts that tab completions works.
     assert sorted(dir(data_set.waveforms)) == ["AE_113A", "TA_POKR"]
-    assert sorted(dir(data_set.waveforms.AE_113A)) == \
-        sorted(["StationXML", "_station_name", "raw_recording",
-                "coordinates", "channel_coordinates"])
-    assert sorted(dir(data_set.waveforms.TA_POKR)) == \
-        sorted(["StationXML", "_station_name", "raw_recording",
-                "coordinates", "channel_coordinates"])
+    assert "raw_recording" in dir(data_set.waveforms.AE_113A)
+    assert "raw_recording" in dir(data_set.waveforms.TA_POKR)
 
     # Actually check the contents.
     waveform = data_set.waveforms.AE_113A.raw_recording.sort()
