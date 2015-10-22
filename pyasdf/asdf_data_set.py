@@ -76,7 +76,7 @@ class ASDFDataSet(object):
     q = Query()
 
     def __init__(self, filename, compression="gzip-3", debug=False,
-                 mpi=None):
+                 mpi=None, mode="a"):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
@@ -103,6 +103,13 @@ class ASDFDataSet(object):
         :param mpi: Force MPI on/off. Don't touch this unless you have a
             reason.
         :type mpi: bool
+        :param mode: The mode the file is opened in. Passed to the
+            underlying :class:`h5py.File` constructor. pyasdf expects to be
+            able to write to files for many operations so it might result in
+            strange errors if a read-only mode is used. Nonetheless this is
+            quite useful for some use cases as long as one is aware of the
+            potential repercussions.
+        :type mode: str
         """
         self.__force_mpi = mpi
         self.debug = debug
@@ -124,9 +131,9 @@ class ASDFDataSet(object):
 
         # Open file or take an already open HDF5 file object.
         if not self.mpi:
-            self.__file = h5py.File(filename, "a")
+            self.__file = h5py.File(filename, mode=mode)
         else:
-            self.__file = h5py.File(filename, "a", driver="mpio",
+            self.__file = h5py.File(filename, mode=mode, driver="mpio",
                                     comm=self.mpi.comm)
 
         # Workaround to HDF5 only storing the relative path by default.
