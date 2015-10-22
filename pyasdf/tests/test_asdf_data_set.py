@@ -784,7 +784,7 @@ def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
 
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
     provenance_id = "{http://example.org}test"
@@ -796,7 +796,7 @@ def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
     del data_set
 
     new_data_set = ASDFDataSet(asdf_filename)
-    assert new_data_set.auxiliary_data.RandomArray.test_data.provenance_id \
+    assert new_data_set.auxiliary_data.RandomArrays.test_data.provenance_id \
         == provenance_id
 
 
@@ -807,7 +807,7 @@ def test_str_method_of_aux_data(tmpdir):
     # With provenance id.
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
     provenance_id = "{http://example.org}test"
@@ -816,8 +816,8 @@ def test_str_method_of_aux_data(tmpdir):
                                 path=path, parameters=parameters,
                                 provenance_id=provenance_id)
     assert \
-        str(data_set.auxiliary_data.RandomArray.test_data) == (
-            "Auxiliary Data of Type 'RandomArray'\n"
+        str(data_set.auxiliary_data.RandomArrays.test_data) == (
+            "Auxiliary Data of Type 'RandomArrays'\n"
             "\tPath: 'test_data'\n"
             "\tProvenance ID: '{http://example.org}test'\n"
             "\tData shape: '(10, 10)', dtype: 'float64'\n"
@@ -829,15 +829,15 @@ def test_str_method_of_aux_data(tmpdir):
     # Without.
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "test_data_2"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
                                 path=path, parameters=parameters)
     assert \
-        str(data_set.auxiliary_data.RandomArray.test_data_2) == (
-            "Auxiliary Data of Type 'RandomArray'\n"
+        str(data_set.auxiliary_data.RandomArrays.test_data_2) == (
+            "Auxiliary Data of Type 'RandomArrays'\n"
             "\tPath: 'test_data_2'\n"
             "\tData shape: '(10, 10)', dtype: 'float64'\n"
             "\tParameters:\n"
@@ -851,8 +851,8 @@ def test_str_method_of_aux_data(tmpdir):
                                 parameters=parameters)
 
     assert str(
-        data_set.auxiliary_data.RandomArray.some.deeper.path.test_data) == (
-            "Auxiliary Data of Type 'RandomArray'\n"
+        data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data) == (
+            "Auxiliary Data of Type 'RandomArrays'\n"
             "\tPath: 'some/deeper/path/test_data'\n"
             "\tData shape: '(10, 10)', dtype: 'float64'\n"
             "\tParameters:\n"
@@ -905,7 +905,7 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
     # With provenance id.
     data = np.random.random((10, 10))
     # The data must NOT start with a number.
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "A.B.C"
 
     with pytest.raises(ASDFValueError) as err:
@@ -942,7 +942,7 @@ def test_adding_arbitrary_files(tmpdir):
     new_data_set = ASDFDataSet(asdf_filename)
     # Extraction works the same as always, but now has a special attribute,
     # that returns the data as a BytesIO.
-    aux_data = new_data_set.auxiliary_data.File.test_file
+    aux_data = new_data_set.auxiliary_data.Files.test_file
     assert aux_data.parameters == {"1": 1}
     assert aux_data.path == "test_file"
 
@@ -1006,7 +1006,7 @@ def test_str_of_auxiliary_data_accessor(tmpdir):
         "Data set contains no auxiliary data.")
 
     data = np.random.random((10, 10))
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "test_data_1"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
@@ -1014,7 +1014,7 @@ def test_str_of_auxiliary_data_accessor(tmpdir):
                                 path=path, parameters=parameters)
 
     data = np.random.random((10, 10))
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "test_data_2"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
@@ -1036,11 +1036,11 @@ def test_str_of_auxiliary_data_accessor(tmpdir):
 
     assert str(data_set.auxiliary_data) == (
         "Data set contains the following auxiliary data types:\n"
-        "\tRandomArray (2 item(s))\n"
+        "\tRandomArrays (2 item(s))\n"
         "\tSomethingElse (2 item(s))")
 
-    assert str(data_set.auxiliary_data.RandomArray) == (
-        "2 auxiliary data item(s) of type 'RandomArray' available:\n"
+    assert str(data_set.auxiliary_data.RandomArrays) == (
+        "2 auxiliary data item(s) of type 'RandomArrays' available:\n"
         "\ttest_data_1\n"
         "\ttest_data_2")
 
@@ -1073,15 +1073,15 @@ def test_item_access_of_auxiliary_data(tmpdir):
         "Data set contains no auxiliary data.")
 
     data = np.random.random((10, 10))
-    data_type = "RandomArray"
+    data_type = "RandomArrays"
     path = "test_data_1"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
     data_set.add_auxiliary_data(data=data, data_type=data_type,
                                 path=path, parameters=parameters)
 
-    assert data_set.auxiliary_data["RandomArray"]["test_data_1"].path == \
-        data_set.auxiliary_data.RandomArray.test_data_1.path
+    assert data_set.auxiliary_data["RandomArrays"]["test_data_1"].path == \
+        data_set.auxiliary_data.RandomArrays.test_data_1.path
 
 
 def test_item_access_of_waveforms(example_data_set):

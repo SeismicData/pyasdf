@@ -389,7 +389,7 @@ class ASDFDataSet(object):
             provenance_id=None):
         """
         Special function adding a file or file like object as an auxiliary
-        data object denoting a file. This is very useful to store arbirary
+        data object denoting a file. This is very useful to store arbitrary
         files in ASDF.
 
         :param filename_or_object: Filename, open-file or file-like object.
@@ -413,7 +413,7 @@ class ASDFDataSet(object):
         if parameters is None:
             parameters = {}
 
-        self.add_auxiliary_data(data=data, data_type="File", path=path,
+        self.add_auxiliary_data(data=data, data_type="Files", path=path,
                                 parameters=parameters,
                                 provenance_id=provenance_id)
 
@@ -437,11 +437,11 @@ class ASDFDataSet(object):
         that particular piece of data within that category.
 
         >>> ds.add_auxiliary_data(numpy.random.random(10),
-        ...                       data_type="RandomArray",
+        ...                       data_type="RandomArrays",
         ...                       path="test_data",
         ...                       parameters={"a": 1, "b": 2})
-        >>> ds.auxiliary_data.RandomArray.test_data
-        Auxiliary Data of Type 'RandomArray'
+        >>> ds.auxiliary_data.RandomArrays.test_data
+        Auxiliary Data of Type 'RandomArrays'
         Path: 'test_data'
         Data shape: '(10, )', dtype: 'float64'
         Parameters:
@@ -452,11 +452,11 @@ class ASDFDataSet(object):
         auxiliary data.
 
         >>> ds.add_auxiliary_data(numpy.random.random(10),
-        ...                       data_type="RandomArray",
+        ...                       data_type="RandomArrays",
         ...                       path="some/nested/path/test_data",
         ...                       parameters={"a": 1, "b": 2})
-        >>> ds.auxiliary_data.RandomArray.some.nested.path.test_data
-        Auxiliary Data of Type 'RandomArray'
+        >>> ds.auxiliary_data.RandomArrays.some.nested.path.test_data
+        Auxiliary Data of Type 'RandomArrays'
         Path: 'some/nested/path/test_data'
         Data shape: '(10, )', dtype: 'float64'
         Parameters:
