@@ -163,3 +163,11 @@ div.highlight > pre {
 .linenodiv > pre {
     color: #CCCCCC !important;
 }
+
+
+/* Background color of class label */
+dl.class > dt {
+    background-color: rgba(67, 116, 20, 0.2) !important;
+    color: #437414 !important;
+    border-top: 3px solid #437414 !important;
+}
