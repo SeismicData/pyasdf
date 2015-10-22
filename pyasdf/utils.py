@@ -736,7 +736,14 @@ class WaveformAccessor(object):
         The dir method will list all this object's methods, the StationXML
         if it has one, and all tags.
         """
-        directory = object.__dir__(self)
+        # Python 3.
+        if hasattr(object, "__dir__"):
+            directory = object.__dir__(self)
+        # Python 2.
+        else:
+            directory = [_i for _i in self.__dict__.keys() if not
+                         _i.startswith("_" + self.__class__.__name__)]
+
         directory.extend(self.get_waveform_tags())
         if "StationXML" in self.list():
             directory.append("StationXML")
