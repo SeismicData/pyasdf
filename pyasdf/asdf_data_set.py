@@ -227,6 +227,19 @@ class ASDFDataSet(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __enter__(self):
+        """
+        Enable usage as a context manager.
+        """
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Enable usage as a context manager.
+        """
+        self.__del__()
+        return False
+
     def flush(self):
         """
         Flush the underlying HDF5 file.

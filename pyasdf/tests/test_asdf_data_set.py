@@ -1656,12 +1656,16 @@ def test_usage_as_context_manager(tmpdir):
     """
     Tests the usage of a pyasdf as a context manager.
     """
-    tmpdir = str(tmpdir)
-
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
 
     with ASDFDataSet(asdf_filename) as ds:
-        ds.add_waveforms(obspy.read())
+        ds.add_waveforms(obspy.read(), tag="hello")
 
     with ASDFDataSet(asdf_filename) as ds:
-        assert ds.waveforms.list() == "BW.RJOB"
+        assert ds.waveforms.list() == ["BW.RJOB"]
+        assert ds.waveforms["BW.RJOB"]["hello"]
+
+    # Writing does not work anymore as the file has been closed.
+    with pytest.raises(Exception):
+        # Different tag.
+        ds.add_waveforms(obspy.read(), tag="random")
