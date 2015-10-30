@@ -1352,7 +1352,26 @@ class ASDFDataSet(object):
 
         return results
 
-    def process(self, process_function, output_filename, tag_map):
+    def process(self, process_function, output_filename, tag_map, **kwargs):
+        """
+        Process the contents of an ``ASDF`` file in parallel.
+
+        Applies a function to the contents of the current data set and
+        writes the output to a new ``ASDF`` file. Can be run with and
+        without MPI. Please see the :doc:`parallel_processing` document for
+        more details.
+
+        :type process_function: function
+        :param process_function: A function with two argument:
+            An :class:`obspy.core.stream.Stream` object and an
+            :class:`obspy.station.inventory.Inventory` object. It should
+            return a :class:`obspy.core.stream.Stream` object which will
+            then be written to the new file.
+        :type output_filename: str
+        :param output_filename: The output filename. Must not yet exist.
+        :type tag_map: dict
+        :param tag_map: A dictionary mapping the input tags to output tags.
+        """
         if os.path.exists(output_filename):
             msg = "Output file '%s' already exists." % output_filename
             raise ValueError(msg)
@@ -1426,16 +1445,14 @@ class ASDFDataSet(object):
         self.mpi.comm.barrier()
 
         if self.mpi.rank == 0:
-            self._dispatch_processing_mpi_master_node(process_function,
-                                                      output_data_set,
+            self._dispatch_processing_mpi_master_node(output_data_set,
                                                       station_tags, tag_map)
         else:
             self._dispatch_processing_mpi_worker_node(process_function,
                                                       output_data_set, tag_map)
 
-    def _dispatch_processing_mpi_master_node(self, process_function,
-                                             output_dataset, station_tags,
-                                             tag_map):
+    def _dispatch_processing_mpi_master_node(self, output_dataset,
+                                             station_tags, tag_map):
         """
         The master node. It distributes the jobs and takes care that
         metadata modifying actions are collective.
