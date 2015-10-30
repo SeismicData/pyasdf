@@ -123,8 +123,9 @@ class ASDFDataSet(object):
             raise Exception(msg)
         self.__compression = COMPRESSIONS[compression]
         # Turn off compression for parallel I/O. Any already written
-        # compressed data will be fine.
-        if self.__compression[0] and self.mpi:
+        # compressed data will be fine. Don't need to raise it if file is
+        # opened in read-only mode.
+        if self.__compression[0] and self.mpi and mode != "r":
             msg = "Compression will be disabled as parallel HDF5 does not " \
                   "support compression"
             warnings.warn(msg, ASDFWarning)
