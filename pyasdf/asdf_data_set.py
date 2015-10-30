@@ -1374,7 +1374,8 @@ class ASDFDataSet(object):
 
         return results
 
-    def process(self, process_function, output_filename, tag_map, **kwargs):
+    def process(self, process_function, output_filename, tag_map,
+                traceback_limit=3, **kwargs):
         """
         Process the contents of an ``ASDF`` file in parallel.
 
@@ -1393,6 +1394,9 @@ class ASDFDataSet(object):
         :param output_filename: The output filename. Must not yet exist.
         :type tag_map: dict
         :param tag_map: A dictionary mapping the input tags to output tags.
+        :type traceback_limit: int
+        :param traceback_limit: The length of the traceback printed if an
+            error occurs in one of the workers.
         """
         if os.path.exists(output_filename):
             msg = "Output file '%s' already exists." % output_filename
@@ -1456,14 +1460,15 @@ class ASDFDataSet(object):
         # the multiprocessing handler.
         if self.mpi:
             self._dispatch_processing_mpi(process_function, output_data_set,
-                                          station_tags, tag_map)
+                                          station_tags, tag_map,
+                                          traceback_limit=traceback_limit)
         else:
             self._dispatch_processing_multiprocessing(
                 process_function, output_data_set, station_tags, tag_map,
-                **kwargs)
+                traceback_limit=traceback_limit, **kwargs)
 
     def _dispatch_processing_mpi(self, process_function, output_data_set,
-                                 station_tags, tag_map):
+                                 station_tags, tag_map, traceback_limit):
         # Make sure all processes enter here.
         self.mpi.comm.barrier()
 
@@ -1471,8 +1476,9 @@ class ASDFDataSet(object):
             self._dispatch_processing_mpi_master_node(output_data_set,
                                                       station_tags, tag_map)
         else:
-            self._dispatch_processing_mpi_worker_node(process_function,
-                                                      output_data_set, tag_map)
+            self._dispatch_processing_mpi_worker_node(
+                process_function, output_data_set, tag_map,
+                traceback_limit=traceback_limit)
 
     def _dispatch_processing_mpi_master_node(self, output_dataset,
                                              station_tags, tag_map):
@@ -1568,7 +1574,8 @@ class ASDFDataSet(object):
         print(jobs)
 
     def _dispatch_processing_mpi_worker_node(self, process_function,
-                                             output_dataset, tag_map):
+                                             output_dataset, tag_map,
+                                             traceback_limit):
         """
         A worker node. It gets jobs, processes them and periodically waits
         until a collective metadata update operation has happened.
@@ -1632,12 +1639,36 @@ class ASDFDataSet(object):
                 stream, inv = self.get_data_for_tag(*station_tag)
                 try:
                     process_function(stream, inv)
-                except Exception as e:
-                    print("Error during processing function. Will be "
-                          "skipped: %s" % str(e))
+                except Exception:
+                    # If an exception is raised print a good error message
+                    # and traceback to help diagnose the issue.
+                    msg = ("\nError during the processing of station '%s' "
+                           "and tag '%s' on rank %i:" % (
+                               station_tag[0], station_tag[1],
+                               self.mpi.rank))
 
-                # Add stream to buffer.
-                self.stream_buffer[station_tag] = stream
+                    # Extract traceback from the exception.
+                    exc_info = sys.exc_info()
+                    stack = traceback.extract_stack(
+                        limit=traceback_limit)
+                    tb = traceback.extract_tb(exc_info[2])
+                    full_tb = stack[:-1] + tb
+                    exc_line = traceback.format_exception_only(
+                        *exc_info[:2])
+                    tb = ("Traceback (At max %i levels - most recent call "
+                          "last):\n" % traceback_limit)
+                    tb += "".join(traceback.format_list(full_tb))
+                    tb += "\n"
+                    tb += "".join(exc_line)
+
+                    print(msg)
+                    print(tb)
+
+                    # Write empty stream to make sure synchronization works.
+                    self.stream_buffer[station_tag] = obspy.Stream()
+                else:
+                    # Add stream to buffer only if no error occured.
+                    self.stream_buffer[station_tag] = stream
 
                 # If the buffer is too large, request from the master to stop
                 # the current execution.
@@ -1688,7 +1719,7 @@ class ASDFDataSet(object):
 
     def _dispatch_processing_multiprocessing(
             self, process_function, output_data_set, station_tags, tag_map,
-            cpu_count=-1, traceback_limit=3):
+            traceback_limit, cpu_count=-1):
         multiprocessing = get_multiprocessing()
 
         input_filename = self.filename
