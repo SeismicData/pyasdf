@@ -32,6 +32,11 @@ COMPRESSIONS = {
 }
 
 
+# The inversion mapping also works.
+for key, value in list(COMPRESSIONS.items()):
+    COMPRESSIONS[value] = key
+
+
 FORMAT_NAME = "ASDF"
 FORMAT_VERSION = "0.0.2"
 

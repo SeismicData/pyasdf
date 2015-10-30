@@ -1454,7 +1454,12 @@ class ASDFDataSet(object):
         if self.mpi:
             self.mpi.comm.barrier()
 
-        output_data_set = ASDFDataSet(output_filename)
+        if not self.mpi:
+            compression = self.__compression
+        else:
+            compression = None
+
+        output_data_set = ASDFDataSet(output_filename, compression=compression)
 
         # Check for MPI, if yes, dispatch to MPI worker, if not dispatch to
         # the multiprocessing handler.
