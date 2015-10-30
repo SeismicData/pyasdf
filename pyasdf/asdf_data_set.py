@@ -1102,7 +1102,10 @@ class ASDFDataSet(object):
             if obj is None and \
                     hasattr(trace.stats, "asdf") and \
                     hasattr(trace.stats.asdf, name):
-                obj = str(getattr(trace.stats.asdf, name).id)
+                if name == "provenance_id":
+                    obj = trace.stats.asdf[name]
+                else:
+                    obj = str(trace.stats.asdf[name].id)
             if obj:
                 info["dataset_attrs"][name] = \
                     self._zeropad_ascii_string(str(obj))
