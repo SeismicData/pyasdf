@@ -109,3 +109,84 @@ available for processing with multiprocessing:
                # The number of cores to run it on. Defaults to -1 which is
                # equal to the number of cores on your system.
                cpu_count=5)
+
+process_two_files_without_parallel_output() method
+--------------------------------------------------
+
+The
+:meth:`~pyasdf.asdf_data_set.ASDFDataSet.process_two_files_without_parallel_output`
+is useful to compare data in two separate data sets for example for misfit or
+window selection procedures. One once again has to provide a function which
+will be called for each station that is common in both data sets. The results
+are collected in memory and gathered on rank 0.
+
+The function can currently only be run with MPI and is best explained by a
+short example. The following script will calculate the squared sum for all
+traces at each station in both data sets.
+
+.. code-block:: python
+
+    from mpi4py import MPI
+    import pyasdf
+
+    # Open two data sets. Setting the mode is optional but might speed up things a
+    # bit.
+    ds_1 = pyasdf.ASDFDataSet("/Users/lion/asdf_example.h5", mode="r")
+    ds_2 = pyasdf.ASDFDataSet("/Users/lion/asdf_example.h5", mode="r")
+
+
+    # The function takes two station groups which contain waveform and inventory
+    # information for the same station in both data sets. The function will only be
+    # called for stations that are available in both data sets. Keep in mind that
+    # each station can contain data from an arbitrary number of tags and can also
+    # contain inventory information.
+    def process(s_group_1, s_group_2):
+        energy_ds_1 = 0
+        energy_ds_2 = 0
+
+        # Get energy for data in data set one. Don't deal with the sampling rate
+        # for now...
+        for tag in s_group_1.get_waveform_tags():
+            for tr in s_group_1[tag]:
+                energy_ds_1 += (tr.data ** 2).sum()
+
+        # Do the same for the other group.
+        for tag in s_group_2.get_waveform_tags():
+            for tr in s_group_2[tag]:
+                energy_ds_2 += (tr.data ** 2).sum()
+
+        # Just return what you want to collect. Make sure this is not too big as it
+        # will be stored in memory and send over MPI to the process with rank 0.
+        return {
+            "energy_ds_1": energy_ds_1,
+            "energy_ds_2": energy_ds_2}
+
+    # Launch it.
+    results = ds_1.process_two_files_without_parallel_output(ds_2, process)
+
+    # Results are available on rank 0.
+    if MPI.COMM_WORLD.rank == 0:
+        print(results)
+
+Save to a file an run with
+
+.. code-block:: bash
+
+    $ mpirun -n 64 python script.py
+
+The result is something akin to
+
+
+.. code-block:: python
+
+    {'AF.CVNA': {'energy_ds_1': 9.228861452825754e-09,
+                 'energy_ds_2': 9.228861452825754e-09},
+     'AF.DODT': {'energy_ds_1': 4.879421311443366e-09,
+                 'energy_ds_2': 4.879421311443366e-09},
+     'AF.EKNA': {'energy_ds_1': 3.5441928281088053e-09,
+                 'energy_ds_2': 3.5441928281088053e-09},
+     'AF.GRM': {'energy_ds_1': 2.5369817358011915e-08,
+                'energy_ds_2': 2.5369817358011915e-08},
+     ...}
+
+
