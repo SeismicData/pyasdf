@@ -1767,10 +1767,10 @@ class ASDFDataSet(object):
                     if self.__process_name == 0:
                         with self.print_lock:
                             print(" -> Processing approximately task %i of "
-                                  "%i ..." % (
-                                min((self.__task_count - 1) * self.__cpu_count,
-                                    self.__total_task_count),
-                                self.__total_task_count))
+                                  "%i ..." % (min((self.__task_count - 1) *
+                                                  self.__cpu_count,
+                                                  self.__total_task_count),
+                                              self.__total_task_count))
 
                     station, tag = stationtag
 
@@ -1786,8 +1786,8 @@ class ASDFDataSet(object):
                     except Exception:
                         msg = ("\nError during the processing of station '%s' "
                                "and tag '%s' on CPU %i:" % (
-                            stationtag[0], stationtag[1],
-                            self.__process_name))
+                                stationtag[0], stationtag[1],
+                                self.__process_name))
 
                         # Extract traceback from the exception.
                         exc_info = sys.exc_info()
