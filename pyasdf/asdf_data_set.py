@@ -1437,7 +1437,8 @@ class ASDFDataSet(object):
                                           station_tags, tag_map)
         else:
             self._dispatch_processing_multiprocessing(
-                process_function, output_data_set, station_tags, tag_map)
+                process_function, output_data_set, station_tags, tag_map,
+                **kwargs)
 
     def _dispatch_processing_mpi(self, process_function, output_data_set,
                                  station_tags, tag_map):
@@ -1688,7 +1689,12 @@ class ASDFDataSet(object):
         # Also lock the printing on screen to not mangle the output.
         print_lock = multiprocessing.Lock()
 
-        cpu_count = min(multiprocessing.cpu_count(), len(station_tags))
+        # Use either the given number of cores or the maximum number of cores.
+        if cpu_count == -1:
+            cpu_count = multiprocessing.cpu_count()
+
+        # Don't use more cores than jobs.
+        cpu_count = min(cpu_count, len(station_tags))
 
         # Create the input queue containing the jobs.
         input_queue = multiprocessing.JoinableQueue(
@@ -1769,7 +1775,7 @@ class ASDFDataSet(object):
                         full_tb = stack[:-1] + tb
                         exc_line = traceback.format_exception_only(
                             *exc_info[:2])
-                        tb = ("Traceback (%i levels - most recent call "
+                        tb = ("Traceback (At max %i levels - most recent call "
                               "last):\n" % self.__traceback_limit)
                         tb += "".join(traceback.format_list(full_tb))
                         tb += "\n"
