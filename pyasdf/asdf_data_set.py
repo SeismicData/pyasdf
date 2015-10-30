@@ -1666,6 +1666,9 @@ class ASDFDataSet(object):
         input_file_lock = multiprocessing.Lock()
         output_file_lock = multiprocessing.Lock()
 
+        # Also lock the printing on screen to not mangle the output.
+        print_lock = multiprocessing.Lock()
+
         cpu_count = min(multiprocessing.cpu_count(), len(station_tags))
 
         # Create the input queue containing the jobs.
@@ -1687,7 +1690,7 @@ class ASDFDataSet(object):
 
         class Process(multiprocessing.Process):
             def __init__(self, in_queue, out_queue, in_filename,
-                         out_filename, in_lock, out_lock,
+                         out_filename, in_lock, out_lock, print_lock,
                          processing_function, process_name,
                          total_task_count, cpu_count):
                 super(Process, self).__init__()
@@ -1697,6 +1700,7 @@ class ASDFDataSet(object):
                 self.output_filename = out_filename
                 self.input_file_lock = in_lock
                 self.output_file_lock = out_lock
+                self.print_lock = print_lock
                 self.processing_function = processing_function
                 self.__process_name = process_name
                 self.__task_count = 0
@@ -1713,11 +1717,12 @@ class ASDFDataSet(object):
 
                     # Only print on "rank" 0.
                     if self.__process_name == 0:
-                        print(" -> Processing approximately task %i of "
-                              "%i ..." % (
-                            min((self.__task_count - 1) * self.__cpu_count,
-                                self.__total_task_count),
-                            self.__total_task_count))
+                        with self.print_lock:
+                            print(" -> Processing approximately task %i of "
+                                  "%i ..." % (
+                                min((self.__task_count - 1) * self.__cpu_count,
+                                    self.__total_task_count),
+                                self.__total_task_count))
 
                     station, tag = stationtag
 
@@ -1742,12 +1747,13 @@ class ASDFDataSet(object):
         # Create n processes, with n being the number of available CPUs.
         processes = []
         for i in range(cpu_count):
-            processes.append(Process(input_queue, output_queue,
-                                     input_filename, output_filename,
-                                     input_file_lock, output_file_lock,
-                                     process_function, process_name=i,
-                                     total_task_count=len(station_tags),
-                                     cpu_count=cpu_count))
+            processes.append(Process(
+                in_queue=input_queue, out_queue=output_queue,
+                in_filename=input_filename, out_filename=output_filename,
+                in_lock=input_file_lock, out_lock=output_file_lock,
+                print_lock=print_lock, processing_function=process_function,
+                process_name=i, total_task_count=len(station_tags),
+                cpu_count=cpu_count))
 
         print("Launching processing using multiprocessing on %i cores ..." %
               cpu_count)
