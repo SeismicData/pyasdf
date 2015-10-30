@@ -53,11 +53,9 @@ def get_multiprocessing():
                "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-"
                "Processing-with-Python-and-ObsPy for more information.")
         warnings.warn(msg)
-        # Disable by replacing with dummy implementation using threads.
-        import multiprocessing as mp
         from multiprocessing import dummy  # NOQA
         multiprocessing = dummy
-        multiprocessing.cpu_count = mp.cpu_count
+        multiprocessing.cpu_count = lambda: 1
     else:
         import multiprocessing  # NOQA
     return multiprocessing
