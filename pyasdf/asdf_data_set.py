@@ -24,6 +24,7 @@ import os
 import re
 import sys
 import time
+import traceback
 import uuid
 import warnings
 
@@ -1646,7 +1647,8 @@ class ASDFDataSet(object):
         self.mpi.comm.barrier()
 
     def _dispatch_processing_multiprocessing(
-            self, process_function, output_data_set, station_tags, tag_map):
+            self, process_function, output_data_set, station_tags, tag_map,
+            cpu_count=-1, traceback_limit=3):
         multiprocessing = get_multiprocessing()
 
         input_filename = self.filename
@@ -1692,7 +1694,7 @@ class ASDFDataSet(object):
             def __init__(self, in_queue, out_queue, in_filename,
                          out_filename, in_lock, out_lock, print_lock,
                          processing_function, process_name,
-                         total_task_count, cpu_count):
+                         total_task_count, cpu_count, traceback_limit):
                 super(Process, self).__init__()
                 self.input_queue = in_queue
                 self.output_queue = out_queue
@@ -1706,6 +1708,7 @@ class ASDFDataSet(object):
                 self.__task_count = 0
                 self.__total_task_count = total_task_count
                 self.__cpu_count = cpu_count
+                self.__traceback_limit = traceback_limit
 
             def run(self):
                 while True:
@@ -1733,7 +1736,34 @@ class ASDFDataSet(object):
                         input_data_set.flush()
                         del input_data_set
 
-                    output_stream = self.processing_function(stream, inv)
+                    try:
+                        output_stream = self.processing_function(stream, inv)
+                    except Exception:
+                        msg = ("\nError during the processing of station '%s' "
+                               "and tag '%s' on CPU %i:" % (
+                            stationtag[0], stationtag[1],
+                            self.__process_name))
+
+                        # Extract traceback from the exception.
+                        exc_info = sys.exc_info()
+                        stack = traceback.extract_stack(
+                            limit=self.__traceback_limit)
+                        tb = traceback.extract_tb(exc_info[2])
+                        full_tb = stack[:-1] + tb
+                        exc_line = traceback.format_exception_only(
+                            *exc_info[:2])
+                        tb = ("Traceback (%i levels - most recent call "
+                              "last):\n" % self.__traceback_limit)
+                        tb += "".join(traceback.format_list(full_tb))
+                        tb += "\n"
+                        tb += "".join(exc_line)
+
+                        with self.print_lock:
+                            print(msg)
+                            print(tb)
+
+                        self.input_queue.task_done()
+                        continue
 
                     if output_stream:
                         with self.output_file_lock:
@@ -1753,7 +1783,7 @@ class ASDFDataSet(object):
                 in_lock=input_file_lock, out_lock=output_file_lock,
                 print_lock=print_lock, processing_function=process_function,
                 process_name=i, total_task_count=len(station_tags),
-                cpu_count=cpu_count))
+                cpu_count=cpu_count, traceback_limit=traceback_limit))
 
         print("Launching processing using multiprocessing on %i cores ..." %
               cpu_count)
