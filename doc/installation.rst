@@ -67,6 +67,11 @@ same that is used by your computer.
 Install parallel ``h5py`` according to
 `these instructions <http://docs.h5py.org/en/latest/mpi.html>`_.
 
+A further thing to keep in mind is that ``mpi4py`` changed some of their
+internal API for version 2.0. This has to be accounted for when installing the
+parallel ``h5py`` version. See here for more details:
+https://github.com/SeismicData/pyasdf/issues/11
+
 Installing pyasdf
 ^^^^^^^^^^^^^^^^^
 
