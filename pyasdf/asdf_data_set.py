@@ -1303,6 +1303,24 @@ class ASDFDataSet(object):
 
     def process_two_files_without_parallel_output(self, other_ds,
                                                   process_function):
+        """
+        Process data in two data sets.
+
+        This is mostly useful for comparing data in two data sets in any
+        number of scenarios. It again takes a function and will apply it on
+        each station that is common in both data sets. Please see the
+        :doc:`parallel_processing` document for more details.
+
+        Can only be run with MPI.
+
+        :type other_ds: :class:`.ASDFDataSet`
+        :param other_ds: The data set to compare to.
+        :param process_function: The processing function takes two
+            parameters: The station group from this data set and the matching
+            station group from the other data set.
+        :return: A dictionary for each station with gathered values. Will
+            only be available on rank 0.
+        """
         if not self.mpi:
             raise ASDFException("Currently only works with MPI.")
 
