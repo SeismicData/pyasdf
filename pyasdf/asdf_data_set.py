@@ -400,6 +400,8 @@ class ASDFDataSet(object):
         # Create the QuakeML data set if it does not exist.
         if "QuakeML" not in self.__file:
             self.__file.create_dataset("QuakeML", dtype=np.dtype("byte"),
+                                       compression=self.__compression[0],
+                                       compression_opts=self.__compression[1],
                                        shape=(0,), maxshape=(None,),
                                        fletcher32=not bool(self.mpi))
 
@@ -994,6 +996,8 @@ class ASDFDataSet(object):
             # maxshape takes care to create an extendable data set.
             self._provenance_group.create_dataset(
                 name, data=data,
+                compression=self.__compression[0],
+                compression_opts=self.__compression[1],
                 maxshape=(None,),
                 fletcher32=True)
 
@@ -1155,6 +1159,8 @@ class ASDFDataSet(object):
             # maxshape takes care to create an extendable data set.
             station_group.create_dataset(
                 "StationXML", data=data,
+                compression=self.__compression[0],
+                compression_opts=self.__compression[1],
                 maxshape=(None,),
                 fletcher32=True)
 
