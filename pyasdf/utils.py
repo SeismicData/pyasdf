@@ -828,7 +828,7 @@ class StreamBuffer(collections.MutableMapping):
         return self.__streams[key]
 
     def __setitem__(self, key, value):
-        if not isinstance(value, obspy.Stream):
+        if not isinstance(value, obspy.Stream) and value is not None:
             raise TypeError
         self.__streams[key] = value
 
@@ -850,6 +850,9 @@ class StreamBuffer(collections.MutableMapping):
         """
         cum_size = 0
         for stream in self.__streams.values():
+            # Skip None values.
+            if stream is None:
+                continue
             cum_size += sys.getsizeof(stream)
             for trace in stream:
                 cum_size += sys.getsizeof(trace)

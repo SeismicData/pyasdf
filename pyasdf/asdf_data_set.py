@@ -1607,10 +1607,11 @@ class ASDFDataSet(object):
             if self._get_msg(0, "MASTER_FORCES_WRITE"):
                 self._sync_metadata(output_dataset, tag_map=tag_map)
                 for key, value in self.stream_buffer.items():
-                    for trace in value:
-                        output_dataset.\
-                            _add_trace_write_independent_information(
-                                trace.stats.__info, trace)
+                    if value is not None:
+                        for trace in value:
+                            output_dataset.\
+                                _add_trace_write_independent_information(
+                                    trace.stats.__info, trace)
                     self._send_mpi((key, str(value)), 0,
                                    "WORKER_DONE_WITH_ITEM",
                                    blocking=False)
@@ -1672,11 +1673,20 @@ class ASDFDataSet(object):
                     tb += "\n"
                     tb += "".join(exc_line)
 
+                    # These potentially keep references to the HDF5 file
+                    # which in some obscure way and likely due to
+                    # interference with internal HDF5 and Python references
+                    # prevents it from getting garbage collected. We
+                    # explicitly delete them here and MPI can finalize
+                    # afterwards.
+                    del exc_info
+                    del stack
+
                     print(msg)
                     print(tb)
 
-                    # Write empty stream to make sure synchronization works.
-                    self.stream_buffer[station_tag] = obspy.Stream()
+                    # Make sure synchronization works.
+                    self.stream_buffer[station_tag] = None
                 else:
                     # Add stream to buffer only if no error occured.
                     self.stream_buffer[station_tag] = stream
@@ -1700,6 +1710,8 @@ class ASDFDataSet(object):
         if hasattr(self, "stream_buffer"):
             sendobj = []
             for key, stream in self.stream_buffer.items():
+                if stream is None:
+                    continue
                 for trace in stream:
                     info = \
                         output_dataset._add_trace_get_collective_information(
