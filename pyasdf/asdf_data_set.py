@@ -1221,29 +1221,31 @@ class ASDFDataSet(object):
         """
         summary = {"no_station_information": 0, "no_waveforms": 0,
                    "good_stations": 0}
-        for station_id in dir(self.waveforms):
-            station = getattr(self.waveforms, station_id)
-            contents = dir(station)
-            if not contents:
+        for station in self.waveforms:
+            has_stationxml = "StationXML" in station
+            has_waveforms = bool(station.get_waveform_tags())
+
+            if has_stationxml is False and has_waveforms is False:
                 continue
-            if "StationXML" not in contents and contents:
+
+            elif has_stationxml is False:
                 print("No station information available for station '%s'" %
-                      station_id)
+                      station._station_name)
                 summary["no_station_information"] += 1
                 continue
-            contents.remove("StationXML")
-            if not contents:
-                print("Station with no waveforms: '%s'" % station_id)
+            elif has_waveforms is False:
+                print("Station with no waveforms: '%s'" %
+                      station._station_name)
                 summary["no_waveforms"] += 1
                 continue
             summary["good_stations"] += 1
 
-        print("\nChecked %i stations:" % len(dir(self.waveforms)))
-        print("\t%i stations have no available station information" %
+        print("\nChecked %i station(s):" % len(self.waveforms))
+        print("\t%i station(s) have no available station information" %
               summary["no_station_information"])
-        print("\t%i stations with no waveforms" %
+        print("\t%i station(s) with no waveforms" %
               summary["no_waveforms"])
-        print("\t%i good stations" % summary["good_stations"])
+        print("\t%i good station(s)" % summary["good_stations"])
 
     def ifilter(self, *query_objects):
         """

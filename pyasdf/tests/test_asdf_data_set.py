@@ -1665,3 +1665,66 @@ def test_usage_as_context_manager(tmpdir):
     with pytest.raises(Exception):
         # Different tag.
         ds.add_waveforms(obspy.read(), tag="random")
+
+
+def test_validate_function(tmpdir, capsys):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    # Add only a waveform
+    with ASDFDataSet(asdf_filename) as ds:
+        ds.add_waveforms(obspy.read(), tag="random")
+
+        ds.validate()
+
+    out, _ = capsys.readouterr()
+
+    assert out == (
+        "No station information available for station 'BW.RJOB'\n"
+        "\n"
+        "Checked 1 station(s):\n"
+        "\t1 station(s) have no available station information\n"
+        "\t0 station(s) with no waveforms\n"
+        "\t0 good station(s)\n"
+    )
+
+    os.remove(asdf_filename)
+
+    # Add only a StationXML file containing information about 3 stations.
+    with ASDFDataSet(asdf_filename) as ds:
+        ds.add_stationxml(obspy.read_inventory())
+
+        ds.validate()
+
+    out, _ = capsys.readouterr()
+
+    assert out == (
+        "Station with no waveforms: 'BW.RJOB'\n"
+        "Station with no waveforms: 'GR.FUR'\n"
+        "Station with no waveforms: 'GR.WET'\n"
+        "\n"
+        "Checked 3 station(s):\n"
+        "\t0 station(s) have no available station information\n"
+        "\t3 station(s) with no waveforms\n"
+        "\t0 good station(s)\n"
+    )
+
+    os.remove(asdf_filename)
+
+    # Add both.
+    with ASDFDataSet(asdf_filename) as ds:
+        ds.add_waveforms(obspy.read(), tag="random")
+        ds.add_stationxml(obspy.read_inventory())
+
+        ds.validate()
+
+    out, _ = capsys.readouterr()
+
+    assert out == (
+        "Station with no waveforms: 'GR.FUR'\n"
+        "Station with no waveforms: 'GR.WET'\n"
+        "\n"
+        "Checked 3 station(s):\n"
+        "\t0 station(s) have no available station information\n"
+        "\t2 station(s) with no waveforms\n"
+        "\t1 good station(s)\n"
+    )
