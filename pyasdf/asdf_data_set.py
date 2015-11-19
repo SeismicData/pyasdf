@@ -1406,36 +1406,58 @@ class ASDFDataSet(object):
         :param traceback_limit: The length of the traceback printed if an
             error occurs in one of the workers.
         """
-        if os.path.exists(output_filename):
-            msg = "Output file '%s' already exists." % output_filename
-            raise ValueError(msg)
+        # Check if the file exists.
+        msg = "Output file '%s' already exists." % output_filename
+        if not self.mpi:
+            if os.path.exists(output_filename):
+                raise ValueError(msg)
+        else:
+            # Only check file on one core to improve performance.
+            if self.mpi.rank == 0:
+                file_exists = os.path.exists(output_filename)
+            else:
+                file_exists = False
 
-        stations = self.waveforms.list()
+            # Make sure the exception is still raised on every core.
+            file_exists = self.mpi.comm.bcast(file_exists, root=0)
+            if file_exists:
+                raise ValueError(msg)
 
-        # Get all possible station and waveform path combinations and let
-        # each process read the data it needs.
         station_tags = []
-        for station in stations:
-            # Get the station and all possible tags.
-            waveforms = self.__file["Waveforms"][station].keys()
 
-            # Only care about stations that have station information.
-            if "StationXML" not in waveforms:
-                continue
+        # Only rank 0 zero requires all that information.
+        if not self.mpi or (self.mpi and self.mpi.rank == 0):
+            stations = self.waveforms.list()
 
-            tags = set()
+            # Get all possible station and waveform path combinations and let
+            # each process read the data it needs.
+            for station in stations:
+                # Get the station and all possible tags.
+                waveforms = self.__file["Waveforms"][station].keys()
 
-            for waveform in waveforms:
-                if waveform == "StationXML":
+                # Only care about stations that have station information.
+                if "StationXML" not in waveforms:
                     continue
-                tags.add(waveform.split("__")[-1])
 
-            for tag in tags:
-                if tag not in tag_map.keys():
-                    continue
-                station_tags.append((station, tag))
+                tags = set()
 
-        if not station_tags:
+                for waveform in waveforms:
+                    if waveform == "StationXML":
+                        continue
+                    tags.add(waveform.split("__")[-1])
+
+                for tag in tags:
+                    if tag not in tag_map.keys():
+                        continue
+                    station_tags.append((station, tag))
+            has_station_tags = bool(station_tags)
+        else:
+            has_station_tags = False
+
+        if self.mpi:
+            has_station_tags = self.mpi.comm.bcast(has_station_tags, root=0)
+
+        if not has_station_tags:
             raise ValueError("No data matching the path map found.")
 
         # Copy the station and event data only on the master process.
