@@ -76,8 +76,8 @@ class ASDFDataSet(object):
     """
     q = Query()
 
-    def __init__(self, filename, compression="gzip-3", debug=False,
-                 mpi=None, mode="a"):
+    def __init__(self, filename, compression="gzip-3", shuffle=True,
+                 debug=False, mpi=None, mode="a"):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
@@ -99,6 +99,10 @@ class ASDFDataSet(object):
             * ``"szip-nn-8"``: szip compression
             * ``"szip-nn-10"``: szip compression
 
+        :type shuffle: bool
+        :param shuffle: Turn the shuffle filter on or off. Turning it on
+            oftentimes increases the compression ratio at the expense of
+            some speed.
         :type debug: bool
         :param debug: If True, print debug messages. Potentially very verbose.
         :param mpi: Force MPI on/off. Don't touch this unless you have a
@@ -121,7 +125,9 @@ class ASDFDataSet(object):
                 % (compression, "\n\t".join(sorted(
                     [str(i) for i in COMPRESSIONS.keys()])))
             raise Exception(msg)
+
         self.__compression = COMPRESSIONS[compression]
+        self.__shuffle = shuffle
         # Turn off compression for parallel I/O. Any already written
         # compressed data will be fine. Don't need to raise it if file is
         # opened in read-only mode.
@@ -130,6 +136,10 @@ class ASDFDataSet(object):
                   "support compression"
             warnings.warn(msg, ASDFWarning)
             self.__compression = COMPRESSIONS[None]
+            self.__shuffle = False
+        # No need to shuffle if no compression is used.
+        elif self.__compression[0] is None:
+            self.__shuffle = False
 
         # Open file or take an already open HDF5 file object.
         if not self.mpi:
@@ -402,6 +412,7 @@ class ASDFDataSet(object):
             self.__file.create_dataset("QuakeML", dtype=np.dtype("byte"),
                                        compression=self.__compression[0],
                                        compression_opts=self.__compression[1],
+                                       shuffle=self.__shuffle,
                                        shape=(0,), maxshape=(None,),
                                        fletcher32=not bool(self.mpi))
 
@@ -564,6 +575,7 @@ class ASDFDataSet(object):
                 "dtype": data.dtype,
                 "compression": self.__compression[0],
                 "compression_opts": self.__compression[1],
+                "shuffle": self.__shuffle,
                 "fletcher32": fletcher32,
                 "maxshape": tuple([None] * len(data.shape))
             },
@@ -998,6 +1010,7 @@ class ASDFDataSet(object):
                 name, data=data,
                 compression=self.__compression[0],
                 compression_opts=self.__compression[1],
+                shuffle=self.__shuffle,
                 maxshape=(None,),
                 fletcher32=True)
 
@@ -1074,6 +1087,7 @@ class ASDFDataSet(object):
                 "dtype": trace.data.dtype,
                 "compression": self.__compression[0],
                 "compression_opts": self.__compression[1],
+                "shuffle": self.__shuffle,
                 "fletcher32": fletcher32,
                 "maxshape": (None,)
             },
@@ -1161,6 +1175,7 @@ class ASDFDataSet(object):
                 "StationXML", data=data,
                 compression=self.__compression[0],
                 compression_opts=self.__compression[1],
+                shuffle=self.__shuffle,
                 maxshape=(None,),
                 fletcher32=True)
 
