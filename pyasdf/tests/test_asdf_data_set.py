@@ -1083,6 +1083,14 @@ def test_item_access_of_auxiliary_data(tmpdir):
     assert "RandomArrays" in data_set.auxiliary_data
     assert "SomethingElse" not in data_set.auxiliary_data
 
+    # Test iteration over an auxiliary data group.
+    expected = [("RandomArrays", "test_data_1")]
+    actual = []
+    for item in data_set.auxiliary_data.RandomArrays:
+        actual.append((item.data_type, item.path))
+
+    assert expected == actual
+
 
 def test_item_access_of_waveforms(example_data_set):
     """

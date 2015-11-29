@@ -371,6 +371,10 @@ class AuxiliaryDataAccessor(object):
     def __len__(self):
         return len(self.list())
 
+    def __iter__(self):
+        for _i in self.list():
+            yield self[_i]
+
     def __str__(self):
         items = self.list()
 
