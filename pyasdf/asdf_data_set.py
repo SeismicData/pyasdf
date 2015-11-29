@@ -1427,6 +1427,10 @@ class ASDFDataSet(object):
             for result in gathered_results:
                 results.update(result)
 
+        # Likely not necessary as the gather two line above implies a
+        # barrier but better be safe than sorry.
+        self.mpi.comm.barrier()
+
         return results
 
     def process(self, process_function, output_filename, tag_map,
