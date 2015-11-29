@@ -1328,8 +1328,8 @@ class ASDFDataSet(object):
 
         raise StopIteration
 
-    def process_two_files_without_parallel_output(self, other_ds,
-                                                  process_function):
+    def process_two_files_without_parallel_output(
+            self, other_ds, process_function, traceback_limit=3):
         """
         Process data in two data sets.
 
@@ -1345,6 +1345,9 @@ class ASDFDataSet(object):
         :param process_function: The processing function takes two
             parameters: The station group from this data set and the matching
             station group from the other data set.
+        :type traceback_limit: int
+        :param traceback_limit: The length of the traceback printed if an
+            error occurs in one of the workers.
         :return: A dictionary for each station with gathered values. Will
             only be available on rank 0.
         """
@@ -1382,9 +1385,37 @@ class ASDFDataSet(object):
                 result = process_function(
                     getattr(self.waveforms, station),
                     getattr(other_ds.waveforms, station))
-            except Exception as e:
-                print("Could not process station '%s' due to: %s" % (
-                    station, str(e)))
+            except Exception:
+                # If an exception is raised print a good error message
+                # and traceback to help diagnose the issue.
+                msg = ("\nError during the processing of station '%s' "
+                       "on rank %i:" % (station, self.mpi.rank))
+
+                # Extract traceback from the exception.
+                exc_info = sys.exc_info()
+                stack = traceback.extract_stack(
+                    limit=traceback_limit)
+                tb = traceback.extract_tb(exc_info[2])
+                full_tb = stack[:-1] + tb
+                exc_line = traceback.format_exception_only(
+                    *exc_info[:2])
+                tb = ("Traceback (At max %i levels - most recent call "
+                      "last):\n" % traceback_limit)
+                tb += "".join(traceback.format_list(full_tb))
+                tb += "\n"
+                tb += "".join(exc_line)
+
+                # These potentially keep references to the HDF5 file
+                # which in some obscure way and likely due to
+                # interference with internal HDF5 and Python references
+                # prevents it from getting garbage collected. We
+                # explicitly delete them here and MPI can finalize
+                # afterwards.
+                del exc_info
+                del stack
+
+                print(msg)
+                print(tb)
             else:
                 results[station] = result
 
