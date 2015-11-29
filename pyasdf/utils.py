@@ -358,6 +358,9 @@ class AuxiliaryDataAccessor(object):
         except AttributeError as e:
             raise KeyError(str(e))
 
+    def get_auxiliary_data_type(self):
+        return self.__auxiliary_data_type
+
     def list(self):
         return sorted(self.__data_set()._auxiliary_data_group[
             self.__auxiliary_data_type].keys())
