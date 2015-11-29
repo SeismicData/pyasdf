@@ -728,7 +728,8 @@ class ASDFDataSet(object):
 
         if isinstance(group, h5py.Group):
             return AuxiliaryDataAccessor(
-                auxiliary_data_type=group.name.lstrip("/AuxiliaryData/"),
+                auxiliary_data_type=re.sub(r"^/AuxiliaryData/", "",
+                                           group.name),
                 asdf_data_set=self)
         return AuxiliaryDataContainer(
             data=group, data_type=data_type, tag=tag,
