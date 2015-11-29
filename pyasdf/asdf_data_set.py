@@ -1370,6 +1370,7 @@ class ASDFDataSet(object):
 
             # Usable stations are those that are part of both.
             usable_stations = list(this_stations.intersection(other_stations))
+            total_job_count = len(usable_stations)
             jobs = split(usable_stations, self.mpi.comm.size)
         else:
             jobs = None
@@ -1380,7 +1381,12 @@ class ASDFDataSet(object):
         # Dictionary collecting results.
         results = {}
 
-        for station in jobs:
+        for _i, station in enumerate(jobs):
+
+            if self.mpi.rank == 0:
+                print(" -> Processing approximately task %i of %i ..." % (
+                      (_i * self.mpi.size + 1), total_job_count))
+
             try:
                 result = process_function(
                     getattr(self.waveforms, station),
