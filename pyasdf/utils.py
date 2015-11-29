@@ -438,6 +438,13 @@ class AuxiliaryDataGroupAccessor(object):
         except AttributeError as e:
             raise KeyError(str(e))
 
+    def __contains__(self, item):
+        item = str(item)
+        __auxiliary_data_group = self.__data_set()._auxiliary_data_group
+        if item not in __auxiliary_data_group:
+            return False
+        return True
+
     def list(self):
         __auxiliary_group = self.__data_set()._auxiliary_data_group
         return sorted(__auxiliary_group.keys())

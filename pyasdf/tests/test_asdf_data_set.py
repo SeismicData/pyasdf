@@ -1079,6 +1079,10 @@ def test_item_access_of_auxiliary_data(tmpdir):
     assert data_set.auxiliary_data["RandomArrays"]["test_data_1"].path == \
         data_set.auxiliary_data.RandomArrays.test_data_1.path
 
+    # Test __contains__.
+    assert "RandomArrays" in data_set.auxiliary_data
+    assert "SomethingElse" not in data_set.auxiliary_data
+
 
 def test_item_access_of_waveforms(example_data_set):
     """
