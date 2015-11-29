@@ -1385,7 +1385,8 @@ class ASDFDataSet(object):
             except Exception as e:
                 print("Could not process station '%s' due to: %s" % (
                     station, str(e)))
-            results[station] = result
+            else:
+                results[station] = result
 
         # Gather and create a final dictionary of results.
         gathered_results = self.mpi.comm.gather(results, root=0)
