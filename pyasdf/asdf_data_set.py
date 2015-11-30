@@ -1592,6 +1592,10 @@ class ASDFDataSet(object):
         print("Launching processing using MPI on %i processors." %
               self.mpi.comm.size)
 
+        # Barrier to indicate we are ready for looping. Must be repeated in
+        # each worker node!
+        self.mpi.comm.barrier()
+
         # Reactive event loop.
         while not jobs.all_done:
             time.sleep(0.01)
@@ -1663,6 +1667,16 @@ class ASDFDataSet(object):
         for rank in worker_nodes:
             self._send_mpi(None, rank, "ALL_DONE")
 
+        # Collect any stray messages that a poison pill has been received.
+        # Does not matter for the flow but for aestetic reasons this is nicer.
+        for _ in range(self.mpi.size * 3):
+            time.sleep(0.01)
+            if not self.mpi.comm.Iprobe(source=MPI.ANY_SOURCE,
+                                        tag=MSG_TAGS["POISON_PILL_RECEIVED"]):
+                continue
+            self.mpi.comm.recv(source=MPI.ANY_SOURCE,
+                               tag=MSG_TAGS["POISON_PILL_RECEIVED"])
+
         self.mpi.comm.barrier()
         print(jobs)
 
@@ -1680,6 +1694,10 @@ class ASDFDataSet(object):
             "waiting_for_write": False,
             "waiting_for_item": False
         }
+
+        # Barrier to indicate we are ready for looping. Must be repeated in
+        # the master node!
+        self.mpi.comm.barrier()
 
         # Loop until the 'ALL_DONE' message has been sent.
         while not self._get_msg(0, "ALL_DONE"):
@@ -1700,10 +1718,10 @@ class ASDFDataSet(object):
                 self.stream_buffer.clear()
                 worker_state["waiting_for_write"] = False
 
-            if worker_state["waiting_for_write"]:
-                continue
-
-            if worker_state["poison_pill_received"]:
+            # Keep looping and wait for either the next write or that the
+            # loop terminates.
+            if worker_state["waiting_for_write"] or \
+                    worker_state["poison_pill_received"]:
                 continue
 
             if not worker_state["waiting_for_item"]:
@@ -1713,75 +1731,89 @@ class ASDFDataSet(object):
                 continue
 
             msg = self._get_msg(0, "MASTER_SENDS_ITEM")
-            if msg:
-                station_tag = msg.data
-                worker_state["waiting_for_item"] = False
+            if not msg:
+                continue
 
-                # If no more work to be done, store state and keep looping as
-                # stuff still might require to be written.
-                if station_tag == POISON_PILL:
-                    if self.stream_buffer:
-                        self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE",
-                                       blocking=False)
-                        worker_state["waiting_for_write"] = True
-                    worker_state["poison_pill_received"] = True
-                    self._send_mpi(None, 0, "POISON_PILL_RECEIVED",
-                                   blocking=False)
-                    continue
+            # Beyond this point it will always have received a new item.
+            station_tag = msg.data
+            worker_state["waiting_for_item"] = False
 
-                # Otherwise process the data.
-                stream, inv = self.get_data_for_tag(*station_tag)
-                try:
-                    process_function(stream, inv)
-                except Exception:
-                    # If an exception is raised print a good error message
-                    # and traceback to help diagnose the issue.
-                    msg = ("\nError during the processing of station '%s' "
-                           "and tag '%s' on rank %i:" % (
-                               station_tag[0], station_tag[1],
-                               self.mpi.rank))
-
-                    # Extract traceback from the exception.
-                    exc_info = sys.exc_info()
-                    stack = traceback.extract_stack(
-                        limit=traceback_limit)
-                    tb = traceback.extract_tb(exc_info[2])
-                    full_tb = stack[:-1] + tb
-                    exc_line = traceback.format_exception_only(
-                        *exc_info[:2])
-                    tb = ("Traceback (At max %i levels - most recent call "
-                          "last):\n" % traceback_limit)
-                    tb += "".join(traceback.format_list(full_tb))
-                    tb += "\n"
-                    tb += "".join(exc_line)
-
-                    # These potentially keep references to the HDF5 file
-                    # which in some obscure way and likely due to
-                    # interference with internal HDF5 and Python references
-                    # prevents it from getting garbage collected. We
-                    # explicitly delete them here and MPI can finalize
-                    # afterwards.
-                    del exc_info
-                    del stack
-
-                    print(msg)
-                    print(tb)
-
-                    # Make sure synchronization works.
-                    self.stream_buffer[station_tag] = None
-                else:
-                    # Add stream to buffer only if no error occured.
-                    self.stream_buffer[station_tag] = stream
-
-                # If the buffer is too large, request from the master to stop
-                # the current execution.
-                if self.stream_buffer.get_size() >= \
-                        MAX_MEMORY_PER_WORKER_IN_MB * 1024 ** 2:
+            # If no more work to be done, store state and keep looping as
+            # stuff still might require to be written.
+            if station_tag == POISON_PILL:
+                if self.stream_buffer:
                     self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE",
                                    blocking=False)
                     worker_state["waiting_for_write"] = True
+                worker_state["poison_pill_received"] = True
+                self._send_mpi(None, 0, "POISON_PILL_RECEIVED",
+                               blocking=False)
+                continue
+
+            # Otherwise process the data.
+            stream, inv = self.get_data_for_tag(*station_tag)
+            try:
+                stream = process_function(stream, inv)
+            except Exception:
+                # If an exception is raised print a good error message
+                # and traceback to help diagnose the issue.
+                msg = ("\nError during the processing of station '%s' "
+                       "and tag '%s' on rank %i:" % (
+                           station_tag[0], station_tag[1],
+                           self.mpi.rank))
+
+                # Extract traceback from the exception.
+                exc_info = sys.exc_info()
+                stack = traceback.extract_stack(
+                    limit=traceback_limit)
+                tb = traceback.extract_tb(exc_info[2])
+                full_tb = stack[:-1] + tb
+                exc_line = traceback.format_exception_only(
+                    *exc_info[:2])
+                tb = ("Traceback (At max %i levels - most recent call "
+                      "last):\n" % traceback_limit)
+                tb += "".join(traceback.format_list(full_tb))
+                tb += "\n"
+                tb += "".join(exc_line)
+
+                # These potentially keep references to the HDF5 file
+                # which in some obscure way and likely due to
+                # interference with internal HDF5 and Python references
+                # prevents it from getting garbage collected. We
+                # explicitly delete them here and MPI can finalize
+                # afterwards.
+                del exc_info
+                del stack
+
+                print(msg)
+                print(tb)
+
+                # Make sure synchronization works.
+                self.stream_buffer[station_tag] = None
+            else:
+                # Add stream to buffer only if no error occured.
+                self.stream_buffer[station_tag] = stream
+
+            # If the buffer is too large, request from the master to stop
+            # the current execution.
+            if self.stream_buffer.get_size() >= \
+                    MAX_MEMORY_PER_WORKER_IN_MB * 1024 ** 2:
+                self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE",
+                               blocking=False)
+                worker_state["waiting_for_write"] = True
 
         print("Worker %i shutting down..." % self.mpi.rank)
+
+        # Collect any left-over messages. This can happen if the node
+        # requests a new item (which would be a poison pill in any case) but
+        # the master in the meanwhile forces a write which might cause
+        # everything to be finished so the message is never collected. This
+        # is troublesome if more than one ASDF file is processed in sequence
+        # as the message would then spill over to the next file.
+        for _ in range(3):
+            time.sleep(0.01)
+            self._get_msg(0, "MASTER_SENDS_ITEM")
+
         self.mpi.comm.barrier()
 
     def _sync_metadata(self, output_dataset, tag_map):
