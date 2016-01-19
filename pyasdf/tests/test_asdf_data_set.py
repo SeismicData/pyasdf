@@ -1898,3 +1898,52 @@ def test_deleting_provenance_records(tmpdir):
     del ds.provenance["test_provenance"]
     with pytest.raises(KeyError):
         ds.provenance["test_provenance"]
+
+
+def test_deleting_auxiliary_data(tmpdir):
+    """
+    Tests deleting auxiliary data.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    ds = ASDFDataSet(asdf_filename)
+
+    def _add_aux_data(data_type, path):
+        # Define some auxiliary data and add it.
+        data = np.random.random(100)
+        parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+        ds.add_auxiliary_data(data=data, data_type=data_type, path=path,
+                              parameters=parameters)
+
+    # Delete the whole group using attribute access.
+    _add_aux_data("RandomArrays", "test_data")
+    assert ds.auxiliary_data.RandomArrays
+    del ds.auxiliary_data.RandomArrays
+    with pytest.raises(AttributeError):
+        ds.auxiliary_data.RandomArrays
+
+    # Same with key access.
+    _add_aux_data("RandomArrays", "test_data")
+    assert ds.auxiliary_data["RandomArrays"]
+    del ds.auxiliary_data["RandomArrays"]
+    with pytest.raises(KeyError):
+        ds.auxiliary_data["RandomArrays"]
+
+    # Test the same thing, but with nested data.
+    # data = np.random.random(100)
+    # data_type = "RandomArrays"
+    # path = "some/nested/path/test_data"
+    # parameters = {"a": 2, "b": 3.0, "e": "hallo_again"}
+    #
+    # new_data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
+    #                                 parameters=parameters)
+    # del new_data_set
+    #
+    # newer_data_set = ASDFDataSet(asdf_filename)
+    # aux_data = newer_data_set.auxiliary_data.RandomArrays.some.nested \
+    #     .path.test_data
+    # np.testing.assert_equal(data, aux_data.data)
+    # aux_data.data_type == data_type
+    # aux_data.path == path
+    # aux_data.parameters == parameters
+    #
+    # del newer_data_set

@@ -447,6 +447,22 @@ class AuxiliaryDataGroupAccessor(object):
         # file around.
         self.__data_set = weakref.ref(asdf_data_set)
 
+    def __delitem__(self, item):
+        try:
+            self.__delattr__(item)
+        except AttributeError as e:
+            raise KeyError(str(e))
+
+    def __delattr__(self, item):
+        item = str(item)
+        if item not in self:
+            raise AttributeError("Key/Attribute '%s' not known." % item)
+        ds = self.__data_set()
+        try:
+            del ds._auxiliary_data_group[item]
+        finally:
+            del ds
+
     def __getattr__(self, item):
         item = str(item)
         __auxiliary_data_group = self.__data_set()._auxiliary_data_group
