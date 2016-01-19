@@ -180,7 +180,7 @@ class ProvenanceAccessor(object):
         try:
             self.__delitem__(item)
         except KeyError:
-            raise AttributeError(str(ke))
+            raise AttributeError(str(item))
 
     def __getitem__(self, item):
         try:
