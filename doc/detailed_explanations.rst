@@ -9,6 +9,7 @@ format to clear up potential confusions and teach advanced uses.
 
     parallel_processing
     usage_as_context_manager
+    deleting_pieces
     of_tags_and_labels
     querying_data
     station_data
