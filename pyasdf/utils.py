@@ -378,10 +378,15 @@ class AuxiliaryDataAccessor(object):
         finally:
             del ds
 
+    def __contains__(self, item):
+        return item in self.list()
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __getattr__(self, item):
+        if item not in self:
+            raise AttributeError("Key/Item '%s' not known." % item)
         return self.__data_set()._get_auxiliary_data(
             self.__auxiliary_data_type, str(item))
 

@@ -1936,7 +1936,7 @@ def test_deleting_auxiliary_data(tmpdir):
     # This still works.
     assert len(ds.auxiliary_data.RandomArrays) == 0
     # But the actual data set does not longer exist.
-    with pytest.raises(KeyError):
+    with pytest.raises(AttributeError):
         ds.auxiliary_data.RandomArrays.test_data
 
     # Same with key access.
@@ -1948,22 +1948,53 @@ def test_deleting_auxiliary_data(tmpdir):
     with pytest.raises(KeyError):
         ds.auxiliary_data["RandomArrays"]["test_data"]
 
-    # Test the same thing, but with nested data.
-    # data = np.random.random(100)
-    # data_type = "RandomArrays"
-    # path = "some/nested/path/test_data"
-    # parameters = {"a": 2, "b": 3.0, "e": "hallo_again"}
-    #
-    # new_data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
-    #                                 parameters=parameters)
-    # del new_data_set
-    #
-    # newer_data_set = ASDFDataSet(asdf_filename)
-    # aux_data = newer_data_set.auxiliary_data.RandomArrays.some.nested \
-    #     .path.test_data
-    # np.testing.assert_equal(data, aux_data.data)
-    # aux_data.data_type == data_type
-    # aux_data.path == path
-    # aux_data.parameters == parameters
-    #
-    # del newer_data_set
+    # All previous tests again but with nested data.
+    _add_aux_data("RandomArrays", "some/nested/path")
+    assert ds.auxiliary_data.RandomArrays
+    del ds.auxiliary_data.RandomArrays
+    with pytest.raises(AttributeError):
+        ds.auxiliary_data.RandomArrays
+
+    _add_aux_data("RandomArrays", "some/nested/path")
+    assert ds.auxiliary_data["RandomArrays"]
+    del ds.auxiliary_data["RandomArrays"]
+    with pytest.raises(KeyError):
+        ds.auxiliary_data["RandomArrays"]
+
+    _add_aux_data("RandomArrays", "some/nested/path")
+    assert ds.auxiliary_data.RandomArrays
+    assert ds.auxiliary_data.RandomArrays.some.nested.path
+    del ds.auxiliary_data.RandomArrays.some.nested.path
+    # Don't delete the groups.
+    assert len(ds.auxiliary_data.RandomArrays.some.nested) == 0
+    with pytest.raises(AttributeError):
+        ds.auxiliary_data.RandomArrays.some.nested.path
+
+    _add_aux_data("RandomArrays", "some/nested/path")
+    assert ds.auxiliary_data["RandomArrays"]
+    assert ds.auxiliary_data["RandomArrays"]["some"]["nested"]["path"]
+    del ds.auxiliary_data["RandomArrays"]["some"]["nested"]["path"]
+    assert len(ds.auxiliary_data["RandomArrays"]["some"]["nested"]) == 0
+    with pytest.raises(KeyError):
+        ds.auxiliary_data["RandomArrays"]["some"]["nested"]["path"]
+
+    # Try to delete a "deeper" group.
+    assert len(ds.auxiliary_data["RandomArrays"]["some"]["nested"]) == 0
+    assert len(ds.auxiliary_data["RandomArrays"]["some"]) == 1
+    del ds.auxiliary_data["RandomArrays"]["some"]["nested"]
+    assert len(ds.auxiliary_data["RandomArrays"]["some"]) == 0
+    with pytest.raises(KeyError):
+        ds.auxiliary_data["RandomArrays"]["some"]["nested"]
+
+    # Again but with attribute access.
+    _add_aux_data("RandomArrays", "some/nested/path")
+    assert ds.auxiliary_data.RandomArrays
+    assert ds.auxiliary_data.RandomArrays.some.nested.path
+    del ds.auxiliary_data.RandomArrays.some.nested.path
+
+    assert len(ds.auxiliary_data.RandomArrays.some.nested) == 0
+    assert len(ds.auxiliary_data.RandomArrays.some) == 1
+    del ds.auxiliary_data.RandomArrays.some.nested
+    assert len(ds.auxiliary_data.RandomArrays.some) == 0
+    with pytest.raises(AttributeError):
+        ds.auxiliary_data.RandomArrays.some.nested
