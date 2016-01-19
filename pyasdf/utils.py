@@ -490,7 +490,7 @@ class StationAccessor(object):
     def __getattr__(self, item):
         item = str(item).replace("_", ".")
         if item not in self.list():
-            raise AttributeError
+            raise AttributeError("Attribute '%s' not found." % item)
         return WaveformAccessor(item, self.__data_set())
 
     def __getitem__(self, item):
@@ -498,6 +498,17 @@ class StationAccessor(object):
             return self.__getattr__(item)
         except AttributeError as e:
             raise KeyError(str(e))
+
+    def __delattr__(self, item):
+        # Triggers and attribute error if the item does not exist.
+        attr = getattr(self, item)
+        # Only delete waveform accessors.
+        if isinstance(attr, WaveformAccessor):
+            ds = self.__data_set()
+            del ds._waveform_group[attr._station_name]
+            del ds
+        else:
+            raise AttributeError("Attribute '%s' cannot be deleted." % item)
 
     def list(self):
         return sorted(self.__data_set()._waveform_group.keys())
