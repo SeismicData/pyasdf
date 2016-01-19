@@ -1771,10 +1771,52 @@ def test_deletions_of_dataset_object(tmpdir):
         "'ASDFDataSet' object has no attribute 'random'")
     del excinfo
 
-    # Existing but other attribuet cannot be deleted.
-
+    # Existing but other attributes cannot be deleted.
     with pytest.raises(AttributeError) as excinfo:
         del ds.waveforms
     assert excinfo.value.args[0] == ("Attribute 'waveforms' cannot be "
                                      "deleted.")
+    del excinfo
+
+
+def test_deletion_of_whole_waveform_groups(tmpdir):
+    """
+    Tests the deletion of whole waveform groups.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    ds = ASDFDataSet(asdf_filename)
+    ds.add_waveforms(obspy.read(), tag="random")
+
+    assert [_i._station_name for _i in ds.waveforms] == ["BW.RJOB"]
+
+    # Deletion over attribute access.
+    del ds.waveforms.BW_RJOB
+    assert [_i._station_name for _i in ds.waveforms] == []
+
+    # An over item access.
+    ds.add_waveforms(obspy.read(), tag="random")
+    assert [_i._station_name for _i in ds.waveforms] == ["BW.RJOB"]
+    del ds.waveforms["BW.RJOB"]
+    assert [_i._station_name for _i in ds.waveforms] == []
+
+    # Non-existing keys raise AttributeError
+    with pytest.raises(AttributeError) as excinfo:
+        del ds.waveforms.random
+    assert excinfo.value.args[0] == (
+        "Attribute 'random' not found.")
+    del excinfo
+
+    # Existing but other attributes cannot be deleted.
+    with pytest.raises(AttributeError) as excinfo:
+        del ds.waveforms.__init__
+    assert excinfo.value.args[0] == ("Attribute '__init__' cannot be "
+                                     "deleted.")
+    del excinfo
+
+    # Same thing, but this time with item access.
+    with pytest.raises(KeyError) as excinfo:
+        del ds.waveforms["random"]
+    assert excinfo.value.args[0] == (
+        "Attribute 'random' not found.")
     del excinfo

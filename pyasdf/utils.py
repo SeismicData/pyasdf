@@ -512,14 +512,11 @@ class StationAccessor(object):
 
     def __delitem__(self, key):
         # Triggers a KeyError if the key does not exist.
-        attr = getattr(self, key)
+        attr = self[key]
         # Only delete waveform accessors.
-        if isinstance(attr, WaveformAccessor):
-            ds = self.__data_set()
-            del ds._waveform_group[attr._station_name]
-            del ds
-        else:
-            raise KeyError("Item '%s' cannot be deleted." % key)
+        ds = self.__data_set()
+        del ds._waveform_group[attr._station_name]
+        del ds
 
     def list(self):
         return sorted(self.__data_set()._waveform_group.keys())
