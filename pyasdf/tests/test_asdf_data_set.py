@@ -1428,7 +1428,7 @@ def test_more_queries(example_data_set):
     for key in ["network", "station", "location", "channel", "tag",
                 "starttime", "endtime", "sampling_rate", "npts"]:
         with pytest.raises(TypeError):
-            ds.ifilter(getattr(ds.q, key) == None)
+            ds.ifilter(getattr(ds.q, key) == None)  # NOQA
 
 
 def test_saving_trace_labels(tmpdir):
