@@ -723,6 +723,29 @@ class WaveformAccessor(object):
         contents.extend(self.__dir__())
         return item in contents
 
+    def __delitem__(self, key):
+        try:
+            self.__delete_data(key)
+        except AttributeError as e:
+            raise KeyError(str(e))
+
+    def __delattr__(self, item):
+        self.__delete_data(item)
+
+    def __delete_data(self, item):
+        """
+        Internal delete method.
+        """
+        items = self.__filter_data(key)
+
+        h5 = self.__hdf5_group
+        try:
+            for item in items:
+                if item in h5:
+                    del h5[item]
+        finally:
+            del h5
+
     def __filter_data(self, item):
         """
         Internal filtering for item access and deletion.
