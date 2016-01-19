@@ -724,13 +724,21 @@ class WaveformAccessor(object):
         return item in contents
 
     def __getattr__(self, item):
+        # StationXML access.
+        if item == "StationXML":
+            station = self.__data_set()._get_station(self._station_name)
+            if station is None:
+                raise AttributeError("'%s' object has no attribute '%s'" % (
+                    self.__class__.__name__, str(item)))
+            return station
+
         _l = self.list()
 
         # Single trace access
-        if item != "StationXML" and item in _l:
+        if item in _l:
             return obspy.Stream(traces=[self.__data_set()._get_waveform(item)])
         # Tag access.
-        elif item != "StationXML" and "__" not in item:
+        elif "__" not in item:
             __station = self.__data_set()._waveform_group[self._station_name]
             keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
@@ -749,13 +757,8 @@ class WaveformAccessor(object):
 
             traces = [self.__data_set()._get_waveform(_i) for _i in keys]
             return obspy.Stream(traces=traces)
-        # StationXML access.
-        else:
-            station = self.__data_set()._get_station(self._station_name)
-            if station is None:
-                raise AttributeError("'%s' object has no attribute '%s'" % (
-                    self.__class__.__name__, str(item)))
-            return station
+
+        raise AttributeError("Item '%s' not found." % item)
 
     def list(self):
         """
