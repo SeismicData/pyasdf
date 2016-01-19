@@ -736,7 +736,7 @@ class WaveformAccessor(object):
         """
         Internal delete method.
         """
-        items = self.__filter_data(key)
+        items = self.__filter_data(item)
 
         h5 = self.__hdf5_group
         try:

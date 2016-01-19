@@ -1820,3 +1820,55 @@ def test_deletion_of_whole_waveform_groups(tmpdir):
     assert excinfo.value.args[0] == (
         "Attribute 'random' not found.")
     del excinfo
+
+
+def test_deletion_of_single_waveforms(tmpdir):
+    """
+    Tests the deletion of single waveform files.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    ds = ASDFDataSet(asdf_filename)
+
+    # Deleting all waveforms with a certain tag over key access.
+    ds.add_waveforms(obspy.read(), tag="random")
+    assert ds.waveforms["BW.RJOB"]["random"]
+    del ds.waveforms["BW.RJOB"]["random"]
+    with pytest.raises(KeyError):
+        ds.waveforms["BW.RJOB"]["random"]
+
+    # Deleting all waveforms with a certain tag over attribute access.
+    ds.add_waveforms(obspy.read(), tag="random")
+    assert ds.waveforms["BW.RJOB"].random
+    del ds.waveforms["BW.RJOB"]["random"]
+    with pytest.raises(WaveformNotInFileException):
+        ds.waveforms["BW.RJOB"].random
+
+    # Deleting StationXML over key access.
+    ds.add_stationxml(obspy.read_inventory())
+    assert ds.waveforms["BW.RJOB"]["StationXML"]
+    del ds.waveforms["BW.RJOB"]["StationXML"]
+    with pytest.raises(KeyError):
+        ds.waveforms["BW.RJOB"]["StationXML"]
+
+    # Deleting StationXML over attribute access.
+    ds.add_stationxml(obspy.read_inventory())
+    assert ds.waveforms["BW.RJOB"].StationXML
+    del ds.waveforms["BW.RJOB"].StationXML
+    with pytest.raises(AttributeError):
+        ds.waveforms["BW.RJOB"].StationXML
+
+    # Deleting a single waveform trace.
+    ds.add_waveforms(obspy.read(), tag="random")
+    assert len(ds.waveforms["BW.RJOB"]["random"]) == 3
+    assert ds.waveforms["BW.RJOB"][
+        "BW.RJOB..EHE__2009-08-24T00:20:03__2009-08-24T00:20:32__random"]
+    del ds.waveforms["BW.RJOB"][
+        "BW.RJOB..EHE__2009-08-24T00:20:03__2009-08-24T00:20:32__random"]
+    with pytest.raises(KeyError):
+        ds.waveforms["BW.RJOB"][
+            "BW.RJOB..EHE__2009-08-24T00:20:03__2009-08-24T00:20:32__random"]
+
+    # Other waveforms with the same tag are still around. Just one less than
+    # before.
+    assert len(ds.waveforms["BW.RJOB"]["random"]) == 2
