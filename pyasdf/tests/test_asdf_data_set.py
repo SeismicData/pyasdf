@@ -1872,3 +1872,29 @@ def test_deletion_of_single_waveforms(tmpdir):
     # Other waveforms with the same tag are still around. Just one less than
     # before.
     assert len(ds.waveforms["BW.RJOB"]["random"]) == 2
+
+
+def test_deleting_provenance_records(tmpdir):
+    """
+    Tests the deletion of provenance records.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    ds = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+
+    doc = prov.read(filename, format="xml")
+
+    # Delete via attribute access.
+    ds.add_provenance_document(doc, name="test_provenance")
+    assert ds.provenance.test_provenance
+    del ds.provenance.test_provenance
+    with pytest.raises(AttributeError):
+        ds.provenance.test_provenance
+
+    # Delete via key access.
+    ds.add_provenance_document(doc, name="test_provenance")
+    assert ds.provenance["test_provenance"]
+    del ds.provenance["test_provenance"]
+    with pytest.raises(KeyError):
+        ds.provenance["test_provenance"]

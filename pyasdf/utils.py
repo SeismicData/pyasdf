@@ -167,6 +167,21 @@ class ProvenanceAccessor(object):
             self._cache[hash] = self.__data_set().get_provenance_document(item)
         return copy.deepcopy(self._cache[hash])
 
+    def __delitem__(self, key):
+        key = str(key)
+        if key not in self.list():
+            raise KeyError("Key/Attribute '%s' not known." % key)
+
+        ds = self.__data_set()
+        del ds._provenance_group[key]
+        del ds
+
+    def __delattr__(self, item):
+        try:
+            self.__delitem__(item)
+        except KeyError:
+            raise AttributeError(str(ke))
+
     def __getitem__(self, item):
         try:
             return self.__getattr__(item)
