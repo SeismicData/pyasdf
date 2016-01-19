@@ -723,42 +723,52 @@ class WaveformAccessor(object):
         contents.extend(self.__dir__())
         return item in contents
 
-    def __getattr__(self, item):
+    def __filter_data(self, item):
+        """
+        Internal filtering for item access and deletion.
+        """
         # StationXML access.
         if item == "StationXML":
-            station = self.__data_set()._get_station(self._station_name)
-            if station is None:
-                raise AttributeError("'%s' object has no attribute '%s'" % (
-                    self.__class__.__name__, str(item)))
-            return station
+            return [item]
 
         _l = self.list()
 
         # Single trace access
         if item in _l:
-            return obspy.Stream(traces=[self.__data_set()._get_waveform(item)])
+            return [item]
         # Tag access.
         elif "__" not in item:
             __station = self.__data_set()._waveform_group[self._station_name]
             keys = [_i for _i in __station.keys()
                     if _i.endswith("__" + item)]
+            # Important as __del__() for the waveform group is otherwise
+            # not always called.
+            del __station
 
             # Filter by everything in self.list(). Once to make sure its
             # up-to-date and also for the filtered subclasses of this.
             keys = [_i for _i in keys if _i in _l]
 
             if not keys:
-                # Important as __del__() for the waveform group is otherwise
-                # not always called.
-                del __station
                 raise WaveformNotInFileException(
                     "Tag '%s' not part of the data set for station '%s'." % (
                         item, self._station_name))
-
-            traces = [self.__data_set()._get_waveform(_i) for _i in keys]
-            return obspy.Stream(traces=traces)
+            return keys
 
         raise AttributeError("Item '%s' not found." % item)
+
+    def __getattr__(self, item):
+        items = self.__filter_data(item)
+        # StationXML access.
+        if items == ["StationXML"]:
+            station = self.__data_set()._get_station(self._station_name)
+            if station is None:
+                raise AttributeError("'%s' object has no attribute '%s'" % (
+                    self.__class__.__name__, str(item)))
+            return station
+
+        traces = [self.__data_set()._get_waveform(_i) for _i in items]
+        return obspy.Stream(traces=traces)
 
     def list(self):
         """
