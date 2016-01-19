@@ -360,6 +360,24 @@ class AuxiliaryDataAccessor(object):
 
         return True
 
+    def __delattr__(self, item):
+        try:
+            self.__delitem__(item)
+        except KeyError as e:
+            raise AttributeError(str(e))
+
+    def __delitem__(self, key):
+        key = str(key)
+        _l = self.list()
+        if key not in _l:
+            raise KeyError("Key/Item '%s' not known or cannot be "
+                           "deleted." % key)
+        ds = self.__data_set()
+        try:
+            del ds._auxiliary_data_group[self.__auxiliary_data_type][key]
+        finally:
+            del ds
+
     def __ne__(self, other):
         return not self.__eq__(other)
 

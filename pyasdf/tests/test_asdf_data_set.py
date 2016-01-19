@@ -1928,6 +1928,26 @@ def test_deleting_auxiliary_data(tmpdir):
     with pytest.raises(KeyError):
         ds.auxiliary_data["RandomArrays"]
 
+    # Now try with a single piece of auxiliary data.
+    _add_aux_data("RandomArrays", "test_data")
+    assert ds.auxiliary_data.RandomArrays
+    assert ds.auxiliary_data.RandomArrays.test_data
+    del ds.auxiliary_data.RandomArrays.test_data
+    # This still works.
+    assert len(ds.auxiliary_data.RandomArrays) == 0
+    # But the actual data set does not longer exist.
+    with pytest.raises(KeyError):
+        ds.auxiliary_data.RandomArrays.test_data
+
+    # Same with key access.
+    _add_aux_data("RandomArrays", "test_data")
+    assert ds.auxiliary_data["RandomArrays"]
+    assert ds.auxiliary_data["RandomArrays"]["test_data"]
+    del ds.auxiliary_data["RandomArrays"]["test_data"]
+    assert len(ds.auxiliary_data["RandomArrays"]) == 0
+    with pytest.raises(KeyError):
+        ds.auxiliary_data["RandomArrays"]["test_data"]
+
     # Test the same thing, but with nested data.
     # data = np.random.random(100)
     # data_type = "RandomArrays"
