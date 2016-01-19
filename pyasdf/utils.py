@@ -500,7 +500,7 @@ class StationAccessor(object):
             raise KeyError(str(e))
 
     def __delattr__(self, item):
-        # Triggers and attribute error if the item does not exist.
+        # Triggers an AttributeError if the item does not exist.
         attr = getattr(self, item)
         # Only delete waveform accessors.
         if isinstance(attr, WaveformAccessor):
@@ -509,6 +509,17 @@ class StationAccessor(object):
             del ds
         else:
             raise AttributeError("Attribute '%s' cannot be deleted." % item)
+
+    def __delitem__(self, key):
+        # Triggers a KeyError if the key does not exist.
+        attr = getattr(self, key)
+        # Only delete waveform accessors.
+        if isinstance(attr, WaveformAccessor):
+            ds = self.__data_set()
+            del ds._waveform_group[attr._station_name]
+            del ds
+        else:
+            raise KeyError("Item '%s' cannot be deleted." % key)
 
     def list(self):
         return sorted(self.__data_set()._waveform_group.keys())
