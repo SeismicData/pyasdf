@@ -252,6 +252,17 @@ class ASDFDataSet(object):
         self.__del__()
         return False
 
+    def __delattr__(self, key):
+        # Only the events can be deleted.
+        if key == "events":
+            del self.__file["QuakeML"]
+        # Otherwise try to get the item and if that succeed, raise an error
+        # that it cannot be deleted.
+        else:
+            # Triggers an AttributeError if the attribute does not exist.
+            getattr(self, key)
+            raise AttributeError("Attribute '%s' cannot be deleted." % key)
+
     def flush(self):
         """
         Flush the underlying HDF5 file.

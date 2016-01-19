@@ -1740,3 +1740,41 @@ def test_validate_function(tmpdir, capsys):
         "\t2 station(s) with no waveforms\n"
         "\t1 good station(s)\n"
     )
+
+
+def test_deletions_of_dataset_object(tmpdir):
+    """
+    Only the events on the dataset object can be deleted.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    ds = ASDFDataSet(asdf_filename)
+
+    # Add event.
+    ds.add_quakeml(os.path.join(data_path, "quake.xml"))
+    assert len(ds.events) == 1
+
+    # Delete
+    del ds.events
+    assert len(ds.events) == 0
+
+    # The same can be added again.
+    ds.add_quakeml(os.path.join(data_path, "quake.xml"))
+    assert len(ds.events) == 1
+
+    # Non-existing keys raise AttributeError
+    with pytest.raises(AttributeError) as excinfo:
+        del ds.random
+
+    assert excinfo.value.args[0] == (
+        "'ASDFDataSet' object has no attribute 'random'")
+    del excinfo
+
+    # Existing but other attribuet cannot be deleted.
+
+    with pytest.raises(AttributeError) as excinfo:
+        del ds.waveforms
+    assert excinfo.value.args[0] == ("Attribute 'waveforms' cannot be "
+                                     "deleted.")
+    del excinfo
