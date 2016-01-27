@@ -543,7 +543,7 @@ class StationAccessor(object):
 
     def __getattr__(self, item):
         item = str(item).replace("_", ".")
-        if item not in self.list():
+        if item not in self.__data_set()._waveform_group:
             raise AttributeError("Attribute '%s' not found." % item)
         return WaveformAccessor(item, self.__data_set())
 
