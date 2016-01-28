@@ -29,6 +29,7 @@ import uuid
 import warnings
 
 import h5py
+import lxml.etree
 import numpy as np
 import prov
 import prov.model
@@ -1159,7 +1160,14 @@ class ASDFDataSet(object):
         data = self.__file["Waveforms"][station_name]["StationXML"]
 
         with io.BytesIO(_read_string_array(data)) as buf:
-            inv = obspy.read_inventory(buf, format="stationxml")
+            try:
+                inv = obspy.read_inventory(buf, format="stationxml")
+            except lxml.etree.XMLSyntaxError:
+                raise ValueError(
+                    "Invalid XML file stored in the StationXML group for "
+                    "station %s (HDF5 path '/Waveforms/%s/StationXML'). Talk "
+                    "to the person/program that created the file!" % (
+                        station_name, station_name))
 
         return inv
 
