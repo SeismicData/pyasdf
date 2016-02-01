@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
+Processing utilities for ASDF files.
+
 :copyright:
     Lion Krischer (krischer@geophysik.uni-muenchen.de), 2016
 :license:
@@ -25,6 +27,34 @@ def split(container, count):
 
 
 def process_each_with_each(process_function, ds_a, ds_b, traceback_limit=3):
+    """
+    Process each station with each other station across two data sets.
+
+    It must be called with MPI and at least two cores. It is useful for many
+    kinds of cross-correlation and double-difference applications.
+
+    Please keep in mind that it distributes the work in a very simplistic
+    manner and that the load balancing is far from optimal. If you require a
+    more optimized scheme either implement it yourself or talk to the authors
+    of this Python package.
+
+    :param process_function: A callback function taking three arguments:
+        * ``this_station_ds_a``: A station group for one station in data set A.
+        * ``this_station_ds_b``: Station group for the same station in data
+            set B.
+        * ``other_stations_iterator``: An iterator yielding station sets for
+            all other stations.
+        This function will be called for all stations that are common across
+        both data sets.
+    :type process_function: function
+    :param ds_a: One data set.
+    :type ds_a: :class:`pyasdf.asdf_data_set.ASDFDataSet`
+    :param ds_b: Another data set.
+    :type ds_b: :class:`pyasdf.asdf_data_set.ASDFDataSet`
+    :param traceback_limit: If an error occurs within the given callback
+        function a traceback will be printed. Set the maximum size of it here.
+    :type traceback_limit: int
+    """
     if not ds_a.mpi:
         raise ASDFException("Currently only works with MPI.")
 
