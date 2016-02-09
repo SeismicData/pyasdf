@@ -2055,3 +2055,29 @@ def test_case_sensitive_tags(tmpdir):
     assert _tr_2 != tr_3
     assert _tr_3 != tr_1
     assert _tr_3 != tr_2
+
+
+def test_using_invalid_tag_names(tmpdir):
+    """
+    Tags must only contain lower case letters, numbers, or underscores.
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    data_set = ASDFDataSet(filename)
+    st = obspy.read()
+
+    # Empty tag
+    with pytest.raises(ValueError):
+        data_set.add_waveforms(st, tag="")
+
+    # Uppercase letters
+    with pytest.raises(ValueError):
+        data_set.add_waveforms(st, tag="HELLO")
+    with pytest.raises(ValueError):
+        data_set.add_waveforms(st, tag="ellO")
+    with pytest.raises(ValueError):
+        data_set.add_waveforms(st, tag="Hello")
+
+    # Other symbols.
+    with pytest.raises(ValueError):
+        data_set.add_waveforms(st, tag="_$$$Hello")
