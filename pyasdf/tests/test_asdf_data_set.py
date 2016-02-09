@@ -2000,63 +2000,6 @@ def test_deleting_auxiliary_data(tmpdir):
         ds.auxiliary_data.RandomArrays.some.nested
 
 
-def test_case_sensitive_tags(tmpdir):
-    """
-    Tests case sensitive waveform tags.
-    """
-    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
-
-    ds = ASDFDataSet(asdf_filename)
-
-    tr_1 = obspy.read()[0]
-    tr_2 = obspy.read()[0]
-    tr_2.data *= 2.0
-    tr_3 = obspy.read()[0]
-    tr_3.data *= 5.3
-
-    del tr_1.stats.response
-    del tr_1.stats.back_azimuth
-    del tr_1.stats.inclination
-    del tr_2.stats.response
-    del tr_2.stats.back_azimuth
-    del tr_2.stats.inclination
-    del tr_3.stats.response
-    del tr_3.stats.back_azimuth
-    del tr_3.stats.inclination
-
-    ds.add_waveforms(tr_1, tag="random")
-    ds.add_waveforms(tr_2, tag="Random")
-    ds.add_waveforms(tr_3, tag="RANDOM")
-
-    assert sorted(ds.waveforms.BW_RJOB.get_waveform_tags()) == \
-        ['RANDOM', 'Random', 'random']
-
-    _tr_1 = ds.waveforms.BW_RJOB.random[0]
-    _tr_2 = ds.waveforms.BW_RJOB.Random[0]
-    _tr_3 = ds.waveforms.BW_RJOB.RANDOM[0]
-
-    del _tr_1.stats._format
-    del _tr_1.stats.asdf
-    del _tr_2.stats._format
-    del _tr_2.stats.asdf
-    del _tr_3.stats._format
-    del _tr_3.stats.asdf
-
-    assert tr_1 == _tr_1
-    assert tr_1 is not _tr_1
-    assert tr_2 == _tr_2
-    assert tr_2 is not _tr_2
-    assert tr_3 == _tr_3
-    assert tr_3 is not _tr_3
-
-    assert _tr_1 != tr_2
-    assert _tr_1 != tr_3
-    assert _tr_2 != tr_1
-    assert _tr_2 != tr_3
-    assert _tr_3 != tr_1
-    assert _tr_3 != tr_2
-
-
 def test_using_invalid_tag_names(tmpdir):
     """
     Tags must only contain lower case letters, numbers, or underscores.
@@ -2079,5 +2022,12 @@ def test_using_invalid_tag_names(tmpdir):
         data_set.add_waveforms(st, tag="Hello")
 
     # Other symbols.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as e:
         data_set.add_waveforms(st, tag="_$$$Hello")
+
+    assert e.value.args[0] == (
+        "Invalid tag: '_$$$Hello' - Must satisfy the "
+        "regex '^[a-z_0-9]+$'.")
+
+    del e
+    del data_set
