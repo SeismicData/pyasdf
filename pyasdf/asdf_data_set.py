@@ -58,7 +58,7 @@ from .exceptions import ASDFException, ASDFWarning, ASDFValueError, \
     NoStationXMLForStation
 from .header import COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL, \
-    PROV_FILENAME_REGEX
+    PROV_FILENAME_REGEX, TAG_REGEX
 from .query import Query, merge_query_functions
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
@@ -1066,6 +1066,11 @@ class ASDFDataSet(object):
         :param trace: The trace to add.
         :param tag: The path of the trace.
         """
+        # Assert the tag.
+        if not re.match(TAG_REGEX, tag):
+            raise ValueError("Invalid tag: '%s' - Must satisfy the regex "
+                             "'%s'." % (tag, TAG_REGEX.pattern))
+
         station_name = "%s.%s" % (trace.stats.network, trace.stats.station)
         # Generate the name of the data within its station folder.
         data_name = "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(

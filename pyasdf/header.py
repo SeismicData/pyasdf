@@ -44,6 +44,9 @@ FORMAT_VERSION = "0.0.2"
 # Regular expression for allowed filenames within the provenance group.
 PROV_FILENAME_REGEX = re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$")
 
+# Regular expression for allowed tag names.
+TAG_REGEX = re.compile(r"^[a-z_0-9]+$")
+
 
 # MPI message tags used for communication.
 MSG_TAGS = [
