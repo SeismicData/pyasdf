@@ -1505,7 +1505,7 @@ class ASDFDataSet(object):
                     raise ASDFValueError(
                         "Tag name '{name}' is invalid. It must validate "
                         "against the regular expression '{pattern}'.".format(
-                        name=path, pattern=tag_pattern))
+                            name=path, pattern=tag_pattern))
 
             info = {
                 "data_name": sta_info["path"],
