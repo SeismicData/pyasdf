@@ -1476,13 +1476,25 @@ class ASDFDataSet(object):
     def _parallel_write_output(self, output_filename, results):
 
         # collect information
+        if results is None:
+            return
+
+        ntotal = 0
         for _sta, _sta_info in results.iteritems():
+            if _sta_info is None:
+                continue
             for _chan_info in _sta_info:
+                if _chan_info is None:
+                    continue
                 if _chan_info["type"] != "AuxiliaryData":
                     raise NotImplementedError(
                         "Only support AuxiliaryData")
-        group_name = "AuxiliaryData"
+                else:
+                    ntotal += 1
+        if ntotal == 0:
+            return
 
+        group_name = "AuxiliaryData"
         if group_name == "AuxiliaryData":
             self._write_auxiliary_mpi(output_filename, results)
         else:
