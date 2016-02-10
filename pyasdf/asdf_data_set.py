@@ -1353,8 +1353,8 @@ class ASDFDataSet(object):
 
         raise StopIteration
 
-    def process_two_files_without_parallel_output(
-            self, other_ds, process_function, traceback_limit=3):
+    def process_two_files(self, other_ds, process_function,
+                          output_filename=None, traceback_limit=3):
         """
         Process data in two data sets.
 
@@ -1370,6 +1370,11 @@ class ASDFDataSet(object):
         :param process_function: The processing function takes two
             parameters: The station group from this data set and the matching
             station group from the other data set.
+        :type output_filename: str
+        :param output_filename: The output filename. If it is None, then
+            not output file will be generated. Instead, the results will
+            be gathered on the master node. If not None, it must not yet
+            exists.
         :type traceback_limit: int
         :param traceback_limit: The length of the traceback printed if an
             error occurs in one of the workers.
@@ -1451,123 +1456,37 @@ class ASDFDataSet(object):
                 results[station] = result
 
         # Gather and create a final dictionary of results.
-        gathered_results = self.mpi.comm.gather(results, root=0)
-
-        results = {}
-        if self.mpi.rank == 0:
-            for result in gathered_results:
-                results.update(result)
-
-        # Likely not necessary as the gather two line above implies a
-        # barrier but better be safe than sorry.
-        self.mpi.comm.barrier()
-
-        return results
-
-    def process_two_files_with_parallel_output(
-            self, other_ds, process_function, output_filename,
-            traceback_limit=3):
-        """
-        Process data in two data sets and write out the adjoint source
-
-        This is mostly useful for comparing data in two data sets in any
-        number of scenarios. It again takes a function and will apply it on
-        each station that is common in both data sets. Please see the
-        :doc:`parallel_processing` document for more details.
-
-        Can only be run with MPI.
-
-        :type other_ds: :class:`.ASDFDataSet`
-        :param other_ds: The data set to compare to.
-        :param process_function: The processing function takes two
-            parameters: The station group from this data set and the matching
-            station group from the other data set.
-        :type traceback_limit: int
-        :param traceback_limit: The length of the traceback printed if an
-            error occurs in one of the workers.
-        :return: A dictionary for each station with gathered values. Will
-            only be available on rank 0.
-        """
-        if not self.mpi:
-            raise ASDFException("Currently only works with MPI.")
-
-        # Collect the work that needs to be done on rank 0.
-        if self.mpi.comm.rank == 0:
-
-            def split(container, count):
-                """
-                Simple function splitting a container into equal length chunks.
-                Order is not preserved but this is potentially an advantage
-                depending on the use case.
-                """
-                return [container[_i::count] for _i in range(count)]
-
-            this_stations = set(self.waveforms.list())
-            other_stations = set(other_ds.waveforms.list())
-
-            # Usable stations are those that are part of both.
-            usable_stations = list(this_stations.intersection(other_stations))
-            total_job_count = len(usable_stations)
-            jobs = split(usable_stations, self.mpi.comm.size)
-        else:
-            jobs = None
-
-        # Scatter jobs.
-        jobs = self.mpi.comm.scatter(jobs, root=0)
-
-        # Dictionary collecting results.
-        results = {}
-
-        for _i, station in enumerate(jobs):
-
+        if output_filename is None:
+            # if None, gather all to master node and return the
+            # gathered results
+            gathered_results = self.mpi.comm.gather(results, root=0)
+            results = {}
             if self.mpi.rank == 0:
-                print(" -> Processing approximately task %i of %i ..." % (
-                      (_i * self.mpi.size + 1), total_job_count))
-
-            try:
-                result = process_function(
-                    getattr(self.waveforms, station),
-                    getattr(other_ds.waveforms, station))
-            except Exception:
-                # If an exception is raised print a good error message
-                # and traceback to help diagnose the issue.
-                msg = ("\nError during the processing of station '%s' "
-                       "on rank %i:" % (station, self.mpi.rank))
-
-                # Extract traceback from the exception.
-                exc_info = sys.exc_info()
-                stack = traceback.extract_stack(
-                    limit=traceback_limit)
-                tb = traceback.extract_tb(exc_info[2])
-                full_tb = stack[:-1] + tb
-                exc_line = traceback.format_exception_only(
-                    *exc_info[:2])
-                tb = ("Traceback (At max %i levels - most recent call "
-                      "last):\n" % traceback_limit)
-                tb += "".join(traceback.format_list(full_tb))
-                tb += "\n"
-                tb += "".join(exc_line)
-
-                # These potentially keep references to the HDF5 file
-                # which in some obscure way and likely due to
-                # interference with internal HDF5 and Python references
-                # prevents it from getting garbage collected. We
-                # explicitly delete them here and MPI can finalize
-                # afterwards.
-                del exc_info
-                del stack
-
-                print(msg)
-                print(tb)
-            else:
-                results[station] = result
-
-        # dump results into asdf file
-        self.parallel_write_output(output_filename, results)
+                for result in gathered_results:
+                    results.update(result)
+            return results
+        else:
+            # dump results into asdf file
+            self._parallel_write_output(output_filename, results)
 
         # Likely not necessary as the gather two line above implies a
         # barrier but better be safe than sorry.
         self.mpi.comm.barrier()
+
+    def _parallel_write_output(self, output_filename, results):
+
+        # collect information
+        for _sta, _sta_info in results.iteritems():
+            for _chan_info in _sta_info:
+                if _chan_info["type"] != "AuxiliaryData":
+                    raise NotImplementedError(
+                        "Only support AuxiliaryData")
+        group_name = "AuxiliaryData"
+
+        if group_name == "AuxiliaryData":
+            self._write_auxiliary_mpi(output_filename, results)
+        else:
+            raise NotImplementedError("Only support Auxiliary Data")
 
     def _collect_hdf5_meta_mpi(self, results):
         """
@@ -1575,6 +1494,19 @@ class ASDFDataSet(object):
         """
 
         def create_dataset_params(sta_info):
+
+            # Split the path
+            tag_path = sta_info["path"].strip("/").split("/")
+
+            for path in tag_path:
+                # Assert each path piece.
+                tag_pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$"
+                if re.match(tag_pattern, path) is None:
+                    raise ASDFValueError(
+                        "Tag name '{name}' is invalid. It must validate "
+                        "against the regular expression '{pattern}'.".format(
+                        name=path, pattern=tag_pattern))
+
             info = {
                 "data_name": sta_info["path"],
                 "dataset_creation_params": {
@@ -1635,28 +1567,12 @@ class ASDFDataSet(object):
                 adj_data = _chan_info["object"]
                 group[path][:] = adj_data
 
-    def _write_auxiliary_mpi(self, output_filename, group_name, results):
+    def _write_auxiliary_mpi(self, output_filename, results):
         output_dataset = ASDFDataSet(output_filename, compression=None)
 
         aux_group = output_dataset._auxiliary_data_group
-        group = aux_group.create_group(group_name)
-        self._write_hdf5_dataset_meta_mpi(group, results)
-        self._write_hdf5_dataset_data_mpi(group, results)
-
-    def parallel_write_output(self, output_filename, results):
-
-        # collect information
-        for _sta, _sta_info in results.iteritems():
-            for _chan_info in _sta_info:
-                if _chan_info["type"] != "AuxiliaryData/AdjointSources":
-                    raise NotImplementedError(
-                        "Only support AuxiliaryData/AdjointSources")
-        group_name = "AuxiliaryData/AdjointSources"
-
-        if group_name == "AuxiliaryData/AdjointSources":
-            self._write_auxiliary_mpi(output_filename, group_name, results)
-        else:
-            raise NotImplementedError("Only support Auxiliary Data")
+        self._write_hdf5_dataset_meta_mpi(aux_group, results)
+        self._write_hdf5_dataset_data_mpi(aux_group, results)
 
     def process(self, process_function, output_filename, tag_map,
                 traceback_limit=3, **kwargs):
