@@ -1491,8 +1491,6 @@ class ASDFDataSet(object):
                         "Only support AuxiliaryData")
                 else:
                     ntotal += 1
-        if ntotal == 0:
-            return
 
         group_name = "AuxiliaryData"
         if group_name == "AuxiliaryData":
