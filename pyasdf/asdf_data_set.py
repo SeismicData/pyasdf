@@ -1583,6 +1583,7 @@ class ASDFDataSet(object):
         aux_group = output_dataset._auxiliary_data_group
         self._write_hdf5_dataset_meta_mpi(aux_group, results)
         self._write_hdf5_dataset_data_mpi(aux_group, results)
+        del output_dataset
 
     def process(self, process_function, output_filename, tag_map,
                 traceback_limit=3, **kwargs):
