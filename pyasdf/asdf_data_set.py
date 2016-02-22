@@ -1479,18 +1479,24 @@ class ASDFDataSet(object):
         if results is None:
             return
 
-        ntotal = 0
         for _sta, _sta_info in results.iteritems():
             if _sta_info is None:
-                continue
+                results[_sta] = []
+                _sta_info = []
             for _chan_info in _sta_info:
-                if _chan_info is None:
-                    continue
+                if not isinstance(_chan_info, dict):
+                    raise ValueError(
+                        "Type of returned values should be of dict: "
+                        "{'object': value, 'type': group_name,"
+                        "'path': path of dataset, 'parameters': "
+                        "dataset definination parameter")
+                necessary_keys = ["object", "type", "path", "parameters"]
+                if set(_chan_info.keys()) != (set(necessary_keys)):
+                    raise ValueError("Keys(%s) should be equal to: %s" %
+                                     (_chan_info.keys(), necessary_keys))
                 if _chan_info["type"] != "AuxiliaryData":
                     raise NotImplementedError(
                         "Only support AuxiliaryData")
-                else:
-                    ntotal += 1
 
         group_name = "AuxiliaryData"
         if group_name == "AuxiliaryData":
