@@ -47,7 +47,7 @@ setup_config = dict(
     packages=find_packages(),
     license="BSD",
     platforms="OS Independent",
-    install_requires=["numpy", "obspy>=0.10.1", "h5py", "colorama", "pytest",
+    install_requires=["numpy", "obspy>=1.0.0", "h5py", "colorama", "pytest",
                       "flake8", "prov"],
     extras_require={"mpi": ["mpi4py"]},
     package_data={

@@ -109,7 +109,7 @@ which will print something along the following lines::
     Other_modules:
         lxml: 3.4.2
         numpy: 1.9.2
-        obspy: 0.10.1
+        obspy: 1.0.0
         prov: 1.3.2
         scipy: 0.15.1
 
