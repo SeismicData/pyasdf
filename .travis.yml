@@ -3,6 +3,7 @@ language: python
 python:
   - "2.7"
   - "3.4"
+  - "3.5"
 
 env:
   global:
@@ -27,9 +28,9 @@ before_install:
   # NOTE: Remove nose when matplotlib/matplotlib#4188 is fixed.
   - conda install --yes -c obspy obspy python=$TRAVIS_PYTHON_VERSION nose
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
-  # Build docs on Python 3.4 for now.
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then conda install --yes sphinx; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
+  # Build docs on Python 3.5 for now.
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then conda install --yes sphinx; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
   - pip install coveralls mpi4py prov
 
 install:
@@ -37,8 +38,8 @@ install:
 
 script:
   - coverage run --source=pyasdf -m pyasdf.tests
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
 
 after_success:
   - cd $TRAVIS_BUILD_DIR; coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.4' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
