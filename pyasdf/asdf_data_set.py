@@ -379,7 +379,7 @@ class ASDFDataSet(object):
 
         with io.BytesIO(_read_string_array(data)) as buf:
             try:
-                cat = obspy.readEvents(buf, format="quakeml")
+                cat = obspy.read_events(buf, format="quakeml")
             except:
                 # ObsPy is not able to read empty QuakeML files but they are
                 # still valid QuakeML files.
@@ -649,7 +649,7 @@ class ASDFDataSet(object):
 
         ... or by passing an existing event or catalog object.
 
-        >>> cat = obspy.readEvents("/path/to/quakem.xml")
+        >>> cat = obspy.read_events("/path/to/quakem.xml")
         >>> ds.add_quakeml(cat)
         """
         if isinstance(event, obspy.core.event.Event):
@@ -657,7 +657,7 @@ class ASDFDataSet(object):
         elif isinstance(event, obspy.core.event.Catalog):
             cat = event
         else:
-            cat = obspy.readEvents(event, format="quakeml")
+            cat = obspy.read_events(event, format="quakeml")
 
         old_cat = self.events
         existing_resource_ids = set([_i.resource_id.id for _i in old_cat])
@@ -683,7 +683,7 @@ class ASDFDataSet(object):
         :type tag: str
         :return: tuple of the waveform and the inventory.
         :rtype: (:class:`~obspy.core.stream.Stream`,
-                 :class:`~obspy.station.inventory.Inventory`)
+                 :class:`~obspy.core.inventory.inventory.Inventory`)
         """
         station_name = station_name.replace(".", "_")
         station = getattr(self.waveforms, station_name)
@@ -1150,9 +1150,8 @@ class ASDFDataSet(object):
 
     def _get_station(self, station_name):
         """
-        Retrieves the specified StationXML as an obspy.station.Inventory
-        object. For internal use only, use the dot accessors for external
-        access.
+        Retrieves the specified StationXML as an ObsPy Inventory object. For
+        internal use only, use the dot accessors for external access.
 
         :param station_name: A string with network id and station id,
             e.g. ``"IU.ANMO"``
@@ -1216,11 +1215,13 @@ class ASDFDataSet(object):
 
         :param stationxml: Filename of StationXML file or an ObsPy inventory
             object containing the same.
-        :type stationxml: str or :class:`~obspy.station.inventory.Inventory`
+        :type stationxml: str or
+            :class:`~obspy.core.inventory.inventory.Inventory`
         """
         # If not already an inventory object, delegate to ObsPy and see if
         # it can read it.
-        if not isinstance(stationxml, obspy.station.Inventory):
+        if not isinstance(stationxml,
+                          obspy.core.inventory.inventory.Inventory):
             stationxml = obspy.read_inventory(stationxml, format="stationxml")
 
         # Now we essentially walk the whole inventory, see what parts are
@@ -1477,7 +1478,7 @@ class ASDFDataSet(object):
         :type process_function: function
         :param process_function: A function with two argument:
             An :class:`obspy.core.stream.Stream` object and an
-            :class:`obspy.station.inventory.Inventory` object. It should
+            :class:`obspy.core.inventory.inventory.Inventory` object. It should
             return a :class:`obspy.core.stream.Stream` object which will
             then be written to the new file.
         :type output_filename: str

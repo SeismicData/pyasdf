@@ -26,9 +26,9 @@ def merge_inventories(inv_a, inv_b, network_id, station_id):
     changed.
 
     :param inv_a: Inventory A. Contents of that inventory will be prioritized.
-    :type inv_a: :class:`~obspy.station.inventory.Inventory`
+    :type inv_a: :class:`~obspy.core.inventory.inventory.Inventory`
     :param inv_b: Inventory B.
-    :type inv_b: :class:`~obspy.station.inventory.Inventory`
+    :type inv_b: :class:`~obspy.core.inventory.inventory.Inventory`
     :param network_id: The network id.
     :type network_id: str
     :param station_id: The station id.
@@ -51,7 +51,7 @@ def isolate_and_merge_station(inv, network_id, station_id):
     changed.
 
     :param inv: The inventory.
-    :type inv: :class:`~obspy.station.inventory.Inventory`
+    :type inv: :class:`~obspy.core.inventory.inventory.Inventory`
     :param network_id: The network id.
     :type network_id: str
     :param station_id: The station id.

@@ -373,7 +373,7 @@ so it can for example tell what event a certain waveform is associated with:
 .. code-block:: python
 
     >>> cat = ds.events  # The events have to be in memory for the reference to work.
-    >>> print(sta.synthetic[0].stats.asdf.event_id.getReferredObject())
+    >>> print(sta.synthetic[0].stats.asdf.event_id.get_referred_object())
     Event:	1998-09-01T10:29:54.500000Z | -58.500,  -26.100 | 5.5 Mwc
 
             resource_id: ResourceIdentifier(id="smi:service.iris.edu/fdsnws/event/1/query?eventid=656970")

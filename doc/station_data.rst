@@ -3,7 +3,7 @@ Working With Station Data
 
 The ASDF format stores station information in the StationXML format. Simply
 accessing the ``StationXML`` attribute will parse the data to an
-:class:`obspy.station.station.Inventory` object if the station has one. Please
+:class:`obspy.core.inventory.inventory.Inventory` object if the station has one. Please
 see its documentation for more details of how to work with it.
 
 >>> import pyasdf
@@ -21,7 +21,7 @@ Inventory created at 2014-12-09T19:43:16.000000Z
         Channels (3):
             IU.FURI.00.BHE, IU.FURI.00.BHN, IU.FURI.00.BHZ
 >>> type(ds.waveforms.IU_FURI.StationXML)
-obspy.station.inventory.Inventory
+<class 'obspy.core.inventory.inventory.Inventory'>
 
 
 In some cases one only needs access to the coordinates and not the full

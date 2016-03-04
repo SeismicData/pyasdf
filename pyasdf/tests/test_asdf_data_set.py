@@ -120,7 +120,7 @@ def test_data_set_creation(tmpdir):
             os.path.join(data_path, "%s.%s..BH*.xml" % station))
         assert inv_file == inv_asdf
     # Test the event.
-    cat_file = obspy.readEvents(os.path.join(data_path, "quake.xml"))
+    cat_file = obspy.read_events(os.path.join(data_path, "quake.xml"))
     cat_asdf = data_set.events
     # from IPython.core.debugger import Tracer; Tracer(colors="Linux")()
     assert cat_file == cat_asdf
@@ -196,7 +196,7 @@ def test_adding_event_in_various_manners(tmpdir):
     data_path = os.path.join(data_dir, "small_sample_data_set")
     event_filename = os.path.join(data_path, "quake.xml")
 
-    ref_cat = obspy.readEvents(event_filename)
+    ref_cat = obspy.read_events(event_filename)
 
     # Add as filename
     data_set = ASDFDataSet(asdf_filename)
@@ -328,7 +328,7 @@ def test_saving_event_id(tmpdir):
     """
     data_path = os.path.join(data_dir, "small_sample_data_set")
     filename = os.path.join(tmpdir.strpath, "example.h5")
-    event = obspy.readEvents(os.path.join(data_path, "quake.xml"))[0]
+    event = obspy.read_events(os.path.join(data_path, "quake.xml"))[0]
 
     # Add the event object, and associate the waveform with it.
     data_set = ASDFDataSet(filename)
@@ -337,7 +337,7 @@ def test_saving_event_id(tmpdir):
     data_set.add_waveforms(waveform, "raw_recording", event_id=event)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.getReferredObject() == event
+        assert tr.stats.asdf.event_id.get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -349,7 +349,7 @@ def test_saving_event_id(tmpdir):
                            event_id=str(event.resource_id.id))
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.getReferredObject() == event
+        assert tr.stats.asdf.event_id.get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -361,7 +361,7 @@ def test_saving_event_id(tmpdir):
                            event_id=event.resource_id)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.getReferredObject() == event
+        assert tr.stats.asdf.event_id.get_referred_object() == event
     del data_set
     os.remove(filename)
 

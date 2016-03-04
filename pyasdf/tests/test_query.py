@@ -166,10 +166,10 @@ def test_event_id():
     r_a = obspy.core.event.ResourceIdentifier(a)
     r_b = obspy.core.event.ResourceIdentifier(b)
 
-    ev_a = obspy.readEvents()[0]
+    ev_a = obspy.read_events()[0]
     ev_a.resource_id = r_a
 
-    ev_b = obspy.readEvents()[0]
+    ev_b = obspy.read_events()[0]
     ev_b.resource_id = r_b
 
     # First return value is the name.
@@ -232,10 +232,10 @@ def test_origin_id():
     r_a = obspy.core.event.ResourceIdentifier(a)
     r_b = obspy.core.event.ResourceIdentifier(b)
 
-    org_a = obspy.readEvents()[0].origins[0]
+    org_a = obspy.read_events()[0].origins[0]
     org_a.resource_id = r_a
 
-    org_b = obspy.readEvents()[0].origins[0]
+    org_b = obspy.read_events()[0].origins[0]
     org_b.resource_id = r_b
 
     # First return value is the name.
@@ -298,10 +298,10 @@ def test_magnitude_id():
     r_a = obspy.core.event.ResourceIdentifier(a)
     r_b = obspy.core.event.ResourceIdentifier(b)
 
-    mag_a = obspy.readEvents()[0].magnitudes[0]
+    mag_a = obspy.read_events()[0].magnitudes[0]
     mag_a.resource_id = r_a
 
-    mag_b = obspy.readEvents()[0].magnitudes[0]
+    mag_b = obspy.read_events()[0].magnitudes[0]
     mag_b.resource_id = r_b
 
     # First return value is the name.
@@ -500,10 +500,10 @@ def test_event_id_none():
     r_a = obspy.core.event.ResourceIdentifier(a)
     r_b = obspy.core.event.ResourceIdentifier(b)
 
-    ev_a = obspy.readEvents()[0]
+    ev_a = obspy.read_events()[0]
     ev_a.resource_id = r_a
 
-    ev_b = obspy.readEvents()[0]
+    ev_b = obspy.read_events()[0]
     ev_b.resource_id = r_b
 
     # First return value is the name.
