@@ -198,8 +198,7 @@ class ASDFDataSet(object):
         """
         Cleanup. Force flushing and close the file.
 
-        If called with MPI this will also enable MPI to cleanly shutdown in
-        all cases.
+        If called with MPI this will also enable MPI to cleanly shutdown.
         """
         try:
             self.flush()
