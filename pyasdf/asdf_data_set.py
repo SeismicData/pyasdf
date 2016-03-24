@@ -800,24 +800,25 @@ class ASDFDataSet(object):
         :type tag: str
         :param event_id: The event or id which the waveform is associated
             with. This is useful for recorded data if a clear association is
-            given, but also for synthetic data.
+            given, but also for synthetic data. Can also be a list of items.
         :type event_id: :class:`obspy.core.event.Event`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param origin_id: The particular origin this waveform is associated
             with. This is mainly useful for synthetic data where the origin
-            is precisely known.
+            is precisely known. Can also be a list of items.
         :type origin_id: :class:`obspy.core.event.Origin`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param magnitude_id: The particular magnitude this waveform is
             associated with. This is mainly useful for synthetic data where
-            the magnitude is precisely known.
+            the magnitude is precisely known. Can also be a list of items.
         :type magnitude_id: :class:`obspy.core.event.Magnitude`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param focal_mechanism_id: The particular focal mechanism this
             waveform is associated with. This is mainly useful for synthetic
-            data where the mechanism is precisely known.
+            data where the mechanism is precisely known. Can also be a list of
+            items.
         :type focal_mechanism_id: :class:`obspy.core.event.FocalMechanism`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param provenance_id: The id of the provenance of this data. The
             provenance information itself must be added separately. Must be
             given as a qualified name, e.g. ``'{namespace_uri}id'``.
