@@ -738,7 +738,7 @@ class WaveformAccessor(object):
         # Filter to only keep channels with the current station name.
         coords = {key: value for key, value in coords.items()
                   if key.startswith(self._station_name + ".")}
-        if not(coords):
+        if not coords:
             raise ASDFValueError("StationXML file has no coordinates at "
                                  "the channel level for station '%s'." %
                                  self._station_name)
