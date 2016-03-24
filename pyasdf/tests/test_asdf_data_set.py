@@ -2446,3 +2446,51 @@ def test_auxiliary_data_container_missing_lines(tmpdir):
     # File accessor does not work for non file items.
     with pytest.raises(ASDFAttributeError):
         container.file
+
+
+def test_auxiliary_data_accessor_missing_lines(tmpdir):
+    """
+    Improving test coverage for the auxiliary data accessor.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # Define some auxiliary data and add it.
+    data = np.random.random(100)
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type="AA", path="random",
+                                parameters=parameters)
+    data_set.add_auxiliary_data(data=data, data_type="BB", path="random",
+                                parameters=parameters)
+
+    accessor_1 = data_set.auxiliary_data.AA
+    accessor_2 = data_set.auxiliary_data.BB
+
+    assert accessor_1.auxiliary_data_type == "AA"
+    assert accessor_2.auxiliary_data_type == "BB"
+
+    assert sorted(dir(accessor_1)) == sorted(["random", "auxiliary_data_type",
+                                              "list"])
+
+    # Test comparision methods.
+    assert accessor_1 == data_set.auxiliary_data.AA
+    assert accessor_1 != accessor_2
+    assert accessor_1 != 1
+    assert accessor_1 != "random string."
+
+    asdf_filename_2 = os.path.join(tmpdir.strpath, "test_2.h5")
+    data_set_2 = ASDFDataSet(asdf_filename_2)
+    # This is exactly the same as accessor_1 but not with the same data set,
+    # thus it should not compare equal.
+    data_set_2.add_auxiliary_data(data=data, data_type="AA", path="random",
+                                  parameters=parameters)
+    assert data_set.auxiliary_data.AA != data_set_2.auxiliary_data.AA
+
+    # Try deleting not existing data set.
+    with pytest.raises(AttributeError):
+        del accessor_1.random_thingy
+
+    # Empty accessor.
+    del data_set_2.auxiliary_data.AA.random
+    assert "Empty auxiliary data group." in str(data_set_2.auxiliary_data.AA)

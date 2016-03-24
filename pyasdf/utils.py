@@ -351,11 +351,9 @@ class AuxiliaryDataAccessor(object):
             return False
 
         ds1 = self.__data_set()
-        ds2 = self.__data_set()
+        ds2 = other.__data_set()
         try:
-            if None in [ds1, ds2]:
-                return False
-            if ds1 is not ds2:
+            if ds1.filename != ds2.filename:
                 return False
         finally:
             del ds1
@@ -399,7 +397,8 @@ class AuxiliaryDataAccessor(object):
         except AttributeError as e:
             raise KeyError(str(e))
 
-    def get_auxiliary_data_type(self):
+    @property
+    def auxiliary_data_type(self):
         return self.__auxiliary_data_type
 
     def list(self):
@@ -407,7 +406,7 @@ class AuxiliaryDataAccessor(object):
             self.__auxiliary_data_type].keys())
 
     def __dir__(self):
-        return self.list() + ["list"]
+        return self.list() + ["list", "auxiliary_data_type"]
 
     def __len__(self):
         return len(self.list())
