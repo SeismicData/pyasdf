@@ -4,16 +4,16 @@ Installation
 pyasdf and Dependencies
 -----------------------
 
-``pyasdf`` supports Python version 2.7 and 3.4 and it depends on the following
-Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``, ``flake8``,
-``pytest``, and optionally ``mpi4py``. You can install ``pyasdf`` with or
-without parallel I/O support; the later requires ``mpi4py`` and parallel
-versions of ``hdf5`` and ``h5py``.
+``pyasdf`` supports Python version 2.7, 3.4, and 3.5 and it depends on the
+following Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``,
+``flake8``, ``pytest``, ``prov``, and optionally ``mpi4py``. You can install
+``pyasdf`` with or without parallel I/O support; the later requires ``mpi4py``
+and parallel versions of ``hdf5`` and ``h5py``.
 
 If you know what you are doing, install it any way you see fit. Otherwise do
 yourself a favor and download the
 `Anaconda Python distribution <https://store.continuum.io/cshop/anaconda/>`_
-for Python 2.7 or 3.4. After downloading, update it, and install the
+for your chosen Python version. After downloading, update it, and install the
 dependencies.
 
 
