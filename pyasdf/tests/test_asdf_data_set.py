@@ -2173,3 +2173,207 @@ def test_multiple_event_associations_are_persistent_through_processing(tmpdir):
             magnitude_3.resource_id] == st[0].stats.asdf.magnitude_ids
     assert [focmec_1.resource_id, focmec_2.resource_id,
             focmec_3.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+
+def test_event_iteration_with_multiple_events(tmpdir):
+    """
+    Tests the iteration over a dataset by event attributes.
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    ds = ASDFDataSet(filename)
+
+    cat = obspy.read_events()
+    # Add random focal mechanisms.
+    cat[0].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[1].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+
+    ds.add_quakeml(cat)
+
+    event_1 = ds.events[0]
+    origin_1 = event_1.origins[0]
+    magnitude_1 = event_1.magnitudes[0]
+    focmec_1 = event_1.focal_mechanisms[0]
+
+    event_2 = ds.events[1]
+    origin_2 = event_2.origins[0]
+    magnitude_2 = event_2.magnitudes[0]
+    focmec_2 = event_2.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+
+    # Has everything, two of each.
+    tr.stats.network = "AA"
+    tr.stats.station = "AA"
+    ds.add_waveforms(tr, tag="random_a",
+                     event_id=[event_1, event_2],
+                     origin_id=[origin_1, origin_2],
+                     focal_mechanism_id=[focmec_1, focmec_2],
+                     magnitude_id=[magnitude_1, magnitude_2])
+    # Has only the events.
+    tr.stats.network = "BB"
+    tr.stats.station = "BB"
+    ds.add_waveforms(tr, tag="random_b", event_id=[event_1, event_2])
+
+    # Only the origins.
+    tr.stats.network = "CC"
+    tr.stats.station = "CC"
+    ds.add_waveforms(tr, tag="random_c", origin_id=[origin_1, origin_2])
+
+    # Only the magnitude.
+    tr.stats.network = "DD"
+    tr.stats.station = "DD"
+    ds.add_waveforms(tr, tag="random_d", magnitude_id=[magnitude_1,
+                                                       magnitude_2])
+
+    # Only the focal mechanisms.
+    tr.stats.network = "EE"
+    tr.stats.station = "EE"
+    ds.add_waveforms(tr, tag="random_e", focal_mechanism_id=[focmec_1,
+                                                             focmec_2])
+
+    # Nothing.
+    tr.stats.network = "FF"
+    tr.stats.station = "FF"
+    ds.add_waveforms(tr, tag="random_f")
+
+    # Test with random ids..should all return nothing.
+    random_ids = [
+        "test", "random",
+        obspy.core.event.ResourceIdentifier(
+            "smi:service.iris.edu/fdsnws/event/1/query?random_things")]
+    for r_id in random_ids:
+        assert list(ds.ifilter(ds.q.event == r_id)) == []
+        assert list(ds.ifilter(ds.q.magnitude == r_id)) == []
+        assert list(ds.ifilter(ds.q.origin == r_id)) == []
+        assert list(ds.ifilter(ds.q.focal_mechanism == r_id)) == []
+
+    # Both events in various realizations.
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_1)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.event == event_1.resource_id)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == str(event_1.resource_id))]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == event_1,
+                                   ds.q.magnitude == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
+    assert result == ["BB.BB"]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_2)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.event == event_2.resource_id)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == str(event_2.resource_id))]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == event_2,
+                                   ds.q.magnitude == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
+    assert result == ["BB.BB"]
+
+    # Origin as a resource identifier and as a string, and with others equal to
+    # None.
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_1)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_1.resource_id)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == str(origin_1.resource_id))]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == origin_1,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["CC.CC"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_2)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_2.resource_id)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == str(origin_2.resource_id))]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == origin_2,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["CC.CC"]
+
+    # Magnitude as a resource identifier and as a string, and with others
+    # equal to None.
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_1)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_1.resource_id)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.magnitude == str(magnitude_1.resource_id))]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == magnitude_1,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["DD.DD"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_2)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_2.resource_id)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.magnitude == str(magnitude_2.resource_id))]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == magnitude_2,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["DD.DD"]
+
+    # Focal mechanisms as a resource identifier and as a string, and with
+    # others equal to None.
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_1)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_1.resource_id)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.focal_mechanism == str(focmec_1.resource_id))]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == focmec_1,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["EE.EE"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_2)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_2.resource_id)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.focal_mechanism == str(focmec_2.resource_id))]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == focmec_2,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["EE.EE"]
+
+    # No existing ids are treated like empty ids.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == None,
+                                   ds.q.magnitude == None,
+                                   ds.q.origin == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
+    assert result == ["FF.FF"]
+
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event != None,
+                                   ds.q.magnitude != None,
+                                   ds.q.origin != None,
+                                   ds.q.focal_mechanism != None)]  # NOQA
+    assert result == ["AA.AA"]
