@@ -65,7 +65,7 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
     FilteredWaveformAccessor, label2string, labelstring2list, \
-    AuxiliaryDataAccessor, wf_name2tag
+    AuxiliaryDataAccessor, wf_name2tag, to_list_of_resource_identifiers
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -719,9 +719,9 @@ class ASDFDataSet(object):
         ids = ["event_id", "origin_id", "magnitude_id", "focal_mechanism_id"]
         for name in ids:
             if name in data.attrs:
-                setattr(details, name,
-                        obspy.core.event.ResourceIdentifier(
-                            data.attrs[name].tostring().decode()))
+                setattr(details, name + "s",
+                        [obspy.core.event.ResourceIdentifier(_i) for _i in
+                         data.attrs[name].tostring().decode().split(",")])
 
         if "provenance_id" in data.attrs:
             details.provenance_id = \
@@ -888,60 +888,6 @@ class ASDFDataSet(object):
 
         # Parse labels to a single comma separated string.
         labels = label2string(labels)
-
-        # Extract the event_id from the different possibilities.
-        if event_id:
-            if isinstance(event_id, obspy.core.event.Event):
-                event_id = str(event_id.resource_id.id)
-            elif isinstance(event_id, obspy.core.event.ResourceIdentifier):
-                event_id = str(event_id.id)
-            else:
-                try:
-                    event_id = str(
-                        obspy.core.event.ResourceIdentifier(event_id))
-                except:
-                    msg = "Invalid type for event_id."
-                    raise TypeError(msg)
-
-        # Do the same for the origin, magnitude, and focal mechanism.
-        if origin_id:
-            if isinstance(origin_id, obspy.core.event.Origin):
-                origin_id = str(origin_id.resource_id.id)
-            elif isinstance(origin_id, obspy.core.event.ResourceIdentifier):
-                origin_id = str(origin_id.id)
-            else:
-                try:
-                    origin_id = str(
-                        obspy.core.event.ResourceIdentifier(origin_id))
-                except:
-                    msg = "Invalid type for origin_id."
-                    raise TypeError(msg)
-        if magnitude_id:
-            if isinstance(magnitude_id, obspy.core.event.Magnitude):
-                magnitude_id = str(magnitude_id.resource_id.id)
-            elif isinstance(magnitude_id, obspy.core.event.ResourceIdentifier):
-                magnitude_id = str(magnitude_id.id)
-            else:
-                try:
-                    magnitude_id = str(
-                        obspy.core.event.ResourceIdentifier(magnitude_id))
-                except:
-                    msg = "Invalid type for magnitude_id."
-                    raise TypeError(msg)
-        if focal_mechanism_id:
-            if isinstance(focal_mechanism_id, obspy.core.event.FocalMechanism):
-                focal_mechanism_id = str(focal_mechanism_id.resource_id.id)
-            elif isinstance(focal_mechanism_id,
-                            obspy.core.event.ResourceIdentifier):
-                focal_mechanism_id = str(focal_mechanism_id.id)
-            else:
-                try:
-                    focal_mechanism_id = str(
-                        obspy.core.event.ResourceIdentifier(
-                            focal_mechanism_id))
-                except:
-                    msg = "Invalid type for focal_mechanism_id."
-                    raise TypeError(msg)
 
         tag = tag.strip()
         if tag.lower() == "stationxml":
@@ -1127,24 +1073,48 @@ class ASDFDataSet(object):
             labels = label2string(trace.stats.asdf.labels)
             info["dataset_attrs"]["labels"] = labels
 
+        # The various ids can either be given as the objects themselves,
+        # e.g. an event, an origin, a magnitude, or a focal mechansism.
+        # Alternatively they can be passed as ResourceIdentifier objects or
+        # anything that can be converted to a resource identifier. Always
+        # either 0, 1, or more of them, in that case as part of an iterator.
+        # After the next step they are all lists of ResourceIdentifiers.
+        event_id = to_list_of_resource_identifiers(
+            event_id, name="event_id", obj_type=obspy.core.event.Event)
+        origin_id = to_list_of_resource_identifiers(
+            origin_id, name="origin_id", obj_type=obspy.core.event.Origin)
+        magnitude_id = to_list_of_resource_identifiers(
+            magnitude_id, name="magnitude_id",
+            obj_type=obspy.core.event.Magnitude)
+        focal_mechanism_id = to_list_of_resource_identifiers(
+            focal_mechanism_id, name="focal_mechanism_id",
+            obj_type=obspy.core.event.FocalMechanism)
+
         # Add all the event ids.
         ids = {
             "event_id": event_id,
             "origin_id": origin_id,
             "magnitude_id": magnitude_id,
-            "focal_mechanism_id": focal_mechanism_id,
-            "provenance_id": provenance_id}
+            "focal_mechanism_id": focal_mechanism_id}
         for name, obj in ids.items():
             if obj is None and \
                     hasattr(trace.stats, "asdf") and \
-                    hasattr(trace.stats.asdf, name):
-                if name == "provenance_id":
-                    obj = trace.stats.asdf[name]
-                else:
-                    obj = str(trace.stats.asdf[name].id)
+                    hasattr(trace.stats.asdf, name + "s"):
+                obj = trace.stats.asdf[name + "s"]
             if obj:
                 info["dataset_attrs"][name] = \
-                    self._zeropad_ascii_string(str(obj))
+                    self._zeropad_ascii_string(
+                        ",".join(str(_i.id) for _i in obj))
+
+        # Set the provenance id. Either get the one from the arguments or
+        # use the one already set in the trace.stats attribute.
+        if provenance_id is None and \
+                hasattr(trace.stats, "asdf") and \
+                hasattr(trace.stats.asdf, "provenance_id"):
+            provenance_id = trace.stats.asdf["provenance_id"]
+        if provenance_id:
+            info["dataset_attrs"]["provenance_id"] = \
+                self._zeropad_ascii_string(str(provenance_id))
 
         return info
 

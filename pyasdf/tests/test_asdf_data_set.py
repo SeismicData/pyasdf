@@ -337,7 +337,7 @@ def test_saving_event_id(tmpdir):
     data_set.add_waveforms(waveform, "raw_recording", event_id=event)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.get_referred_object() == event
+        assert tr.stats.asdf.event_ids[0].get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -349,7 +349,7 @@ def test_saving_event_id(tmpdir):
                            event_id=str(event.resource_id.id))
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.get_referred_object() == event
+        assert tr.stats.asdf.event_ids[0].get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -361,7 +361,7 @@ def test_saving_event_id(tmpdir):
                            event_id=event.resource_id)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.get_referred_object() == event
+        assert tr.stats.asdf.event_ids[0].get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -373,13 +373,13 @@ def test_event_association_is_persistent_through_processing(example_data_set):
     """
     data_set = ASDFDataSet(example_data_set.filename)
     st = data_set.waveforms.TA_POKR.raw_recording
-    event_id = st[0].stats.asdf.event_id
+    event_id = st[0].stats.asdf.event_ids[0]
 
     st.taper(max_percentage=0.05, type="cosine")
 
     data_set.add_waveforms(st, tag="processed")
     processed_st = data_set.waveforms.TA_POKR.processed
-    assert event_id == processed_st[0].stats.asdf.event_id
+    assert event_id == processed_st[0].stats.asdf.event_ids[0]
 
 
 def test_detailed_event_association_is_persistent_through_processing(
@@ -408,10 +408,11 @@ def test_detailed_event_association_is_persistent_through_processing(
 
     data_set.add_waveforms(new_st, tag="processed")
     processed_st = data_set.waveforms.BW_RJOB.processed
-    assert event.resource_id == processed_st[0].stats.asdf.event_id
-    assert origin.resource_id == processed_st[0].stats.asdf.origin_id
-    assert magnitude.resource_id == processed_st[0].stats.asdf.magnitude_id
-    assert focmec.resource_id == processed_st[0].stats.asdf.focal_mechanism_id
+    assert event.resource_id == processed_st[0].stats.asdf.event_ids[0]
+    assert origin.resource_id == processed_st[0].stats.asdf.origin_ids[0]
+    assert magnitude.resource_id == processed_st[0].stats.asdf.magnitude_ids[0]
+    assert focmec.resource_id == \
+        processed_st[0].stats.asdf.focal_mechanism_ids[0]
 
 
 def test_tag_iterator(example_data_set):
@@ -2031,3 +2032,81 @@ def test_using_invalid_tag_names(tmpdir):
 
     del e
     del data_set
+
+
+def test_associating_multiple_events_origin_and_other_thingsG(tmpdir):
+    """
+    Each trace should be able to refer to multiple events, origins,
+    magnitudes, and focal mechanisms.
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    ds = ASDFDataSet(filename)
+
+    cat = obspy.read_events()
+    # Add random focal mechanisms.
+    cat[0].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[1].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[2].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+
+    ds.add_quakeml(cat)
+
+    event_1 = ds.events[0]
+    origin_1 = event_1.origins[0]
+    magnitude_1 = event_1.magnitudes[0]
+    focmec_1 = event_1.focal_mechanisms[0]
+
+    event_2 = ds.events[1]
+    origin_2 = event_2.origins[0]
+    magnitude_2 = event_2.magnitudes[0]
+    focmec_2 = event_2.focal_mechanisms[0]
+
+    event_3 = ds.events[2]
+    origin_3 = event_3.origins[0]
+    magnitude_3 = event_3.magnitudes[0]
+    focmec_3 = event_3.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+    tr.stats.network = "BW"
+    tr.stats.station = "RJOB"
+
+    # Just a single one.
+    ds.add_waveforms(tr, tag="random", event_id=event_1,
+                     origin_id=origin_1, focal_mechanism_id=focmec_1,
+                     magnitude_id=magnitude_1)
+
+    st = ds.waveforms["BW.RJOB"]["random"]
+    assert [event_1.resource_id] == st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+    # Again just a single one but passed as a list.
+    ds.add_waveforms(tr, tag="random_2",
+                     event_id=[event_1],
+                     origin_id=[origin_1],
+                     focal_mechanism_id=[focmec_1],
+                     magnitude_id=[magnitude_1])
+
+    st = ds.waveforms["BW.RJOB"]["random_2"]
+    assert [event_1.resource_id] == st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+    # Actually doing multiple ones.
+    ds.add_waveforms(tr, tag="random_3",
+                     event_id=[event_1, event_2, event_3],
+                     origin_id=[origin_1, origin_2, origin_3],
+                     focal_mechanism_id=[focmec_1, focmec_2, focmec_3],
+                     magnitude_id=[magnitude_1, magnitude_2, magnitude_3])
+
+    st = ds.waveforms["BW.RJOB"]["random_3"]
+    assert [event_1.resource_id, event_2.resource_id, event_3.resource_id] == \
+        st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id, origin_2.resource_id,
+            origin_3.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id, magnitude_2.resource_id,
+            magnitude_3.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id, focmec_2.resource_id,
+            focmec_3.resource_id] == st[0].stats.asdf.focal_mechanism_ids

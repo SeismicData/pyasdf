@@ -13,6 +13,7 @@ import copy
 import collections
 import hashlib
 import io
+import itertools
 import os
 import sys
 import time
@@ -30,6 +31,7 @@ from lxml.etree import QName
 import numpy as np
 import obspy
 
+from .compat import string_types
 from .exceptions import (WaveformNotInFileException, NoStationXMLForStation,
                          ASDFValueError, ASDFAttributeError)
 from .header import MSG_TAGS
@@ -1229,3 +1231,35 @@ def labelstring2list(labels):
     String to a list of labels.
     """
     return [_i.strip() for _i in labels.split(",")]
+
+
+def is_list(obj):
+    """
+    True if the returned object is an iterable but not a string.
+
+    :param obj: The object to test.
+    """
+    return isinstance(obj, collections.Iterable) and \
+        not isinstance(obj, string_types)
+
+
+def to_list_of_resource_identifiers(obj, name, obj_type):
+    if not obj:
+        return obj
+
+    if is_list(obj) and not isinstance(obj, obj_type):
+        return list(itertools.chain.from_iterable([
+            to_list_of_resource_identifiers(_i, name, obj_type)
+            for _i in obj]))
+
+    if isinstance(obj, obj_type):
+        obj = obj.resource_id
+    elif isinstance(obj, obspy.core.event.ResourceIdentifier):
+        obj = obj
+    else:
+        try:
+            obj = obspy.core.event.ResourceIdentifier(obj)
+        except:
+            msg = "Invalid type for %s." % name
+            raise TypeError(msg)
+    return [obj]
