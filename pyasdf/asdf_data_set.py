@@ -597,19 +597,12 @@ class ASDFDataSet(object):
     def _add_auxiliary_data_write_independent_information(self, info, data):
         """
         Writes the independent part of auxiliary data to the file.
-
-        :param info:
-        :param trace:
-        :return:
         """
         self._auxiliary_data_group[info["data_name"]][:] = data
 
     def _add_auxiliary_data_write_collective_information(self, info):
         """
         Writes the collective part of auxiliary data to the file.
-
-        :param info:
-        :return:
         """
         data_type = info["data_type"]
         if data_type not in self._auxiliary_data_group:
@@ -840,7 +833,8 @@ class ASDFDataSet(object):
         ``recording.mseed``. We will now add it to the file, give it the
         ``"raw_recording"`` path (which is reserved for raw, recorded,
         and unproceseed data) and associate it with the event. Keep in mind
-        that this association is optional.
+        that this association is optional. It can also be associated with
+        multiple events - in that case just pass a list of objects.
 
         >>> ds.add_waveforms("recording.mseed", path="raw_recording",
         ...                  event_id=event)
@@ -872,7 +866,8 @@ class ASDFDataSet(object):
         simulation) so it is a good idea to add that association to the
         waveform. Please again keep in mind that they are all optional and
         depending on your use case they might or might not be
-        useful/meaningful.
+        useful/meaningful. You can again pass lists of all of these objects
+        in which case multiple associations will be stored in the file.
 
         >>> origin = event.preferred_origin()
         >>> magnitude = event.preferred_magnitude()
@@ -917,6 +912,11 @@ class ASDFDataSet(object):
             self._add_trace_write_independent_information(info, trace)
 
     def get_provenance_document(self, document_name):
+        """
+        Retrieve a provenance document with a certain name.
+
+        :param document_name: The name of the provenance document to retrieve.
+        """
         if document_name not in self._provenance_group:
             raise ASDFValueError(
                 "Provenance document '%s' not found in file." % document_name)
@@ -929,7 +929,7 @@ class ASDFDataSet(object):
 
     def add_provenance_document(self, document, name=None):
         """
-        Add a provenance document to the open ASDF file.
+        Add a provenance document to the current ASDF file.
 
         :type document: Filename, file-like objects or prov document.
         :param document: The document to add.
@@ -1035,8 +1035,7 @@ class ASDFDataSet(object):
             warnings.warn(msg, ASDFWarning)
             return
 
-        # XXX: Figure out why this is necessary. It should work according to
-        # the specs.
+        # Checksumming cannot be used when writing with MPI I/O.
         if self.mpi:
             fletcher32 = False
         else:
