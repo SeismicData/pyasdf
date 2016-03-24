@@ -1524,7 +1524,7 @@ class ASDFDataSet(object):
                         group = output_data_set._waveform_group.create_group(
                             station_name)
                     else:
-                        group = output_data_set[station_name]
+                        group = output_data_set._waveform_group[station_name]
                     station_group.copy(source=data, dest=group,
                                        name="StationXML")
 
