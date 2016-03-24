@@ -2377,3 +2377,30 @@ def test_event_iteration_with_multiple_events(tmpdir):
                                    ds.q.origin != None,
                                    ds.q.focal_mechanism != None)]  # NOQA
     assert result == ["AA.AA"]
+
+
+def test_provenance_accessor_missing_items(tmpdir):
+    """
+    Tests some missing lines in the provenance accessor.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    assert str(data_set.provenance) == "No provenance document in file."
+
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+
+    # Add it as a document.
+    doc = prov.read(filename, format="xml")
+    data_set.add_provenance_document(doc, name="test_provenance")
+    del data_set
+
+    # Read it again.
+    data_set = ASDFDataSet(asdf_filename)
+
+    with pytest.raises(AttributeError):
+        del data_set.provenance.random
+
+    assert sorted(dir(data_set.provenance)) == \
+        sorted(["test_provenance", "list", "keys", "values", "items",
+                "get_provenance_document_for_id"])

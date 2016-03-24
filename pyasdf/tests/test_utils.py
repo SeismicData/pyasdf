@@ -19,7 +19,7 @@ import pytest
 
 from ..exceptions import ASDFValueError
 from ..utils import (split_qualified_name, get_all_ids_for_prov_document,
-                     SimpleBuffer)
+                     SimpleBuffer, sizeof_fmt)
 
 data_dir = os.path.join(os.path.dirname(os.path.abspath(
     inspect.getfile(inspect.currentframe()))), "data")
@@ -86,3 +86,10 @@ def test_simple_cache_dictionary():
     assert 3 in xx
     assert 4 in xx
     assert len(xx) == 2
+
+
+def test_sizeof_fmt_function():
+    assert sizeof_fmt(1024) == "1.0 KB"
+    assert sizeof_fmt(1024 ** 2) == "1.0 MB"
+    assert sizeof_fmt(1024 ** 3) == "1.0 GB"
+    assert sizeof_fmt(1024 ** 4) == "1.0 TB"

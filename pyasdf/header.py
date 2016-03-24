@@ -33,7 +33,7 @@ COMPRESSIONS = {
 
 
 # The inversion mapping also works.
-for key, value in COMPRESSIONS.items():
+for key, value in list(COMPRESSIONS.items()):
     COMPRESSIONS[value] = key
 
 

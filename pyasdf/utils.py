@@ -44,7 +44,7 @@ Worker = collections.namedtuple("Worker", ["active_jobs",
                                            "completed_jobs_count"])
 
 
-def get_multiprocessing():
+def get_multiprocessing():  # pragma: no cover
     """
     Helper function returning the multiprocessing module or the threading
     version of it.
@@ -65,7 +65,7 @@ def get_multiprocessing():
     return multiprocessing
 
 
-def is_multiprocessing_problematic():
+def is_multiprocessing_problematic():  # pragma: no cover
     """
     Return True if multiprocessing is known to have issues on the given
     platform.
@@ -195,7 +195,8 @@ class ProvenanceAccessor(object):
                                                   name=str(key))
 
     def __dir__(self):
-        return self.list() + ["list", "keys", "values", "items"]
+        return self.list() + ["list", "keys", "values", "items",
+                              "get_provenance_document_for_id"]
 
     def list(self):
         """
@@ -248,7 +249,7 @@ class ProvenanceAccessor(object):
             len(self), "\n\t".join(self.list()))
         return ret_str
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -328,7 +329,7 @@ class AuxiliaryDataContainer(object):
                         "%s: %s" % (_i[0], _i[1]) for _i in
                         sorted(self.parameters.items(), key=lambda x: x[0])])))
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -459,7 +460,7 @@ class AuxiliaryDataAccessor(object):
 
         return ret_str
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -530,7 +531,7 @@ class AuxiliaryDataGroupAccessor(object):
             )
         )
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -894,7 +895,7 @@ class WaveformAccessor(object):
             waveforms="\n        ".join(waveform_contents)
         )
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
