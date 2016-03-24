@@ -15,6 +15,7 @@ import hashlib
 import io
 import itertools
 import os
+import re
 import sys
 import time
 import warnings
@@ -703,11 +704,9 @@ class WaveformAccessor(object):
             return False
 
         ds1 = self.__data_set()
-        ds2 = self.__data_set()
+        ds2 = other.__data_set()
         try:
-            if None in [ds1, ds2]:
-                return False
-            if ds1 is not ds2:
+            if ds1.filename != ds2.filename:
                 return False
         finally:
             del ds1
@@ -724,7 +723,9 @@ class WaveformAccessor(object):
         Get coordinates of the station if any.
         """
         coords = self.__get_coordinates(level="station")
-        if self._station_name not in coords:
+        # Such a file actually cannot be created with pyasdf but maybe with
+        # other codes. Thus we skip the coverage here.
+        if self._station_name not in coords:  # pragma: no cover
             raise ASDFValueError("StationXML file has no coordinates for "
                                  "station '%s'." % self._station_name)
         return coords[self._station_name]
@@ -782,7 +783,9 @@ class WaveformAccessor(object):
     def __delitem__(self, key):
         try:
             self.__delete_data(key)
-        except AttributeError as e:
+        # This cannot really happen as it will be caught by the
+        # __filter_data() method.
+        except AttributeError as e:  # pragma: nocover
             raise KeyError(str(e))
 
     def __delattr__(self, item):
@@ -862,10 +865,10 @@ class WaveformAccessor(object):
         if it has one, and all tags.
         """
         # Python 3.
-        if hasattr(object, "__dir__"):
+        if hasattr(object, "__dir__"):  # pragma: no cover
             directory = object.__dir__(self)
         # Python 2.
-        else:
+        else:  # pragma: no cover
             directory = [_i for _i in self.__dict__.keys() if not
                          _i.startswith("_" + self.__class__.__name__)]
 
@@ -919,7 +922,7 @@ class FilteredWaveformAccessor(WaveformAccessor):
 
     def __str__(self):
         content = WaveformAccessor.__str__(self)
-        return "Filtered contents" + content.lstrip("Contents")
+        return re.sub("^Contents", "Filtered contents", content)
 
 
 def is_mpi_env():

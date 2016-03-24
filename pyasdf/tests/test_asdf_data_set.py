@@ -434,6 +434,9 @@ def test_tag_iterator(example_data_set):
                 network=tr.stats.network, station=tr.stats.station,
                 channel=tr.stats.channel, location=tr.stats.location).networks)
 
+        # Cheap test for the str() method.
+        assert str(station).startswith("Filtered contents")
+
     assert expected_ids == []
 
     # It will only return matching tags.
@@ -615,6 +618,17 @@ def test_coordinate_extraction_channel_level(example_data_set):
     assert sorted(data_set.waveforms.TA_POKR.channel_coordinates.keys()) == \
         sorted(['TA.POKR.01.BHZ', 'TA.POKR..BHE', 'TA.POKR..BHZ',
                 'TA.POKR..BHN', 'TA.POKR.01.BHN', 'TA.POKR.01.BHE'])
+
+    # Add an inventory with no channel level => thus no channel level
+    # coordinates.
+    inv = obspy.read_inventory()
+    for net in inv:
+        for sta in net:
+            sta.channels = []
+    data_set.add_stationxml(inv)
+
+    with pytest.raises(ASDFValueError):
+        data_set.waveforms.BW_RJOB.channel_coordinates
 
 
 def test_extract_all_coordinates(example_data_set):
@@ -1375,6 +1389,9 @@ def test_more_queries(example_data_set):
                                   ds.q.channel == "BHZ")) == {
         "TA.POKR..BHZ"
     }
+
+    # Get nothing with a not existing location code.
+    assert not collect_ids(ds.ifilter(ds.q.location == "99"))
 
     # Get the three 100 Hz traces.
     assert collect_ids(ds.ifilter(ds.q.sampling_rate >= 100.0)) == {
@@ -2505,3 +2522,21 @@ def test_auxiliary_data_accessor_missing_lines(tmpdir):
     # Empty accessor.
     del data_set_2.auxiliary_data.AA.random
     assert "Empty auxiliary data group." in str(data_set_2.auxiliary_data.AA)
+
+
+def test_waveform_data_accessor_missing_lines(example_data_set, tmpdir):
+    """
+    Improving test coverage for the waveform data accessor.
+    """
+    ds = ASDFDataSet(example_data_set.filename)
+
+    # Test comparison methods.
+    assert ds.waveforms.AE_113A != 1
+    assert ds.waveforms.AE_113A != "Hello"
+    assert ds.waveforms.AE_113A == ds.waveforms.AE_113A
+    assert ds.waveforms.AE_113A != ds.waveforms.TA_POKR
+
+    ds2 = ASDFDataSet(filename=os.path.join(tmpdir.strpath, "blub.h5"))
+    ds2.add_waveforms(ds.waveforms.AE_113A.raw_recording, tag="raw_recording")
+
+    assert ds.waveforms.AE_113A != ds2.waveforms.AE_113A
