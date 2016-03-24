@@ -608,8 +608,6 @@ class WaveformAccessor(object):
         return self.__data_set()._waveform_group[self._station_name]
 
     def filter_waveforms(self, queries):
-        """
-        """
         wfs = []
 
         for wf in [_i for _i in self.list() if _i != "StationXML"]:
@@ -678,13 +676,15 @@ class WaveformAccessor(object):
                             if queries[id]:
                                 key = id + "_id"
 
-                                # Defaults to an empty id.
+                                # Defaults to an empty id. Each can
+                                # potentially be a list of values.
                                 if key in attrs:
-                                    value = attrs[key].tostring().decode()
+                                    values = attrs[key].tostring().decode()\
+                                        .split(",")
                                 else:
-                                    value = None
+                                    values = [None]
 
-                                if queries[id](value) is False:
+                                if not any(queries[id](_i) for _i in values):
                                     any_fails = True
                                     break
                         if any_fails is True:
