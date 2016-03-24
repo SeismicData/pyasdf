@@ -2110,3 +2110,66 @@ def test_associating_multiple_events_origin_and_other_thingsG(tmpdir):
             magnitude_3.resource_id] == st[0].stats.asdf.magnitude_ids
     assert [focmec_1.resource_id, focmec_2.resource_id,
             focmec_3.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+
+def test_multiple_event_associations_are_persistent_through_processing(tmpdir):
+    """
+    Processing a file with an associated event and storing it again should
+    keep the association for all the possible event tags..
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    ds = ASDFDataSet(filename)
+
+    cat = obspy.read_events()
+    # Add random focal mechanisms.
+    cat[0].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[1].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[2].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+
+    ds.add_quakeml(cat)
+
+    event_1 = ds.events[0]
+    origin_1 = event_1.origins[0]
+    magnitude_1 = event_1.magnitudes[0]
+    focmec_1 = event_1.focal_mechanisms[0]
+
+    event_2 = ds.events[1]
+    origin_2 = event_2.origins[0]
+    magnitude_2 = event_2.magnitudes[0]
+    focmec_2 = event_2.focal_mechanisms[0]
+
+    event_3 = ds.events[2]
+    origin_3 = event_3.origins[0]
+    magnitude_3 = event_3.magnitudes[0]
+    focmec_3 = event_3.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+    tr.stats.network = "BW"
+    tr.stats.station = "RJOB"
+
+    # Actually doing multiple ones.
+    ds.add_waveforms(tr, tag="random",
+                     event_id=[event_1, event_2, event_3],
+                     origin_id=[origin_1, origin_2, origin_3],
+                     focal_mechanism_id=[focmec_1, focmec_2, focmec_3],
+                     magnitude_id=[magnitude_1, magnitude_2, magnitude_3])
+
+    new_st = ds.waveforms.BW_RJOB.random
+    new_st.taper(max_percentage=0.05, type="cosine")
+
+    ds.add_waveforms(new_st, tag="processed")
+
+    # Close and reopen.
+    del ds
+    ds = ASDFDataSet(filename)
+
+    st = ds.waveforms["BW.RJOB"]["processed"]
+    assert [event_1.resource_id, event_2.resource_id, event_3.resource_id] == \
+        st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id, origin_2.resource_id,
+            origin_3.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id, magnitude_2.resource_id,
+            magnitude_3.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id, focmec_2.resource_id,
+            focmec_3.resource_id] == st[0].stats.asdf.focal_mechanism_ids
