@@ -17,8 +17,18 @@ import flake8.engine
 import flake8.main
 import inspect
 import os
+import re
+
+import pytest
+
+import pyasdf
+
+_pattern = re.compile(r"^\d+\.\d+\.\d+$")
+CLEAN_VERSION_NUMBER = bool(_pattern.match(pyasdf.__version__))
 
 
+@pytest.mark.skipif(CLEAN_VERSION_NUMBER,
+                    reason="Don't test code formatting for release versions.")
 def test_flake8():
     test_dir = os.path.dirname(os.path.abspath(inspect.getfile(
         inspect.currentframe())))
