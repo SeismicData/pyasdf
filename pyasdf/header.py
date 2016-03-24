@@ -38,7 +38,7 @@ for key, value in list(COMPRESSIONS.items()):
 
 
 FORMAT_NAME = "ASDF"
-FORMAT_VERSION = "0.0.2"
+FORMAT_VERSION = "1.0.0"
 
 
 # Regular expression for allowed filenames within the provenance group.
