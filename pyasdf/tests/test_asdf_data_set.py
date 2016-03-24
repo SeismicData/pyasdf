@@ -492,6 +492,11 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     del data_set
 
     new_data_set = ASDFDataSet(asdf_filename)
+
+    assert len(new_data_set.auxiliary_data) == 1
+    assert sorted(dir(new_data_set.auxiliary_data)), \
+        sorted(["list", "RandomArrays"])
+
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
@@ -1971,6 +1976,12 @@ def test_deleting_auxiliary_data(tmpdir):
     assert len(ds.auxiliary_data.RandomArrays.some.nested) == 0
     with pytest.raises(AttributeError):
         ds.auxiliary_data.RandomArrays.some.nested.path
+
+    # Try deleting something that does not exist.
+    with pytest.raises(AttributeError):
+        del ds.auxiliary_data.i_do_not_exist
+    with pytest.raises(KeyError):
+        del ds.auxiliary_data["i_do_not_exist"]
 
     _add_aux_data("RandomArrays", "some/nested/path")
     assert ds.auxiliary_data["RandomArrays"]
