@@ -264,7 +264,7 @@ class AuxiliaryDataContainer(object):
             # It might be returned as a byte string on some systems.
             try:
                 self.provenance_id = self.provenance_id.decode()
-            except:
+            except:  # pragma: no cover
                 pass
         else:
             self.provenance_id = None
@@ -276,7 +276,7 @@ class AuxiliaryDataContainer(object):
         if type(self) is not type(other):
             return False
 
-        if self.path != other.tag or self.data_type != other.data_type or \
+        if self.path != other.path or self.data_type != other.data_type or \
                 self.provenance_id != self.provenance_id or \
                 self.parameters != self.parameters:
             return False

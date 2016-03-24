@@ -24,7 +24,8 @@ import prov
 import pytest
 
 from pyasdf import ASDFDataSet
-from pyasdf.exceptions import WaveformNotInFileException, ASDFValueError
+from pyasdf.exceptions import (WaveformNotInFileException, ASDFValueError,
+                               ASDFAttributeError)
 from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
 
 
@@ -2379,7 +2380,7 @@ def test_event_iteration_with_multiple_events(tmpdir):
     assert result == ["AA.AA"]
 
 
-def test_provenance_accessor_missing_items(tmpdir):
+def test_provenance_accessor_missing_lines(tmpdir):
     """
     Tests some missing lines in the provenance accessor.
     """
@@ -2404,3 +2405,44 @@ def test_provenance_accessor_missing_items(tmpdir):
     assert sorted(dir(data_set.provenance)) == \
         sorted(["test_provenance", "list", "keys", "values", "items",
                 "get_provenance_document_for_id"])
+
+
+def test_auxiliary_data_container_missing_lines(tmpdir):
+    """
+    Improving test coverage for the auxiliary data container.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # Define some auxiliary data and add it.
+    data = np.random.random(100)
+    data_type = "RandomArrays"
+    path = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
+                                parameters=parameters)
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                path="test_data_2", parameters=parameters)
+
+    container = data_set.auxiliary_data.RandomArrays.test_data
+
+    # Test comparison methods.
+    assert container != 1
+    assert container != "A"
+
+    container_2 = data_set.auxiliary_data.RandomArrays.test_data
+
+    assert container == container_2
+
+    container_2.data = container_2.data[:] * -1.0
+
+    assert container != container_2
+
+    container_3 = data_set.auxiliary_data.RandomArrays.test_data_2
+
+    assert container != container_3
+
+    # File accessor does not work for non file items.
+    with pytest.raises(ASDFAttributeError):
+        container.file
