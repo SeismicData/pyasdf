@@ -13,9 +13,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import sys
 
-if sys.version_info.major == 3:
+if sys.version_info.major == 3:  # pragma: no cover
     string_types = (bytes, str)
     unicode_type = str
-else:
+else:  # pragma: no cover
     string_types = (bytes, str, unicode)  # NOQA
     unicode_type = unicode  # NOQA

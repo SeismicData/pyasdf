@@ -13,7 +13,9 @@ import copy
 import collections
 import hashlib
 import io
+import itertools
 import os
+import re
 import sys
 import time
 import warnings
@@ -30,6 +32,7 @@ from lxml.etree import QName
 import numpy as np
 import obspy
 
+from .compat import string_types
 from .exceptions import (WaveformNotInFileException, NoStationXMLForStation,
                          ASDFValueError, ASDFAttributeError)
 from .header import MSG_TAGS
@@ -42,7 +45,7 @@ Worker = collections.namedtuple("Worker", ["active_jobs",
                                            "completed_jobs_count"])
 
 
-def get_multiprocessing():
+def get_multiprocessing():  # pragma: no cover
     """
     Helper function returning the multiprocessing module or the threading
     version of it.
@@ -63,7 +66,7 @@ def get_multiprocessing():
     return multiprocessing
 
 
-def is_multiprocessing_problematic():
+def is_multiprocessing_problematic():  # pragma: no cover
     """
     Return True if multiprocessing is known to have issues on the given
     platform.
@@ -193,7 +196,8 @@ class ProvenanceAccessor(object):
                                                   name=str(key))
 
     def __dir__(self):
-        return self.list() + ["list", "keys", "values", "items"]
+        return self.list() + ["list", "keys", "values", "items",
+                              "get_provenance_document_for_id"]
 
     def list(self):
         """
@@ -246,7 +250,7 @@ class ProvenanceAccessor(object):
             len(self), "\n\t".join(self.list()))
         return ret_str
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -261,7 +265,7 @@ class AuxiliaryDataContainer(object):
             # It might be returned as a byte string on some systems.
             try:
                 self.provenance_id = self.provenance_id.decode()
-            except:
+            except:  # pragma: no cover
                 pass
         else:
             self.provenance_id = None
@@ -273,7 +277,7 @@ class AuxiliaryDataContainer(object):
         if type(self) is not type(other):
             return False
 
-        if self.path != other.tag or self.data_type != other.data_type or \
+        if self.path != other.path or self.data_type != other.data_type or \
                 self.provenance_id != self.provenance_id or \
                 self.parameters != self.parameters:
             return False
@@ -326,7 +330,7 @@ class AuxiliaryDataContainer(object):
                         "%s: %s" % (_i[0], _i[1]) for _i in
                         sorted(self.parameters.items(), key=lambda x: x[0])])))
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -348,11 +352,9 @@ class AuxiliaryDataAccessor(object):
             return False
 
         ds1 = self.__data_set()
-        ds2 = self.__data_set()
+        ds2 = other.__data_set()
         try:
-            if None in [ds1, ds2]:
-                return False
-            if ds1 is not ds2:
+            if ds1.filename != ds2.filename:
                 return False
         finally:
             del ds1
@@ -396,7 +398,8 @@ class AuxiliaryDataAccessor(object):
         except AttributeError as e:
             raise KeyError(str(e))
 
-    def get_auxiliary_data_type(self):
+    @property
+    def auxiliary_data_type(self):
         return self.__auxiliary_data_type
 
     def list(self):
@@ -404,7 +407,7 @@ class AuxiliaryDataAccessor(object):
             self.__auxiliary_data_type].keys())
 
     def __dir__(self):
-        return self.list() + ["list"]
+        return self.list() + ["list", "auxiliary_data_type"]
 
     def __len__(self):
         return len(self.list())
@@ -457,7 +460,7 @@ class AuxiliaryDataAccessor(object):
 
         return ret_str
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -528,7 +531,7 @@ class AuxiliaryDataGroupAccessor(object):
             )
         )
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -606,8 +609,6 @@ class WaveformAccessor(object):
         return self.__data_set()._waveform_group[self._station_name]
 
     def filter_waveforms(self, queries):
-        """
-        """
         wfs = []
 
         for wf in [_i for _i in self.list() if _i != "StationXML"]:
@@ -676,13 +677,15 @@ class WaveformAccessor(object):
                             if queries[id]:
                                 key = id + "_id"
 
-                                # Defaults to an empty id.
+                                # Defaults to an empty id. Each can
+                                # potentially be a list of values.
                                 if key in attrs:
-                                    value = attrs[key].tostring().decode()
+                                    values = attrs[key].tostring().decode()\
+                                        .split(",")
                                 else:
-                                    value = None
+                                    values = [None]
 
-                                if queries[id](value) is False:
+                                if not any(queries[id](_i) for _i in values):
                                     any_fails = True
                                     break
                         if any_fails is True:
@@ -701,11 +704,9 @@ class WaveformAccessor(object):
             return False
 
         ds1 = self.__data_set()
-        ds2 = self.__data_set()
+        ds2 = other.__data_set()
         try:
-            if None in [ds1, ds2]:
-                return False
-            if ds1 is not ds2:
+            if ds1.filename != ds2.filename:
                 return False
         finally:
             del ds1
@@ -722,7 +723,9 @@ class WaveformAccessor(object):
         Get coordinates of the station if any.
         """
         coords = self.__get_coordinates(level="station")
-        if self._station_name not in coords:
+        # Such a file actually cannot be created with pyasdf but maybe with
+        # other codes. Thus we skip the coverage here.
+        if self._station_name not in coords:  # pragma: no cover
             raise ASDFValueError("StationXML file has no coordinates for "
                                  "station '%s'." % self._station_name)
         return coords[self._station_name]
@@ -736,7 +739,7 @@ class WaveformAccessor(object):
         # Filter to only keep channels with the current station name.
         coords = {key: value for key, value in coords.items()
                   if key.startswith(self._station_name + ".")}
-        if not(coords):
+        if not coords:
             raise ASDFValueError("StationXML file has no coordinates at "
                                  "the channel level for station '%s'." %
                                  self._station_name)
@@ -780,7 +783,9 @@ class WaveformAccessor(object):
     def __delitem__(self, key):
         try:
             self.__delete_data(key)
-        except AttributeError as e:
+        # This cannot really happen as it will be caught by the
+        # __filter_data() method.
+        except AttributeError as e:  # pragma: nocover
             raise KeyError(str(e))
 
     def __delattr__(self, item):
@@ -860,10 +865,10 @@ class WaveformAccessor(object):
         if it has one, and all tags.
         """
         # Python 3.
-        if hasattr(object, "__dir__"):
+        if hasattr(object, "__dir__"):  # pragma: no cover
             directory = object.__dir__(self)
         # Python 2.
-        else:
+        else:  # pragma: no cover
             directory = [_i for _i in self.__dict__.keys() if not
                          _i.startswith("_" + self.__class__.__name__)]
 
@@ -892,7 +897,7 @@ class WaveformAccessor(object):
             waveforms="\n        ".join(waveform_contents)
         )
 
-    def _repr_pretty_(self, p, cycle):
+    def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
 
 
@@ -917,7 +922,7 @@ class FilteredWaveformAccessor(WaveformAccessor):
 
     def __str__(self):
         content = WaveformAccessor.__str__(self)
-        return "Filtered contents" + content.lstrip("Contents")
+        return re.sub("^Contents", "Filtered contents", content)
 
 
 def is_mpi_env():
@@ -1229,3 +1234,35 @@ def labelstring2list(labels):
     String to a list of labels.
     """
     return [_i.strip() for _i in labels.split(",")]
+
+
+def is_list(obj):
+    """
+    True if the returned object is an iterable but not a string.
+
+    :param obj: The object to test.
+    """
+    return isinstance(obj, collections.Iterable) and \
+        not isinstance(obj, string_types)
+
+
+def to_list_of_resource_identifiers(obj, name, obj_type):
+    if not obj:
+        return obj
+
+    if is_list(obj) and not isinstance(obj, obj_type):
+        return list(itertools.chain.from_iterable([
+            to_list_of_resource_identifiers(_i, name, obj_type)
+            for _i in obj]))
+
+    if isinstance(obj, obj_type):
+        obj = obj.resource_id
+    elif isinstance(obj, obspy.core.event.ResourceIdentifier):
+        obj = obj
+    else:
+        try:
+            obj = obspy.core.event.ResourceIdentifier(obj)
+        except:
+            msg = "Invalid type for %s." % name
+            raise TypeError(msg)
+    return [obj]

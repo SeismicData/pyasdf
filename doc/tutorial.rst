@@ -23,8 +23,8 @@ following resources are useful if you are starting out with Python and ObsPy:
 * `Good, general Python tutorial <http://learnpythonthehardway.org/book/>`_
 * `IPython Notebook in Nature <http://www.nature.com/news/interactive-notebooks-sharing-the-code-1.16261>`_
 * `Introduction to the scientific Python ecosystem <https://scipy-lectures.github.io/>`_
-* `The ObsPy Documentation <http://docs.obspy.org/master>`_
-* `The ObsPy Tutorial <http://docs.obspy.org/master/tutorial/index.html>`_
+* `The ObsPy Documentation <http://docs.obspy.org>`_
+* `The ObsPy Tutorial <http://docs.obspy.org/tutorial/index.html>`_
 
 Using pyasdf
 ------------
@@ -50,6 +50,7 @@ demonstrates more complex workflows.
     Due to a limitation of Python you should always delete all references to
     the :class:`~pyasdf.asdf_data_set.ASDFDataSet` objects at the end.
     Otherwise the program will potentially not finish when called with MPI.
+    An even better alternative is described in :doc:`usage_as_context_manager`.
 
 
 Creating an ASDF data set
@@ -78,7 +79,7 @@ At any point you can get an overview of the contents by printing the object
 .. code-block:: python
 
     >>> print(ds)
-    ASDF file [format version: 0.0.1b]: 'new_file.h5' (7.7 KB)
+    ASDF file [format version: 1.0.0]: 'new_file.h5' (7.7 KB)
     Contains 0 event(s)
     Contains waveform data from 0 station(s).
 
@@ -97,7 +98,7 @@ sets.
 
     >>> ds.add_quakeml("/path/to/quake.xml")
     >>> print(ds)
-    ASDF file [format version: 0.0.1b]: 'new_file.h5' (14.7 KB)
+    ASDF file [format version: 1.0.0]: 'new_file.h5' (14.7 KB)
     Contains 1 event(s)
     Contains waveform data from 0 station(s).
 
@@ -143,7 +144,7 @@ amounts of data. There are a couple of subtleties to keep in mind here:
     Adding file 1 of 588 ...
     ...
     >>> print(ds)
-    ASDF file [format version: 0.0.1b]: 'new_file.h5' (169.7 MB)
+    ASDF file [format version: 1.0.0]: 'new_file.h5' (169.7 MB)
     Contains 1 event(s)
     Contains waveform data from 196 station(s).
 
@@ -174,7 +175,7 @@ which is fairly straightforward.
     Adding file 1 of 196 ...
     ...
     >>> print(ds)
-    ASDF file [format version: 0.0.1b]: 'new_file.h5' (188.3 MB)
+    ASDF file [format version: 1.0.0]: 'new_file.h5' (188.3 MB)
     Contains 1 event(s)
     Contains waveform data from 196 station(s).
 
@@ -203,7 +204,7 @@ up with conventions of how to use this.
     >>> ds.add_auxiliary_data(data=data, data_type=data_type, path=path,
     ...                       parameters=parameters)
     >>> print(ds)
-    ASDF file [format version: b'0.0.1b']: 'new_file.h5' (188.3 MB)
+    ASDF file [format version: '1.0.0']: 'new_file.h5' (188.3 MB)
     Contains 1 event(s)
     Contains waveform data from 196 station(s).
     Contains 1 type(s) of auxiliary data: RandomArrays
@@ -373,7 +374,7 @@ so it can for example tell what event a certain waveform is associated with:
 .. code-block:: python
 
     >>> cat = ds.events  # The events have to be in memory for the reference to work.
-    >>> print(sta.synthetic[0].stats.asdf.event_id.getReferredObject())
+    >>> print(sta.synthetic[0].stats.asdf.event_ids[0].get_referred_object())
     Event:	1998-09-01T10:29:54.500000Z | -58.500,  -26.100 | 5.5 Mwc
 
             resource_id: ResourceIdentifier(id="smi:service.iris.edu/fdsnws/event/1/query?eventid=656970")
@@ -394,6 +395,7 @@ waveform trace:
     >>> ds.provenance.get_provenance_document_for_id(prov_id)
     {'document': <ProvDocument>, 'name': '373da5fe_d424_4f44_9bca_4334d77ed10b'}
     >>> ds.provenance.get_provenance_document_for_id(prov_id)["document"].plot()
+
 
 .. graphviz:: _static/example_waveform_simulation.dot
 

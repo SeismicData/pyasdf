@@ -1,2 +1,3 @@
 *.egg-info
 doc/_build/
+.cache

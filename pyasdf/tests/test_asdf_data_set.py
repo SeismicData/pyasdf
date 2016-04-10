@@ -24,7 +24,8 @@ import prov
 import pytest
 
 from pyasdf import ASDFDataSet
-from pyasdf.exceptions import WaveformNotInFileException, ASDFValueError
+from pyasdf.exceptions import (WaveformNotInFileException, ASDFValueError,
+                               ASDFAttributeError)
 from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
 
 
@@ -120,7 +121,7 @@ def test_data_set_creation(tmpdir):
             os.path.join(data_path, "%s.%s..BH*.xml" % station))
         assert inv_file == inv_asdf
     # Test the event.
-    cat_file = obspy.readEvents(os.path.join(data_path, "quake.xml"))
+    cat_file = obspy.read_events(os.path.join(data_path, "quake.xml"))
     cat_asdf = data_set.events
     # from IPython.core.debugger import Tracer; Tracer(colors="Linux")()
     assert cat_file == cat_asdf
@@ -196,7 +197,7 @@ def test_adding_event_in_various_manners(tmpdir):
     data_path = os.path.join(data_dir, "small_sample_data_set")
     event_filename = os.path.join(data_path, "quake.xml")
 
-    ref_cat = obspy.readEvents(event_filename)
+    ref_cat = obspy.read_events(event_filename)
 
     # Add as filename
     data_set = ASDFDataSet(asdf_filename)
@@ -328,7 +329,7 @@ def test_saving_event_id(tmpdir):
     """
     data_path = os.path.join(data_dir, "small_sample_data_set")
     filename = os.path.join(tmpdir.strpath, "example.h5")
-    event = obspy.readEvents(os.path.join(data_path, "quake.xml"))[0]
+    event = obspy.read_events(os.path.join(data_path, "quake.xml"))[0]
 
     # Add the event object, and associate the waveform with it.
     data_set = ASDFDataSet(filename)
@@ -337,7 +338,7 @@ def test_saving_event_id(tmpdir):
     data_set.add_waveforms(waveform, "raw_recording", event_id=event)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.getReferredObject() == event
+        assert tr.stats.asdf.event_ids[0].get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -349,7 +350,7 @@ def test_saving_event_id(tmpdir):
                            event_id=str(event.resource_id.id))
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.getReferredObject() == event
+        assert tr.stats.asdf.event_ids[0].get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -361,7 +362,7 @@ def test_saving_event_id(tmpdir):
                            event_id=event.resource_id)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
-        assert tr.stats.asdf.event_id.getReferredObject() == event
+        assert tr.stats.asdf.event_ids[0].get_referred_object() == event
     del data_set
     os.remove(filename)
 
@@ -373,13 +374,13 @@ def test_event_association_is_persistent_through_processing(example_data_set):
     """
     data_set = ASDFDataSet(example_data_set.filename)
     st = data_set.waveforms.TA_POKR.raw_recording
-    event_id = st[0].stats.asdf.event_id
+    event_id = st[0].stats.asdf.event_ids[0]
 
     st.taper(max_percentage=0.05, type="cosine")
 
     data_set.add_waveforms(st, tag="processed")
     processed_st = data_set.waveforms.TA_POKR.processed
-    assert event_id == processed_st[0].stats.asdf.event_id
+    assert event_id == processed_st[0].stats.asdf.event_ids[0]
 
 
 def test_detailed_event_association_is_persistent_through_processing(
@@ -408,10 +409,11 @@ def test_detailed_event_association_is_persistent_through_processing(
 
     data_set.add_waveforms(new_st, tag="processed")
     processed_st = data_set.waveforms.BW_RJOB.processed
-    assert event.resource_id == processed_st[0].stats.asdf.event_id
-    assert origin.resource_id == processed_st[0].stats.asdf.origin_id
-    assert magnitude.resource_id == processed_st[0].stats.asdf.magnitude_id
-    assert focmec.resource_id == processed_st[0].stats.asdf.focal_mechanism_id
+    assert event.resource_id == processed_st[0].stats.asdf.event_ids[0]
+    assert origin.resource_id == processed_st[0].stats.asdf.origin_ids[0]
+    assert magnitude.resource_id == processed_st[0].stats.asdf.magnitude_ids[0]
+    assert focmec.resource_id == \
+        processed_st[0].stats.asdf.focal_mechanism_ids[0]
 
 
 def test_tag_iterator(example_data_set):
@@ -431,6 +433,9 @@ def test_tag_iterator(example_data_set):
             assert bool(inv.select(
                 network=tr.stats.network, station=tr.stats.station,
                 channel=tr.stats.channel, location=tr.stats.location).networks)
+
+        # Cheap test for the str() method.
+        assert str(station).startswith("Filtered contents")
 
     assert expected_ids == []
 
@@ -490,6 +495,11 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     del data_set
 
     new_data_set = ASDFDataSet(asdf_filename)
+
+    assert len(new_data_set.auxiliary_data) == 1
+    assert sorted(dir(new_data_set.auxiliary_data)), \
+        sorted(["list", "RandomArrays"])
+
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
@@ -608,6 +618,17 @@ def test_coordinate_extraction_channel_level(example_data_set):
     assert sorted(data_set.waveforms.TA_POKR.channel_coordinates.keys()) == \
         sorted(['TA.POKR.01.BHZ', 'TA.POKR..BHE', 'TA.POKR..BHZ',
                 'TA.POKR..BHN', 'TA.POKR.01.BHN', 'TA.POKR.01.BHE'])
+
+    # Add an inventory with no channel level => thus no channel level
+    # coordinates.
+    inv = obspy.read_inventory()
+    for net in inv:
+        for sta in net:
+            sta.channels = []
+    data_set.add_stationxml(inv)
+
+    with pytest.raises(ASDFValueError):
+        data_set.waveforms.BW_RJOB.channel_coordinates
 
 
 def test_extract_all_coordinates(example_data_set):
@@ -1369,6 +1390,9 @@ def test_more_queries(example_data_set):
         "TA.POKR..BHZ"
     }
 
+    # Get nothing with a not existing location code.
+    assert not collect_ids(ds.ifilter(ds.q.location == "99"))
+
     # Get the three 100 Hz traces.
     assert collect_ids(ds.ifilter(ds.q.sampling_rate >= 100.0)) == {
         "BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
@@ -1970,6 +1994,12 @@ def test_deleting_auxiliary_data(tmpdir):
     with pytest.raises(AttributeError):
         ds.auxiliary_data.RandomArrays.some.nested.path
 
+    # Try deleting something that does not exist.
+    with pytest.raises(AttributeError):
+        del ds.auxiliary_data.i_do_not_exist
+    with pytest.raises(KeyError):
+        del ds.auxiliary_data["i_do_not_exist"]
+
     _add_aux_data("RandomArrays", "some/nested/path")
     assert ds.auxiliary_data["RandomArrays"]
     assert ds.auxiliary_data["RandomArrays"]["some"]["nested"]["path"]
@@ -2031,3 +2061,482 @@ def test_using_invalid_tag_names(tmpdir):
 
     del e
     del data_set
+
+
+def test_associating_multiple_events_origin_and_other_thingsG(tmpdir):
+    """
+    Each trace should be able to refer to multiple events, origins,
+    magnitudes, and focal mechanisms.
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    ds = ASDFDataSet(filename)
+
+    cat = obspy.read_events()
+    # Add random focal mechanisms.
+    cat[0].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[1].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[2].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+
+    ds.add_quakeml(cat)
+
+    event_1 = ds.events[0]
+    origin_1 = event_1.origins[0]
+    magnitude_1 = event_1.magnitudes[0]
+    focmec_1 = event_1.focal_mechanisms[0]
+
+    event_2 = ds.events[1]
+    origin_2 = event_2.origins[0]
+    magnitude_2 = event_2.magnitudes[0]
+    focmec_2 = event_2.focal_mechanisms[0]
+
+    event_3 = ds.events[2]
+    origin_3 = event_3.origins[0]
+    magnitude_3 = event_3.magnitudes[0]
+    focmec_3 = event_3.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+    tr.stats.network = "BW"
+    tr.stats.station = "RJOB"
+
+    # Just a single one.
+    ds.add_waveforms(tr, tag="random", event_id=event_1,
+                     origin_id=origin_1, focal_mechanism_id=focmec_1,
+                     magnitude_id=magnitude_1)
+
+    st = ds.waveforms["BW.RJOB"]["random"]
+    assert [event_1.resource_id] == st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+    # Again just a single one but passed as a list.
+    ds.add_waveforms(tr, tag="random_2",
+                     event_id=[event_1],
+                     origin_id=[origin_1],
+                     focal_mechanism_id=[focmec_1],
+                     magnitude_id=[magnitude_1])
+
+    st = ds.waveforms["BW.RJOB"]["random_2"]
+    assert [event_1.resource_id] == st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+    # Actually doing multiple ones.
+    ds.add_waveforms(tr, tag="random_3",
+                     event_id=[event_1, event_2, event_3],
+                     origin_id=[origin_1, origin_2, origin_3],
+                     focal_mechanism_id=[focmec_1, focmec_2, focmec_3],
+                     magnitude_id=[magnitude_1, magnitude_2, magnitude_3])
+
+    st = ds.waveforms["BW.RJOB"]["random_3"]
+    assert [event_1.resource_id, event_2.resource_id, event_3.resource_id] == \
+        st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id, origin_2.resource_id,
+            origin_3.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id, magnitude_2.resource_id,
+            magnitude_3.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id, focmec_2.resource_id,
+            focmec_3.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+
+def test_multiple_event_associations_are_persistent_through_processing(tmpdir):
+    """
+    Processing a file with an associated event and storing it again should
+    keep the association for all the possible event tags..
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    ds = ASDFDataSet(filename)
+
+    cat = obspy.read_events()
+    # Add random focal mechanisms.
+    cat[0].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[1].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[2].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+
+    ds.add_quakeml(cat)
+
+    event_1 = ds.events[0]
+    origin_1 = event_1.origins[0]
+    magnitude_1 = event_1.magnitudes[0]
+    focmec_1 = event_1.focal_mechanisms[0]
+
+    event_2 = ds.events[1]
+    origin_2 = event_2.origins[0]
+    magnitude_2 = event_2.magnitudes[0]
+    focmec_2 = event_2.focal_mechanisms[0]
+
+    event_3 = ds.events[2]
+    origin_3 = event_3.origins[0]
+    magnitude_3 = event_3.magnitudes[0]
+    focmec_3 = event_3.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+    tr.stats.network = "BW"
+    tr.stats.station = "RJOB"
+
+    # Actually doing multiple ones.
+    ds.add_waveforms(tr, tag="random",
+                     event_id=[event_1, event_2, event_3],
+                     origin_id=[origin_1, origin_2, origin_3],
+                     focal_mechanism_id=[focmec_1, focmec_2, focmec_3],
+                     magnitude_id=[magnitude_1, magnitude_2, magnitude_3])
+
+    new_st = ds.waveforms.BW_RJOB.random
+    new_st.taper(max_percentage=0.05, type="cosine")
+
+    ds.add_waveforms(new_st, tag="processed")
+
+    # Close and reopen.
+    del ds
+    ds = ASDFDataSet(filename)
+
+    st = ds.waveforms["BW.RJOB"]["processed"]
+    assert [event_1.resource_id, event_2.resource_id, event_3.resource_id] == \
+        st[0].stats.asdf.event_ids
+    assert [origin_1.resource_id, origin_2.resource_id,
+            origin_3.resource_id] == st[0].stats.asdf.origin_ids
+    assert [magnitude_1.resource_id, magnitude_2.resource_id,
+            magnitude_3.resource_id] == st[0].stats.asdf.magnitude_ids
+    assert [focmec_1.resource_id, focmec_2.resource_id,
+            focmec_3.resource_id] == st[0].stats.asdf.focal_mechanism_ids
+
+
+def test_event_iteration_with_multiple_events(tmpdir):
+    """
+    Tests the iteration over a dataset by event attributes.
+    """
+    filename = os.path.join(tmpdir.strpath, "example.h5")
+
+    ds = ASDFDataSet(filename)
+
+    cat = obspy.read_events()
+    # Add random focal mechanisms.
+    cat[0].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+    cat[1].focal_mechanisms.append(obspy.core.event.FocalMechanism())
+
+    ds.add_quakeml(cat)
+
+    event_1 = ds.events[0]
+    origin_1 = event_1.origins[0]
+    magnitude_1 = event_1.magnitudes[0]
+    focmec_1 = event_1.focal_mechanisms[0]
+
+    event_2 = ds.events[1]
+    origin_2 = event_2.origins[0]
+    magnitude_2 = event_2.magnitudes[0]
+    focmec_2 = event_2.focal_mechanisms[0]
+
+    tr = obspy.read()[0]
+
+    # Has everything, two of each.
+    tr.stats.network = "AA"
+    tr.stats.station = "AA"
+    ds.add_waveforms(tr, tag="random_a",
+                     event_id=[event_1, event_2],
+                     origin_id=[origin_1, origin_2],
+                     focal_mechanism_id=[focmec_1, focmec_2],
+                     magnitude_id=[magnitude_1, magnitude_2])
+    # Has only the events.
+    tr.stats.network = "BB"
+    tr.stats.station = "BB"
+    ds.add_waveforms(tr, tag="random_b", event_id=[event_1, event_2])
+
+    # Only the origins.
+    tr.stats.network = "CC"
+    tr.stats.station = "CC"
+    ds.add_waveforms(tr, tag="random_c", origin_id=[origin_1, origin_2])
+
+    # Only the magnitude.
+    tr.stats.network = "DD"
+    tr.stats.station = "DD"
+    ds.add_waveforms(tr, tag="random_d", magnitude_id=[magnitude_1,
+                                                       magnitude_2])
+
+    # Only the focal mechanisms.
+    tr.stats.network = "EE"
+    tr.stats.station = "EE"
+    ds.add_waveforms(tr, tag="random_e", focal_mechanism_id=[focmec_1,
+                                                             focmec_2])
+
+    # Nothing.
+    tr.stats.network = "FF"
+    tr.stats.station = "FF"
+    ds.add_waveforms(tr, tag="random_f")
+
+    # Test with random ids..should all return nothing.
+    random_ids = [
+        "test", "random",
+        obspy.core.event.ResourceIdentifier(
+            "smi:service.iris.edu/fdsnws/event/1/query?random_things")]
+    for r_id in random_ids:
+        assert list(ds.ifilter(ds.q.event == r_id)) == []
+        assert list(ds.ifilter(ds.q.magnitude == r_id)) == []
+        assert list(ds.ifilter(ds.q.origin == r_id)) == []
+        assert list(ds.ifilter(ds.q.focal_mechanism == r_id)) == []
+
+    # Both events in various realizations.
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_1)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.event == event_1.resource_id)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == str(event_1.resource_id))]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == event_1,
+                                   ds.q.magnitude == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
+    assert result == ["BB.BB"]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_2)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.event == event_2.resource_id)]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == str(event_2.resource_id))]
+    assert result == ["AA.AA", "BB.BB"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == event_2,
+                                   ds.q.magnitude == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
+    assert result == ["BB.BB"]
+
+    # Origin as a resource identifier and as a string, and with others equal to
+    # None.
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_1)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_1.resource_id)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == str(origin_1.resource_id))]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == origin_1,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["CC.CC"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_2)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.origin == origin_2.resource_id)]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == str(origin_2.resource_id))]
+    assert result == ["AA.AA", "CC.CC"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.origin == origin_2,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["CC.CC"]
+
+    # Magnitude as a resource identifier and as a string, and with others
+    # equal to None.
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_1)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_1.resource_id)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.magnitude == str(magnitude_1.resource_id))]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == magnitude_1,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["DD.DD"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_2)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.magnitude == magnitude_2.resource_id)]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.magnitude == str(magnitude_2.resource_id))]
+    assert result == ["AA.AA", "DD.DD"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.magnitude == magnitude_2,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["DD.DD"]
+
+    # Focal mechanisms as a resource identifier and as a string, and with
+    # others equal to None.
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_1)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_1.resource_id)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.focal_mechanism == str(focmec_1.resource_id))]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == focmec_1,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["EE.EE"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_2)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in
+              ds.ifilter(ds.q.focal_mechanism == focmec_2.resource_id)]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name for _i in ds.ifilter(
+        ds.q.focal_mechanism == str(focmec_2.resource_id))]
+    assert result == ["AA.AA", "EE.EE"]
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.focal_mechanism == focmec_2,
+                                   ds.q.event == None)]  # NOQA
+    assert result == ["EE.EE"]
+
+    # No existing ids are treated like empty ids.
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event == None,
+                                   ds.q.magnitude == None,
+                                   ds.q.origin == None,
+                                   ds.q.focal_mechanism == None)]  # NOQA
+    assert result == ["FF.FF"]
+
+    result = [_i._station_name
+              for _i in ds.ifilter(ds.q.event != None,
+                                   ds.q.magnitude != None,
+                                   ds.q.origin != None,
+                                   ds.q.focal_mechanism != None)]  # NOQA
+    assert result == ["AA.AA"]
+
+
+def test_provenance_accessor_missing_lines(tmpdir):
+    """
+    Tests some missing lines in the provenance accessor.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    assert str(data_set.provenance) == "No provenance document in file."
+
+    filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
+
+    # Add it as a document.
+    doc = prov.read(filename, format="xml")
+    data_set.add_provenance_document(doc, name="test_provenance")
+    del data_set
+
+    # Read it again.
+    data_set = ASDFDataSet(asdf_filename)
+
+    with pytest.raises(AttributeError):
+        del data_set.provenance.random
+
+    assert sorted(dir(data_set.provenance)) == \
+        sorted(["test_provenance", "list", "keys", "values", "items",
+                "get_provenance_document_for_id"])
+
+
+def test_auxiliary_data_container_missing_lines(tmpdir):
+    """
+    Improving test coverage for the auxiliary data container.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # Define some auxiliary data and add it.
+    data = np.random.random(100)
+    data_type = "RandomArrays"
+    path = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type=data_type, path=path,
+                                parameters=parameters)
+    data_set.add_auxiliary_data(data=data, data_type=data_type,
+                                path="test_data_2", parameters=parameters)
+
+    container = data_set.auxiliary_data.RandomArrays.test_data
+
+    # Test comparison methods.
+    assert container != 1
+    assert container != "A"
+
+    container_2 = data_set.auxiliary_data.RandomArrays.test_data
+
+    assert container == container_2
+
+    container_2.data = container_2.data[:] * -1.0
+
+    assert container != container_2
+
+    container_3 = data_set.auxiliary_data.RandomArrays.test_data_2
+
+    assert container != container_3
+
+    # File accessor does not work for non file items.
+    with pytest.raises(ASDFAttributeError):
+        container.file
+
+
+def test_auxiliary_data_accessor_missing_lines(tmpdir):
+    """
+    Improving test coverage for the auxiliary data accessor.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    # Define some auxiliary data and add it.
+    data = np.random.random(100)
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    data_set.add_auxiliary_data(data=data, data_type="AA", path="random",
+                                parameters=parameters)
+    data_set.add_auxiliary_data(data=data, data_type="BB", path="random",
+                                parameters=parameters)
+
+    accessor_1 = data_set.auxiliary_data.AA
+    accessor_2 = data_set.auxiliary_data.BB
+
+    assert accessor_1.auxiliary_data_type == "AA"
+    assert accessor_2.auxiliary_data_type == "BB"
+
+    assert sorted(dir(accessor_1)) == sorted(["random", "auxiliary_data_type",
+                                              "list"])
+
+    # Test comparision methods.
+    assert accessor_1 == data_set.auxiliary_data.AA
+    assert accessor_1 != accessor_2
+    assert accessor_1 != 1
+    assert accessor_1 != "random string."
+
+    asdf_filename_2 = os.path.join(tmpdir.strpath, "test_2.h5")
+    data_set_2 = ASDFDataSet(asdf_filename_2)
+    # This is exactly the same as accessor_1 but not with the same data set,
+    # thus it should not compare equal.
+    data_set_2.add_auxiliary_data(data=data, data_type="AA", path="random",
+                                  parameters=parameters)
+    assert data_set.auxiliary_data.AA != data_set_2.auxiliary_data.AA
+
+    # Try deleting not existing data set.
+    with pytest.raises(AttributeError):
+        del accessor_1.random_thingy
+
+    # Empty accessor.
+    del data_set_2.auxiliary_data.AA.random
+    assert "Empty auxiliary data group." in str(data_set_2.auxiliary_data.AA)
+
+
+def test_waveform_data_accessor_missing_lines(example_data_set, tmpdir):
+    """
+    Improving test coverage for the waveform data accessor.
+    """
+    ds = ASDFDataSet(example_data_set.filename)
+
+    # Test comparison methods.
+    assert ds.waveforms.AE_113A != 1
+    assert ds.waveforms.AE_113A != "Hello"
+    assert ds.waveforms.AE_113A == ds.waveforms.AE_113A
+    assert ds.waveforms.AE_113A != ds.waveforms.TA_POKR
+
+    ds2 = ASDFDataSet(filename=os.path.join(tmpdir.strpath, "blub.h5"))
+    ds2.add_waveforms(ds.waveforms.AE_113A.raw_recording, tag="raw_recording")
+
+    assert ds.waveforms.AE_113A != ds2.waveforms.AE_113A

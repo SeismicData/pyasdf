@@ -65,7 +65,7 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
     FilteredWaveformAccessor, label2string, labelstring2list, \
-    AuxiliaryDataAccessor, wf_name2tag
+    AuxiliaryDataAccessor, wf_name2tag, to_list_of_resource_identifiers
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -198,8 +198,7 @@ class ASDFDataSet(object):
         """
         Cleanup. Force flushing and close the file.
 
-        If called with MPI this will also enable MPI to cleanly shutdown in
-        all cases.
+        If called with MPI this will also enable MPI to cleanly shutdown.
         """
         try:
             self.flush()
@@ -379,7 +378,7 @@ class ASDFDataSet(object):
 
         with io.BytesIO(_read_string_array(data)) as buf:
             try:
-                cat = obspy.readEvents(buf, format="quakeml")
+                cat = obspy.read_events(buf, format="quakeml")
             except:
                 # ObsPy is not able to read empty QuakeML files but they are
                 # still valid QuakeML files.
@@ -598,19 +597,12 @@ class ASDFDataSet(object):
     def _add_auxiliary_data_write_independent_information(self, info, data):
         """
         Writes the independent part of auxiliary data to the file.
-
-        :param info:
-        :param trace:
-        :return:
         """
         self._auxiliary_data_group[info["data_name"]][:] = data
 
     def _add_auxiliary_data_write_collective_information(self, info):
         """
         Writes the collective part of auxiliary data to the file.
-
-        :param info:
-        :return:
         """
         data_type = info["data_type"]
         if data_type not in self._auxiliary_data_group:
@@ -649,7 +641,7 @@ class ASDFDataSet(object):
 
         ... or by passing an existing event or catalog object.
 
-        >>> cat = obspy.readEvents("/path/to/quakem.xml")
+        >>> cat = obspy.read_events("/path/to/quakem.xml")
         >>> ds.add_quakeml(cat)
         """
         if isinstance(event, obspy.core.event.Event):
@@ -657,7 +649,7 @@ class ASDFDataSet(object):
         elif isinstance(event, obspy.core.event.Catalog):
             cat = event
         else:
-            cat = obspy.readEvents(event, format="quakeml")
+            cat = obspy.read_events(event, format="quakeml")
 
         old_cat = self.events
         existing_resource_ids = set([_i.resource_id.id for _i in old_cat])
@@ -683,7 +675,7 @@ class ASDFDataSet(object):
         :type tag: str
         :return: tuple of the waveform and the inventory.
         :rtype: (:class:`~obspy.core.stream.Stream`,
-                 :class:`~obspy.station.inventory.Inventory`)
+                 :class:`~obspy.core.inventory.inventory.Inventory`)
         """
         station_name = station_name.replace(".", "_")
         station = getattr(self.waveforms, station_name)
@@ -719,9 +711,9 @@ class ASDFDataSet(object):
         ids = ["event_id", "origin_id", "magnitude_id", "focal_mechanism_id"]
         for name in ids:
             if name in data.attrs:
-                setattr(details, name,
-                        obspy.core.event.ResourceIdentifier(
-                            data.attrs[name].tostring().decode()))
+                setattr(details, name + "s",
+                        [obspy.core.event.ResourceIdentifier(_i) for _i in
+                         data.attrs[name].tostring().decode().split(",")])
 
         if "provenance_id" in data.attrs:
             details.provenance_id = \
@@ -801,24 +793,25 @@ class ASDFDataSet(object):
         :type tag: str
         :param event_id: The event or id which the waveform is associated
             with. This is useful for recorded data if a clear association is
-            given, but also for synthetic data.
+            given, but also for synthetic data. Can also be a list of items.
         :type event_id: :class:`obspy.core.event.Event`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param origin_id: The particular origin this waveform is associated
             with. This is mainly useful for synthetic data where the origin
-            is precisely known.
+            is precisely known. Can also be a list of items.
         :type origin_id: :class:`obspy.core.event.Origin`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param magnitude_id: The particular magnitude this waveform is
             associated with. This is mainly useful for synthetic data where
-            the magnitude is precisely known.
+            the magnitude is precisely known. Can also be a list of items.
         :type magnitude_id: :class:`obspy.core.event.Magnitude`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param focal_mechanism_id: The particular focal mechanism this
             waveform is associated with. This is mainly useful for synthetic
-            data where the mechanism is precisely known.
+            data where the mechanism is precisely known. Can also be a list of
+            items.
         :type focal_mechanism_id: :class:`obspy.core.event.FocalMechanism`,
-            :class:`obspy.core.event.ResourceIdentifier`, or str
+            :class:`obspy.core.event.ResourceIdentifier`, str, or list
         :param provenance_id: The id of the provenance of this data. The
             provenance information itself must be added separately. Must be
             given as a qualified name, e.g. ``'{namespace_uri}id'``.
@@ -840,7 +833,8 @@ class ASDFDataSet(object):
         ``recording.mseed``. We will now add it to the file, give it the
         ``"raw_recording"`` path (which is reserved for raw, recorded,
         and unproceseed data) and associate it with the event. Keep in mind
-        that this association is optional.
+        that this association is optional. It can also be associated with
+        multiple events - in that case just pass a list of objects.
 
         >>> ds.add_waveforms("recording.mseed", path="raw_recording",
         ...                  event_id=event)
@@ -872,7 +866,8 @@ class ASDFDataSet(object):
         simulation) so it is a good idea to add that association to the
         waveform. Please again keep in mind that they are all optional and
         depending on your use case they might or might not be
-        useful/meaningful.
+        useful/meaningful. You can again pass lists of all of these objects
+        in which case multiple associations will be stored in the file.
 
         >>> origin = event.preferred_origin()
         >>> magnitude = event.preferred_magnitude()
@@ -888,60 +883,6 @@ class ASDFDataSet(object):
 
         # Parse labels to a single comma separated string.
         labels = label2string(labels)
-
-        # Extract the event_id from the different possibilities.
-        if event_id:
-            if isinstance(event_id, obspy.core.event.Event):
-                event_id = str(event_id.resource_id.id)
-            elif isinstance(event_id, obspy.core.event.ResourceIdentifier):
-                event_id = str(event_id.id)
-            else:
-                try:
-                    event_id = str(
-                        obspy.core.event.ResourceIdentifier(event_id))
-                except:
-                    msg = "Invalid type for event_id."
-                    raise TypeError(msg)
-
-        # Do the same for the origin, magnitude, and focal mechanism.
-        if origin_id:
-            if isinstance(origin_id, obspy.core.event.Origin):
-                origin_id = str(origin_id.resource_id.id)
-            elif isinstance(origin_id, obspy.core.event.ResourceIdentifier):
-                origin_id = str(origin_id.id)
-            else:
-                try:
-                    origin_id = str(
-                        obspy.core.event.ResourceIdentifier(origin_id))
-                except:
-                    msg = "Invalid type for origin_id."
-                    raise TypeError(msg)
-        if magnitude_id:
-            if isinstance(magnitude_id, obspy.core.event.Magnitude):
-                magnitude_id = str(magnitude_id.resource_id.id)
-            elif isinstance(magnitude_id, obspy.core.event.ResourceIdentifier):
-                magnitude_id = str(magnitude_id.id)
-            else:
-                try:
-                    magnitude_id = str(
-                        obspy.core.event.ResourceIdentifier(magnitude_id))
-                except:
-                    msg = "Invalid type for magnitude_id."
-                    raise TypeError(msg)
-        if focal_mechanism_id:
-            if isinstance(focal_mechanism_id, obspy.core.event.FocalMechanism):
-                focal_mechanism_id = str(focal_mechanism_id.resource_id.id)
-            elif isinstance(focal_mechanism_id,
-                            obspy.core.event.ResourceIdentifier):
-                focal_mechanism_id = str(focal_mechanism_id.id)
-            else:
-                try:
-                    focal_mechanism_id = str(
-                        obspy.core.event.ResourceIdentifier(
-                            focal_mechanism_id))
-                except:
-                    msg = "Invalid type for focal_mechanism_id."
-                    raise TypeError(msg)
 
         tag = tag.strip()
         if tag.lower() == "stationxml":
@@ -971,6 +912,11 @@ class ASDFDataSet(object):
             self._add_trace_write_independent_information(info, trace)
 
     def get_provenance_document(self, document_name):
+        """
+        Retrieve a provenance document with a certain name.
+
+        :param document_name: The name of the provenance document to retrieve.
+        """
         if document_name not in self._provenance_group:
             raise ASDFValueError(
                 "Provenance document '%s' not found in file." % document_name)
@@ -983,7 +929,7 @@ class ASDFDataSet(object):
 
     def add_provenance_document(self, document, name=None):
         """
-        Add a provenance document to the open ASDF file.
+        Add a provenance document to the current ASDF file.
 
         :type document: Filename, file-like objects or prov document.
         :param document: The document to add.
@@ -1089,8 +1035,7 @@ class ASDFDataSet(object):
             warnings.warn(msg, ASDFWarning)
             return
 
-        # XXX: Figure out why this is necessary. It should work according to
-        # the specs.
+        # Checksumming cannot be used when writing with MPI I/O.
         if self.mpi:
             fletcher32 = False
         else:
@@ -1127,32 +1072,55 @@ class ASDFDataSet(object):
             labels = label2string(trace.stats.asdf.labels)
             info["dataset_attrs"]["labels"] = labels
 
+        # The various ids can either be given as the objects themselves,
+        # e.g. an event, an origin, a magnitude, or a focal mechansism.
+        # Alternatively they can be passed as ResourceIdentifier objects or
+        # anything that can be converted to a resource identifier. Always
+        # either 0, 1, or more of them, in that case as part of an iterator.
+        # After the next step they are all lists of ResourceIdentifiers.
+        event_id = to_list_of_resource_identifiers(
+            event_id, name="event_id", obj_type=obspy.core.event.Event)
+        origin_id = to_list_of_resource_identifiers(
+            origin_id, name="origin_id", obj_type=obspy.core.event.Origin)
+        magnitude_id = to_list_of_resource_identifiers(
+            magnitude_id, name="magnitude_id",
+            obj_type=obspy.core.event.Magnitude)
+        focal_mechanism_id = to_list_of_resource_identifiers(
+            focal_mechanism_id, name="focal_mechanism_id",
+            obj_type=obspy.core.event.FocalMechanism)
+
         # Add all the event ids.
         ids = {
             "event_id": event_id,
             "origin_id": origin_id,
             "magnitude_id": magnitude_id,
-            "focal_mechanism_id": focal_mechanism_id,
-            "provenance_id": provenance_id}
+            "focal_mechanism_id": focal_mechanism_id}
         for name, obj in ids.items():
             if obj is None and \
                     hasattr(trace.stats, "asdf") and \
-                    hasattr(trace.stats.asdf, name):
-                if name == "provenance_id":
-                    obj = trace.stats.asdf[name]
-                else:
-                    obj = str(trace.stats.asdf[name].id)
+                    hasattr(trace.stats.asdf, name + "s"):
+                obj = trace.stats.asdf[name + "s"]
             if obj:
                 info["dataset_attrs"][name] = \
-                    self._zeropad_ascii_string(str(obj))
+                    self._zeropad_ascii_string(
+                        ",".join(str(_i.id) for _i in obj))
+
+        # Set the provenance id. Either get the one from the arguments or
+        # use the one already set in the trace.stats attribute.
+        if provenance_id is None and \
+                hasattr(trace.stats, "asdf") and \
+                hasattr(trace.stats.asdf, "provenance_id"):
+            provenance_id = trace.stats.asdf["provenance_id"]
+        if provenance_id:
+            info["dataset_attrs"]["provenance_id"] = \
+                self._zeropad_ascii_string(str(provenance_id))
 
         return info
 
     def _get_station(self, station_name):
         """
-        Retrieves the specified StationXML as an obspy.station.Inventory
-        object. For internal use only, use the dot accessors for external
-        access.
+        Retrieves the specified StationXML as an ObsPy Inventory object. For
+        internal use only, use the dot accessors for external access.
 
         :param station_name: A string with network id and station id,
             e.g. ``"IU.ANMO"``
@@ -1216,11 +1184,13 @@ class ASDFDataSet(object):
 
         :param stationxml: Filename of StationXML file or an ObsPy inventory
             object containing the same.
-        :type stationxml: str or :class:`~obspy.station.inventory.Inventory`
+        :type stationxml: str or
+            :class:`~obspy.core.inventory.inventory.Inventory`
         """
         # If not already an inventory object, delegate to ObsPy and see if
         # it can read it.
-        if not isinstance(stationxml, obspy.station.Inventory):
+        if not isinstance(stationxml,
+                          obspy.core.inventory.inventory.Inventory):
             stationxml = obspy.read_inventory(stationxml, format="stationxml")
 
         # Now we essentially walk the whole inventory, see what parts are
@@ -1604,7 +1574,7 @@ class ASDFDataSet(object):
         :type process_function: function
         :param process_function: A function with two argument:
             An :class:`obspy.core.stream.Stream` object and an
-            :class:`obspy.station.inventory.Inventory` object. It should
+            :class:`obspy.core.inventory.inventory.Inventory` object. It should
             return a :class:`obspy.core.stream.Stream` object which will
             then be written to the new file.
         :type output_filename: str
@@ -1681,7 +1651,7 @@ class ASDFDataSet(object):
                         group = output_data_set._waveform_group.create_group(
                             station_name)
                     else:
-                        group = output_data_set[station_name]
+                        group = output_data_set._waveform_group[station_name]
                     station_group.copy(source=data, dest=group,
                                        name="StationXML")
 
