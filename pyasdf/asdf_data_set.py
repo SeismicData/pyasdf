@@ -1405,7 +1405,12 @@ class ASDFDataSet(object):
                       "last):\n" % traceback_limit)
                 tb += "".join(traceback.format_list(full_tb))
                 tb += "\n"
-                tb += "".join(exc_line)
+                # A bit convoluted but compatible with Python 2 and
+                # 3 and hopefully all encoding problems.
+                tb += "".join(
+                    _i.decode(errors="ignore")
+                    if hasattr(_i, "decode") else _i
+                    for _i in exc_line)
 
                 # These potentially keep references to the HDF5 file
                 # which in some obscure way and likely due to
@@ -1765,6 +1770,12 @@ class ASDFDataSet(object):
                 tb += "".join(traceback.format_list(full_tb))
                 tb += "\n"
                 tb += "".join(exc_line)
+                # A bit convoluted but compatible with Python 2 and
+                # 3 and hopefully all encoding problems.
+                tb += "".join(
+                    _i.decode(errors="ignore")
+                    if hasattr(_i, "decode") else _i
+                    for _i in exc_line)
 
                 # These potentially keep references to the HDF5 file
                 # which in some obscure way and likely due to
@@ -1959,7 +1970,12 @@ class ASDFDataSet(object):
                               "last):\n" % self.__traceback_limit)
                         tb += "".join(traceback.format_list(full_tb))
                         tb += "\n"
-                        tb += "".join(exc_line)
+                        # A bit convoluted but compatible with Python 2 and
+                        # 3 and hopefully all encoding problems.
+                        tb += "".join(
+                            _i.decode(errors="ignore")
+                            if hasattr(_i, "decode") else _i
+                            for _i in exc_line)
 
                         with self.print_lock:
                             print(msg)
