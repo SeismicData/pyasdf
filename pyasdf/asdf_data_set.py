@@ -680,7 +680,8 @@ class ASDFDataSet(object):
         station_name = station_name.replace(".", "_")
         station = getattr(self.waveforms, station_name)
         st = getattr(station, tag)
-        inv = getattr(station, "StationXML")
+        inv = getattr(station, "StationXML") \
+            if "StationXML" in station else None
         return st, inv
 
     def _get_waveform(self, waveform_name):
@@ -1487,12 +1488,7 @@ class ASDFDataSet(object):
                 # Get the station and all possible tags.
                 waveforms = self.__file["Waveforms"][station].keys()
 
-                # Only care about stations that have station information.
-                if "StationXML" not in waveforms:
-                    continue
-
                 tags = set()
-
                 for waveform in waveforms:
                     if waveform == "StationXML":
                         continue
