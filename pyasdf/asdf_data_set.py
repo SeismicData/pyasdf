@@ -680,7 +680,8 @@ class ASDFDataSet(object):
         station_name = station_name.replace(".", "_")
         station = getattr(self.waveforms, station_name)
         st = getattr(station, tag)
-        inv = getattr(station, "StationXML")
+        inv = getattr(station, "StationXML") \
+            if "StationXML" in station else None
         return st, inv
 
     def _get_waveform(self, waveform_name):
@@ -1409,7 +1410,12 @@ class ASDFDataSet(object):
                       "last):\n" % traceback_limit)
                 tb += "".join(traceback.format_list(full_tb))
                 tb += "\n"
-                tb += "".join(exc_line)
+                # A bit convoluted but compatible with Python 2 and
+                # 3 and hopefully all encoding problems.
+                tb += "".join(
+                    _i.decode(errors="ignore")
+                    if hasattr(_i, "decode") else _i
+                    for _i in exc_line)
 
                 # These potentially keep references to the HDF5 file
                 # which in some obscure way and likely due to
@@ -1614,12 +1620,7 @@ class ASDFDataSet(object):
                 # Get the station and all possible tags.
                 waveforms = self.__file["Waveforms"][station].keys()
 
-                # Only care about stations that have station information.
-                if "StationXML" not in waveforms:
-                    continue
-
                 tags = set()
-
                 for waveform in waveforms:
                     if waveform == "StationXML":
                         continue
@@ -1896,6 +1897,12 @@ class ASDFDataSet(object):
                 tb += "".join(traceback.format_list(full_tb))
                 tb += "\n"
                 tb += "".join(exc_line)
+                # A bit convoluted but compatible with Python 2 and
+                # 3 and hopefully all encoding problems.
+                tb += "".join(
+                    _i.decode(errors="ignore")
+                    if hasattr(_i, "decode") else _i
+                    for _i in exc_line)
 
                 # These potentially keep references to the HDF5 file
                 # which in some obscure way and likely due to
@@ -2090,7 +2097,12 @@ class ASDFDataSet(object):
                               "last):\n" % self.__traceback_limit)
                         tb += "".join(traceback.format_list(full_tb))
                         tb += "\n"
-                        tb += "".join(exc_line)
+                        # A bit convoluted but compatible with Python 2 and
+                        # 3 and hopefully all encoding problems.
+                        tb += "".join(
+                            _i.decode(errors="ignore")
+                            if hasattr(_i, "decode") else _i
+                            for _i in exc_line)
 
                         with self.print_lock:
                             print(msg)
