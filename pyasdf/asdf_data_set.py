@@ -1769,7 +1769,6 @@ class ASDFDataSet(object):
                       "last):\n" % traceback_limit)
                 tb += "".join(traceback.format_list(full_tb))
                 tb += "\n"
-                tb += "".join(exc_line)
                 # A bit convoluted but compatible with Python 2 and
                 # 3 and hopefully all encoding problems.
                 tb += "".join(
