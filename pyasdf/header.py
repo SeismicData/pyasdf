@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function)
 
 import re
 
+import numpy as np
 
 # List all compression options.
 COMPRESSIONS = {
@@ -47,6 +48,13 @@ PROV_FILENAME_REGEX = re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$")
 # Regular expression for allowed tag names.
 TAG_REGEX = re.compile(r"^[a-z_0-9]+$")
 
+# 4 and 8 bytes signed integers and floating points.
+VALID_SEISMOGRAM_DTYPES = (
+    np.dtype("<i4"), np.dtype(">i4"),
+    np.dtype("<i8"), np.dtype(">i8"),
+    np.dtype("<f4"), np.dtype(">f4"),
+    np.dtype("<f8"), np.dtype(">f8")
+)
 
 # MPI message tags used for communication.
 MSG_TAGS = [
