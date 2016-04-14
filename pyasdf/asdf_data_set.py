@@ -58,7 +58,7 @@ from .exceptions import ASDFException, ASDFWarning, ASDFValueError, \
     NoStationXMLForStation
 from .header import COMPRESSIONS, FORMAT_NAME, \
     FORMAT_VERSION, MSG_TAGS, MAX_MEMORY_PER_WORKER_IN_MB, POISON_PILL, \
-    PROV_FILENAME_REGEX, TAG_REGEX
+    PROV_FILENAME_REGEX, TAG_REGEX, VALID_SEISMOGRAM_DTYPES
 from .query import Query, merge_query_functions
 from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     pretty_receiver_log, pretty_sender_log, JobQueueHelper, StreamBuffer, \
@@ -897,6 +897,16 @@ class ASDFDataSet(object):
         # Delegate to ObsPy's format/input detection.
         else:
             waveform = obspy.read(waveform)
+
+        for trace in waveform:
+            if trace.data.dtype in VALID_SEISMOGRAM_DTYPES:
+                continue
+            else:
+                raise TypeError("The trace's dtype ('%s') is not allowed "
+                                "inside ASDF. Allowed are little and big "
+                                "endian 4 and 8 byte signed integers and "
+                                "floating point numbers." %
+                                trace.data.dtype.name)
 
         # Actually add the data.
         for trace in waveform:

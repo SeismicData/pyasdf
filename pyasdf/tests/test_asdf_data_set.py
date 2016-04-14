@@ -15,6 +15,7 @@ import io
 import json
 import shutil
 import os
+import random
 
 import h5py
 import numpy as np
@@ -2540,3 +2541,59 @@ def test_waveform_data_accessor_missing_lines(example_data_set, tmpdir):
     ds2.add_waveforms(ds.waveforms.AE_113A.raw_recording, tag="raw_recording")
 
     assert ds.waveforms.AE_113A != ds2.waveforms.AE_113A
+
+
+def test_only_some_dtypes_are_allowed(tmpdir):
+    """
+    Waveform data should only be one of a couple of dtypes.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_set = ASDFDataSet(asdf_filename)
+
+    valid_dtypes = [
+        np.dtype("i4"),
+        np.dtype("=i4"),
+        np.dtype("<i4"),
+        np.dtype(">i4"),
+        np.dtype("i8"),
+        np.dtype("=i8"),
+        np.dtype("<i8"),
+        np.dtype(">i8"),
+        np.dtype("f4"),
+        np.dtype("=f4"),
+        np.dtype("<f4"),
+        np.dtype(">f4"),
+        np.dtype("f8"),
+        np.dtype("=f8"),
+        np.dtype("<f8"),
+        np.dtype(">f8"),
+        np.int32,
+        np.int64,
+        np.float32,
+        np.float64]
+
+    invalid_dtypes = [
+        np.complex64,
+        np.complex128,
+        np.dtype("|S1"),
+        np.dtype("|S2"),
+        np.dtype("|S4"),
+        np.dtype("b"),
+        np.dtype(">H"),
+        np.dtype("<H"),
+        np.dtype("<u4"),
+        np.dtype(">u4"),
+        np.dtype("<u8"),
+        np.dtype(">u8")]
+
+    random.seed(12345)
+    for dtype in valid_dtypes:
+        tr = obspy.Trace(data=np.zeros(10, dtype=dtype))
+        data_set.add_waveforms(
+            tr, tag=str(random.randint(0, 1E6)))
+
+    for dtype in invalid_dtypes:
+        tr = obspy.Trace(data=np.zeros(10, dtype=dtype))
+        with pytest.raises(TypeError):
+            data_set.add_waveforms(
+                tr, tag=str(random.randint(0, 1E6)))
