@@ -777,6 +777,125 @@ class ASDFDataSet(object):
     def _repr_pretty_(self, p, cycle):
         p.text(self.__str__())
 
+    def append_waveforms(self, waveform, tag):
+        """
+        Append waveforms to an existing data array if possible.
+
+        .. note::
+
+            The :meth:`.add_waveforms` method is the better choice in most
+            cases. This function here is only useful for special cases!
+
+        The main purpose of this function is to enable the construction of
+        ASDF files with large single arrays. The classical example is all
+        recordings of a station for a year or longer. If the
+        :meth:`.add_waveforms` method is used ASDF will internally store
+        each file in one or more data sets. This function here will attempt
+        to enlarge existing data arrays and append to them creating larger
+        ones that are a bit more efficient to read. It is slower to write
+        this way but it can potentially be faster to read.
+
+        This is only possible if the to be appended waveform traces
+        seamlessly fit after an existing trace with a tolerance of half a
+        sampling interval.
+
+        Please note that a single array in ASDF cannot have any gaps and/or
+        overlaps so even if this function is used it might still result in
+        several data sets in the HDF5 file.
+
+        This additionally requires that the data-sets being appended to have
+        chunks as non-chunked data cannot be resized. MPI is consequently
+        not allowed for this function as well.
+
+        .. warning::
+
+            Any potentially set `event_id`, `origin_id`, `magnitude_id`,
+            `focal_mechanism_id`, `provenance_id`, or `labels` will carry over
+            from the trace that is being appended to so please only use this
+            method if you known what you are doing.
+
+        :param waveform: The waveform to add. Can either be an ObsPy Stream
+            or Trace object or something ObsPy can read.
+        :type waveform: :class:`obspy.core.stream.Stream`,
+            :class:`obspy.core.trace.Trace`, str, ...
+        :param tag: The path that will be given to all waveform files. It is
+            mandatory for all traces and facilitates identification of the data
+            within one ASDF volume. The ``"raw_record"`` path is,
+            by convention, reserved to raw, recorded, unprocessed data.
+        :type tag: str
+        """
+        if self.mpi:
+            raise ASDFException("This function cannot work with parallel "
+                                "MPI I/O.")
+
+        tag = self.__parse_and_validate_tag(tag)
+        waveform = self.__parse_waveform_input_and_validate(waveform)
+
+        def _get_dataset_within_tolerance(station_group, trace):
+            # Tolerance.
+            min_t = trace.stats.starttime.timestamp - \
+                0.5 * trace.stats.delta
+            max_t = min_t + trace.stats.delta
+
+            i = trace.id + "__"
+            for ds_name in station_group.list():
+                if not ds_name.startswith(i):
+                    continue
+                ds = station_group._WaveformAccessor__hdf5_group[ds_name]
+                t = ds.attrs["starttime"] / 1e9 + ds.shape[0] * \
+                    1.0 / ds.attrs["sampling_rate"]
+                del ds
+                if min_t <= t <= max_t:
+                    return ds_name
+
+        for trace in waveform:
+            # The logic is quite easy - find an existing data-set that is
+            # within the allowed tolerance and append, otherwise just pass
+            # to the add_waveforms() method.
+            sta_name = "%s.%s" % (trace.stats.network, trace.stats.station)
+            if sta_name in self.__file["Waveforms"]:
+                ds_name = _get_dataset_within_tolerance(
+                    self.waveforms[sta_name], trace=trace)
+                if ds_name:
+                    # Append!
+                    sta_group = self.__file["Waveforms"][sta_name]
+                    ds = sta_group[ds_name]
+
+                    # Make sure it actually can be resized.
+                    if ds.maxshape[0] is not None:
+                        msg = ("'maxshape' of '%s' is not set to None which "
+                               "prevents it from being resized." % ds_name)
+                        raise ASDFValueError(msg)
+                    if ds.chunks is None:
+                        msg = ("Data set '%s' is not chunked which "
+                               "prevents it from being resized." % ds_name)
+                        raise ASDFValueError(msg)
+
+                    existing = ds.shape[0]
+                    # Resize.
+                    ds.resize((existing + trace.stats.npts, ))
+                    # Add data.
+                    ds[existing:] = trace.data
+
+                    # Rename.
+                    new_data_name = self.__get_waveform_ds_name(
+                        net=trace.stats.network, sta=trace.stats.station,
+                        loc=trace.stats.location, cha=trace.stats.channel,
+                        start=obspy.UTCDateTime(ds.attrs["starttime"] / 1e9),
+                        end=trace.stats.endtime,
+                        tag=tag)
+                    del ds
+
+                    # This does not copy data but just changes the name.
+                    sta_group[new_data_name] = sta_group[ds_name]
+                    del sta_group[ds_name]
+
+                    del sta_group
+                    continue
+
+            # If this did not work - append.
+            self.add_waveforms(waveform=trace, tag=tag)
+
     def add_waveforms(self, waveform, tag, event_id=None, origin_id=None,
                       magnitude_id=None, focal_mechanism_id=None,
                       provenance_id=None, labels=None):
@@ -885,10 +1004,31 @@ class ASDFDataSet(object):
         # Parse labels to a single comma separated string.
         labels = label2string(labels)
 
+        tag = self.__parse_and_validate_tag(tag)
+        waveform = self.__parse_waveform_input_and_validate(waveform)
+
+        # Actually add the data.
+        for trace in waveform:
+            # Complicated multi-step process but it enables one to use
+            # parallel I/O with the same functions.
+            info = self._add_trace_get_collective_information(
+                trace, tag, event_id=event_id, origin_id=origin_id,
+                magnitude_id=magnitude_id,
+                focal_mechanism_id=focal_mechanism_id,
+                provenance_id=provenance_id, labels=labels)
+            if info is None:
+                continue
+            self._add_trace_write_collective_information(info)
+            self._add_trace_write_independent_information(info, trace)
+
+    def __parse_and_validate_tag(self, tag):
         tag = tag.strip()
         if tag.lower() == "stationxml":
             msg = "Tag '%s' is invalid." % tag
             raise ValueError(msg)
+        return tag
+
+    def __parse_waveform_input_and_validate(self, waveform):
         # The next function expects some kind of iterable that yields traces.
         if isinstance(waveform, obspy.Trace):
             waveform = [waveform]
@@ -907,20 +1047,7 @@ class ASDFDataSet(object):
                                 "endian 4 and 8 byte signed integers and "
                                 "floating point numbers." %
                                 trace.data.dtype.name)
-
-        # Actually add the data.
-        for trace in waveform:
-            # Complicated multi-step process but it enables one to use
-            # parallel I/O with the same functions.
-            info = self._add_trace_get_collective_information(
-                trace, tag, event_id=event_id, origin_id=origin_id,
-                magnitude_id=magnitude_id,
-                focal_mechanism_id=focal_mechanism_id,
-                provenance_id=provenance_id, labels=labels)
-            if info is None:
-                continue
-            self._add_trace_write_collective_information(info)
-            self._add_trace_write_independent_information(info, trace)
+        return waveform
 
     def get_provenance_document(self, document_name):
         """
@@ -1010,6 +1137,13 @@ class ASDFDataSet(object):
         for key, value in info["dataset_attrs"].items():
             ds.attrs[key] = value
 
+    def __get_waveform_ds_name(self, net, sta, loc, cha, start, end, tag):
+        return "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
+            net=net, sta=sta, loc=loc, cha=cha,
+            start=start.strftime("%Y-%m-%dT%H:%M:%S"),
+            end=end.strftime("%Y-%m-%dT%H:%M:%S"),
+            tag=tag)
+
     def _add_trace_get_collective_information(
             self, trace, tag, event_id=None, origin_id=None,
             magnitude_id=None, focal_mechanism_id=None,
@@ -1030,14 +1164,10 @@ class ASDFDataSet(object):
 
         station_name = "%s.%s" % (trace.stats.network, trace.stats.station)
         # Generate the name of the data within its station folder.
-        data_name = "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
-            net=trace.stats.network,
-            sta=trace.stats.station,
-            loc=trace.stats.location,
-            cha=trace.stats.channel,
-            start=trace.stats.starttime.strftime("%Y-%m-%dT%H:%M:%S"),
-            end=trace.stats.endtime.strftime("%Y-%m-%dT%H:%M:%S"),
-            tag=tag)
+        data_name = self.__get_waveform_ds_name(
+            net=trace.stats.network, sta=trace.stats.station,
+            loc=trace.stats.location, cha=trace.stats.channel,
+            start=trace.stats.starttime, end=trace.stats.endtime, tag=tag)
 
         group_name = "%s/%s" % (station_name, data_name)
         if group_name in self._waveform_group:
