@@ -814,6 +814,48 @@ class ASDFDataSet(object):
             from the trace that is being appended to so please only use this
             method if you known what you are doing.
 
+
+        .. rubric:: Example
+
+        Assuming three trace in three different files, ``A``, ``B``,
+        and ``C``, that could seamlessly be merged to one big trace
+        without producing a gap or overlap. Using :meth:`.add_waveforms`
+        will create three seperate data arrays in the ASDF file, e.g.
+
+        .. code-block:: python
+
+            ds.add_waveforms(A, tag="random")
+            ds.add_waveforms(B, tag="random")
+            ds.add_waveforms(C, tag="random")
+
+        results in:
+
+        .. code-block:: python
+
+            /Waveforms
+                /XX.YYYY
+                    A
+                    B
+                    C
+
+        Using this method here on the other hand will (if possible) create a
+        single large array which might be a bit faster to read or to iterate
+        over.
+
+        .. code-block:: python
+
+            ds.append_waveforms(A, tag="random")
+            ds.append_waveforms(B, tag="random")
+            ds.append_waveforms(C, tag="random")
+
+        This results in:
+
+        .. code-block:: python
+
+            /Waveforms
+                /XX.YYYY
+                    A + B + C
+
         :param waveform: The waveform to add. Can either be an ObsPy Stream
             or Trace object or something ObsPy can read.
         :type waveform: :class:`obspy.core.stream.Stream`,
