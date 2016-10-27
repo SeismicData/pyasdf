@@ -2597,3 +2597,50 @@ def test_only_some_dtypes_are_allowed(tmpdir):
         with pytest.raises(TypeError):
             data_set.add_waveforms(
                 tr, tag=str(random.randint(0, 1E6)))
+
+
+def test_waveform_appending(tmpdir):
+    """
+    Tests the appending of waveforms.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    ds = ASDFDataSet(asdf_filename)
+
+    traces = [
+        obspy.Trace(data=np.ones(10),
+                    header={"starttime": obspy.UTCDateTime(0)}),
+        obspy.Trace(data=np.ones(10),
+                    header={"starttime": obspy.UTCDateTime(10)}),
+        obspy.Trace(data=np.ones(10),
+                    header={"starttime": obspy.UTCDateTime(20)}),
+        obspy.Trace(data=np.ones(10),
+                    header={"starttime": obspy.UTCDateTime(30)}),
+        obspy.Trace(data=np.ones(10),
+                    header={"starttime": obspy.UTCDateTime(40)})]
+
+    for tr in traces:
+        tr.stats.update({"network": "XX", "station": "YY", "channel": "EHZ"})
+
+    # These can all be seamlessly merged.
+    ds = ASDFDataSet(asdf_filename)
+    for tr in traces:
+        ds.append_waveforms(tr, tag="random")
+
+    assert ds.waveforms.XX_YY.list() == \
+        ['XX.YY..EHZ__1970-01-01T00:00:00__1970-01-01T00:00:49__random']
+
+    del ds
+    os.remove(asdf_filename)
+
+    # Slightly more complicated merging - it will only append to the back.
+    ds = ASDFDataSet(asdf_filename)
+    ds.append_waveforms(traces[0], tag="random")
+    ds.append_waveforms(traces[2], tag="random")
+    ds.append_waveforms(traces[4], tag="random")
+    ds.append_waveforms(traces[1], tag="random")
+    ds.append_waveforms(traces[3], tag="random")
+
+    assert sorted(ds.waveforms.XX_YY.list()) == [
+        'XX.YY..EHZ__1970-01-01T00:00:00__1970-01-01T00:00:19__random',
+        'XX.YY..EHZ__1970-01-01T00:00:20__1970-01-01T00:00:39__random',
+        'XX.YY..EHZ__1970-01-01T00:00:40__1970-01-01T00:00:49__random']
