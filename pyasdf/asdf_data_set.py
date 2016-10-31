@@ -2309,3 +2309,32 @@ class ASDFDataSet(object):
             except NoStationXMLForStation:
                 pass
         return coords
+
+    def get_waveforms(self, network, station, location, channel, starttime,
+                      endtime, tag, automerge=True):
+        """
+        :param network:
+        :param station:
+        :param location:
+        :param channel:
+        :param starttime:
+        :param endtime:
+        :param automerge:
+        """
+        st = obspy.Stream()
+
+        for i in self.ifilter(self.q.network == network,
+                              self.q.station == station,
+                              self.q.location == location,
+                              self.q.channel == channel,
+                              self.q.tag == tag,
+                              self.q.starttime <= endtime,
+                              self.q.endtime >= starttime):
+            for t in i.get_waveform_tags():
+                st.extend(i.get_item(t, starttime=starttime,
+                                     endtime=endtime))
+
+        # Cleanup merge - will only merge exactly adjacent traces.
+        if automerge:
+            st.merge(method=-1)
+        return st

@@ -840,6 +840,9 @@ class WaveformAccessor(object):
         raise AttributeError("Item '%s' not found." % item)
 
     def __getattr__(self, item):
+        return self.get_item(item=item)
+
+    def get_item(self, item, starttime=None, endtime=None):
         items = self.__filter_data(item)
         # StationXML access.
         if items == ["StationXML"]:
@@ -852,7 +855,8 @@ class WaveformAccessor(object):
         # Get an estimate of the total require memory.
         total_size = sum([
             self.__data_set()._get_idx_and_size_estimate(
-                _i, starttime=None, endtime=None)[3] for _i in items])
+                _i, starttime=starttime, endtime=endtime)[3]
+            for _i in items])
 
         # Raise an error to not read an extreme amount of data into memory.
         if total_size > self.__data_set().single_item_read_limit_in_mb:
@@ -862,7 +866,9 @@ class WaveformAccessor(object):
                        self.__data_set().single_item_read_limit_in_mb))
             raise ASDFValueError(msg)
 
-        traces = [self.__data_set()._get_waveform(_i) for _i in items]
+        traces = [self.__data_set()._get_waveform(_i, starttime=starttime,
+                                                  endtime=endtime)
+                  for _i in items]
         return obspy.Stream(traces=traces)
 
     def list(self):

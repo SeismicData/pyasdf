@@ -2692,3 +2692,58 @@ def test_dataset_accessing_limit(tmpdir):
         "'XX.YY..BHZ__1970-01-01T00:00:00__"
         "1970-01-02T12:24:31__random'. The current limit is 0.45 MB.")
     del e
+
+
+def test_get_waveforms_method(tmpdir):
+    """
+    The file wide get_waveforms() method is useful to for example work with
+    continuous datasets.
+    """
+    # Create some data that can be tested with.
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    traces = [
+        obspy.Trace(data=np.ones(10) * 0.0,
+                    header={"starttime": obspy.UTCDateTime(0)}),
+        obspy.Trace(data=np.ones(10) * 1.0,
+                    header={"starttime": obspy.UTCDateTime(10)}),
+        obspy.Trace(data=np.ones(10) * 2.0,
+                    header={"starttime": obspy.UTCDateTime(20)}),
+        obspy.Trace(data=np.ones(10) * 3.0,
+                    header={"starttime": obspy.UTCDateTime(30)}),
+        obspy.Trace(data=np.ones(10) * 4.0,
+                    header={"starttime": obspy.UTCDateTime(40)})]
+    for tr in traces:
+        tr.stats.update({"network": "XX", "station": "YY", "channel": "EHZ"})
+    ds = ASDFDataSet(asdf_filename)
+    for tr in traces:
+        ds.add_waveforms(tr, tag="random")
+
+    # Get everything.
+    st = ds.get_waveforms(network="XX", station="YY", location="",
+                          channel="EHZ", tag="random",
+                          starttime=obspy.UTCDateTime(0),
+                          endtime=obspy.UTCDateTime(49))
+    assert len(st) == 1
+    assert st[0].stats.starttime == obspy.UTCDateTime(0)
+    assert st[0].stats.endtime == obspy.UTCDateTime(49)
+
+    # Get everything, but don't merge.
+    st = ds.get_waveforms(network="XX", station="YY", location="",
+                          channel="EHZ", tag="random", automerge=False,
+                          starttime=obspy.UTCDateTime(0),
+                          endtime=obspy.UTCDateTime(49))
+    assert len(st) == 5
+    assert st[0].stats.starttime == obspy.UTCDateTime(0)
+    assert st[-1].stats.endtime == obspy.UTCDateTime(49)
+
+    # Only access part of a the data.
+    st = ds.get_waveforms(network="XX", station="YY", location="",
+                          channel="EHZ", tag="random", automerge=True,
+                          starttime=obspy.UTCDateTime(5),
+                          endtime=obspy.UTCDateTime(15))
+    assert len(st) == 1
+    assert st[0].stats.starttime == obspy.UTCDateTime(5)
+    assert st[0].stats.endtime == obspy.UTCDateTime(15)
+    np.testing.assert_allclose(
+        st[0].data,
+        [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
