@@ -2604,7 +2604,6 @@ def test_waveform_appending(tmpdir):
     Tests the appending of waveforms.
     """
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
-    ds = ASDFDataSet(asdf_filename)
 
     traces = [
         obspy.Trace(data=np.ones(10),
@@ -2644,3 +2643,44 @@ def test_waveform_appending(tmpdir):
         'XX.YY..EHZ__1970-01-01T00:00:00__1970-01-01T00:00:19__random',
         'XX.YY..EHZ__1970-01-01T00:00:20__1970-01-01T00:00:39__random',
         'XX.YY..EHZ__1970-01-01T00:00:40__1970-01-01T00:00:49__random']
+
+
+def test_dataset_accessing_limit(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    # This is exactly half a megabyte.
+    tr = obspy.Trace(data=np.ones(131072, dtype=np.float32))
+    tr.stats.network = "XX"
+    tr.stats.station = "YY"
+    tr.stats.channel = "BHZ"
+
+    ds = ASDFDataSet(asdf_filename)
+    ds.add_waveforms(tr, tag="random")
+
+    # The default limit (1GB) is plenty to read that.
+    st = ds.waveforms.XX_YY.random
+    assert len(st) == 1
+    assert st[0].stats.network == "XX"
+    assert st[0].stats.station == "YY"
+    assert st[0].stats.npts == 131072
+
+    # Setting it to exactly 0.5 MB should still be fine.
+    ds.single_item_read_limit_in_mb = 0.5
+    st = ds.waveforms.XX_YY.random
+    assert len(st) == 1
+    assert st[0].stats.network == "XX"
+    assert st[0].stats.station == "YY"
+    assert st[0].stats.npts == 131072
+
+    # Any smaller and it has a problem.
+    ds.single_item_read_limit_in_mb = 0.45
+    with pytest.raises(ASDFValueError) as e:
+        ds.waveforms.XX_YY.random
+
+    assert e.value.args[0] == (
+        "The current selection would read 0.50 MB from "
+        "'/Waveforms/XX.YY/XX.YY..BHZ__1970-01-01T00:00:00__"
+        "1970-01-02T12:24:31__random'. The current limit is 0.45 MB.")
+
+    # hdf5 garbage collection messing with Python's...
+    del e

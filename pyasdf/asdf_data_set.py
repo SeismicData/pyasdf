@@ -78,7 +78,8 @@ class ASDFDataSet(object):
     q = Query()
 
     def __init__(self, filename, compression="gzip-3", shuffle=True,
-                 debug=False, mpi=None, mode="a"):
+                 debug=False, mpi=None, mode="a",
+                 single_item_read_limit_in_mb=1024.0):
         """
         :type filename: str
         :param filename: The filename of the HDF5 file (to be).
@@ -116,9 +117,21 @@ class ASDFDataSet(object):
             quite useful for some use cases as long as one is aware of the
             potential repercussions.
         :type mode: str
+        :type single_item_read_limit_in_mb: float
+        :param single_item_read_limit_in_mb: This limits the amount of waveform
+            data that can be read with a simple attribute or dictionary
+            access. Some ASDF files can get very big and this raises an
+            error if one tries to access more then the specified value. This
+            is mainly to guard against accidentally filling ones memory on
+            the interactive command line when just exploring an ASDF data
+            set. There are other ways to still access data and even this
+            setting can be overwritten.
         """
         self.__force_mpi = mpi
         self.debug = debug
+
+        # The limit on how much data can be read with a single item access.
+        self.single_item_read_limit_in_mb = single_item_read_limit_in_mb
 
         # Deal with compression settings.
         if compression not in COMPRESSIONS:
@@ -684,7 +697,7 @@ class ASDFDataSet(object):
             if "StationXML" in station else None
         return st, inv
 
-    def _get_waveform(self, waveform_name):
+    def _get_waveform(self, waveform_name, starttime=None, endtime=None):
         """
         Retrieves the waveform for a certain path name as a Trace object. For
         internal use only, use the dot accessors for outside access.
@@ -693,11 +706,43 @@ class ASDFDataSet(object):
         channel = channel[:channel.find("__")]
         data = self.__file["Waveforms"]["%s.%s" % (network, station)][
             waveform_name]
-        tr = obspy.Trace(data=data.value)
+
+        idx_start = 0
+        idx_end = data.shape[0]
+        dt = 1.0 / data.attrs["sampling_rate"]
+
         # Starttime is a timestamp in nanoseconds.
-        tr.stats.starttime = obspy.UTCDateTime(
+        # Get time of first and time of last sample.
+        data_starttime = obspy.UTCDateTime(
             float(data.attrs["starttime"]) / 1.0E9)
-        tr.stats.sampling_rate = float(data.attrs["sampling_rate"])
+        data_endtime = data_starttime + (idx_end - 1) * dt
+
+        # Modify the data indices to restrict the data if necessary.
+        if starttime is not None and starttime > data_starttime:
+            offset = max(0, int((starttime - data_starttime) // dt))
+            idx_start = offset
+            # Also modify the data_starttime here as it changes the actually
+            # read data.
+        if endtime is not None and endtime < data_endtime:
+            offset = max(0, int((data_endtime - endtime) // dt))
+            idx_end -= offset
+
+        s = slice(idx_start, idx_end)
+
+        # Check the size against the limit.
+        array_size_in_mb = \
+            (s.stop - s.start) * data.dtype.itemsize / 1024.0 / 1024.0
+        if array_size_in_mb > self.single_item_read_limit_in_mb:
+            msg = ("The current selection would read %.2f MB from '%s'. "
+                   "The current limit is %.2f MB." % (
+                    array_size_in_mb, data.name,
+                    self.single_item_read_limit_in_mb))
+            del data
+            raise ASDFValueError(msg)
+
+        tr = obspy.Trace(data=data[s])
+        tr.stats.starttime = data_starttime
+        tr.stats.delta = dt
         tr.stats.network = network
         tr.stats.station = station
         tr.stats.location = location
