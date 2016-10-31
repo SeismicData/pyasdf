@@ -147,7 +147,7 @@ a:hover {
 }
 
 /* Background of the code is the same as for the side bar.*/
-.highlight-python, .highlight-bash {
+.highlight-python, .highlight-bash, .highlight-default {
     border-width: 0px !important;
     background-color: #343131 !important;
     border-radius: 2px;
