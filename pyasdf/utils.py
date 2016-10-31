@@ -861,7 +861,10 @@ class WaveformAccessor(object):
         # Raise an error to not read an extreme amount of data into memory.
         if total_size > self.__data_set().single_item_read_limit_in_mb:
             msg = ("All waveforms for station '%s' and item '%s' would "
-                   "require '%.2f MB. The current limit is %.2f MB." % (
+                   "require '%.2f MB of memory. The current limit is %.2f "
+                   "MB. Adjust by setting "
+                   "'ASDFDataSet.single_item_read_limit_in_mb' or use a "
+                   "different method to read the waveform data." % (
                        self._station_name, item, total_size,
                        self.__data_set().single_item_read_limit_in_mb))
             raise ASDFValueError(msg)

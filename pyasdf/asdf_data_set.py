@@ -741,8 +741,10 @@ class ASDFDataSet(object):
                                             starttime, endtime)
 
         if array_size_in_mb > self.single_item_read_limit_in_mb:
-            msg = ("The current selection would read %.2f MB from '%s'. "
-                   "The current limit is %.2f MB." % (
+            msg = ("The current selection would read %.2f MB into memory from "
+                   "'%s'. The current limit is %.2f MB. Adjust by setting "
+                   "'ASDFDataSet.single_item_read_limit_in_mb' or use a "
+                   "different method to read the waveform data." % (
                     array_size_in_mb, waveform_name,
                     self.single_item_read_limit_in_mb))
             raise ASDFValueError(msg)

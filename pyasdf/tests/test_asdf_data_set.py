@@ -2679,7 +2679,9 @@ def test_dataset_accessing_limit(tmpdir):
 
     assert e.value.args[0] == (
         "All waveforms for station 'XX.YY' and item 'random' would require "
-        "'0.50 MB. The current limit is 0.45 MB.")
+        "'0.50 MB of memory. The current limit is 0.45 MB. Adjust by setting "
+        "'ASDFDataSet.single_item_read_limit_in_mb' or use a different "
+        "method to read the waveform data.")
     # hdf5 garbage collection messing with Python's...
     del e
 
@@ -2688,9 +2690,12 @@ def test_dataset_accessing_limit(tmpdir):
         ds._get_waveform(
             "XX.YY..BHZ__1970-01-01T00:00:00__1970-01-02T12:24:31__random")
     assert e.value.args[0] == (
-        "The current selection would read 0.50 MB from "
+        "The current selection would read 0.50 MB into memory from "
         "'XX.YY..BHZ__1970-01-01T00:00:00__"
-        "1970-01-02T12:24:31__random'. The current limit is 0.45 MB.")
+        "1970-01-02T12:24:31__random'. The current limit is 0.45 MB. "
+        "Adjust by setting "
+        "'ASDFDataSet.single_item_read_limit_in_mb' or use a different "
+        "method to read the waveform data.")
     del e
 
 
