@@ -697,13 +697,8 @@ class ASDFDataSet(object):
             if "StationXML" in station else None
         return st, inv
 
-    def _get_waveform(self, waveform_name, starttime=None, endtime=None):
-        """
-        Retrieves the waveform for a certain path name as a Trace object. For
-        internal use only, use the dot accessors for outside access.
-        """
-        network, station, location, channel = waveform_name.split(".")[:4]
-        channel = channel[:channel.find("__")]
+    def _get_idx_and_size_estimate(self, waveform_name, starttime, endtime):
+        network, station = waveform_name.split(".")[:2]
         data = self.__file["Waveforms"]["%s.%s" % (network, station)][
             waveform_name]
 
@@ -723,26 +718,43 @@ class ASDFDataSet(object):
             idx_start = offset
             # Also modify the data_starttime here as it changes the actually
             # read data.
+            data_starttime += offset * dt
         if endtime is not None and endtime < data_endtime:
             offset = max(0, int((data_endtime - endtime) // dt))
             idx_end -= offset
 
-        s = slice(idx_start, idx_end)
-
         # Check the size against the limit.
         array_size_in_mb = \
-            (s.stop - s.start) * data.dtype.itemsize / 1024.0 / 1024.0
+            (idx_end - idx_start) * data.dtype.itemsize / 1024.0 / 1024.0
+
+        del data
+
+        return idx_start, idx_end, data_starttime, array_size_in_mb
+
+    def _get_waveform(self, waveform_name, starttime=None, endtime=None):
+        """
+        Retrieves the waveform for a certain path name as a Trace object. For
+        internal use only, use the dot accessors for outside access.
+        """
+        idx_start, idx_end, data_starttime, array_size_in_mb = \
+            self._get_idx_and_size_estimate(waveform_name,
+                                            starttime, endtime)
+
         if array_size_in_mb > self.single_item_read_limit_in_mb:
             msg = ("The current selection would read %.2f MB from '%s'. "
                    "The current limit is %.2f MB." % (
-                    array_size_in_mb, data.name,
+                    array_size_in_mb, waveform_name,
                     self.single_item_read_limit_in_mb))
-            del data
             raise ASDFValueError(msg)
 
-        tr = obspy.Trace(data=data[s])
+        network, station, location, channel = waveform_name.split(".")[:4]
+        channel = channel[:channel.find("__")]
+        data = self.__file["Waveforms"]["%s.%s" % (network, station)][
+            waveform_name]
+
+        tr = obspy.Trace(data=data[idx_start: idx_end])
         tr.stats.starttime = data_starttime
-        tr.stats.delta = dt
+        tr.stats.sampling_rate = data.attrs["sampling_rate"]
         tr.stats.network = network
         tr.stats.station = station
         tr.stats.location = location

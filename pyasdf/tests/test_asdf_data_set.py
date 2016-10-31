@@ -2678,9 +2678,17 @@ def test_dataset_accessing_limit(tmpdir):
         ds.waveforms.XX_YY.random
 
     assert e.value.args[0] == (
-        "The current selection would read 0.50 MB from "
-        "'/Waveforms/XX.YY/XX.YY..BHZ__1970-01-01T00:00:00__"
-        "1970-01-02T12:24:31__random'. The current limit is 0.45 MB.")
-
+        "All waveforms for station 'XX.YY' and item 'random' would require "
+        "'0.50 MB. The current limit is 0.45 MB.")
     # hdf5 garbage collection messing with Python's...
+    del e
+
+    # Slightly different error message for direct access.
+    with pytest.raises(ASDFValueError) as e:
+        ds._get_waveform(
+            "XX.YY..BHZ__1970-01-01T00:00:00__1970-01-02T12:24:31__random")
+    assert e.value.args[0] == (
+        "The current selection would read 0.50 MB from "
+        "'XX.YY..BHZ__1970-01-01T00:00:00__"
+        "1970-01-02T12:24:31__random'. The current limit is 0.45 MB.")
     del e

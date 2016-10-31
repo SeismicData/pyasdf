@@ -849,6 +849,19 @@ class WaveformAccessor(object):
                     self.__class__.__name__, str(item)))
             return station
 
+        # Get an estimate of the total require memory.
+        total_size = sum([
+            self.__data_set()._get_idx_and_size_estimate(
+                _i, starttime=None, endtime=None)[3] for _i in items])
+
+        # Raise an error to not read an extreme amount of data into memory.
+        if total_size > self.__data_set().single_item_read_limit_in_mb:
+            msg = ("All waveforms for station '%s' and item '%s' would "
+                   "require '%.2f MB. The current limit is %.2f MB." % (
+                       self._station_name, item, total_size,
+                       self.__data_set().single_item_read_limit_in_mb))
+            raise ASDFValueError(msg)
+
         traces = [self.__data_set()._get_waveform(_i) for _i in items]
         return obspy.Stream(traces=traces)
 
