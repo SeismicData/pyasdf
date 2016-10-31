@@ -2315,13 +2315,31 @@ class ASDFDataSet(object):
     def get_waveforms(self, network, station, location, channel, starttime,
                       endtime, tag, automerge=True):
         """
-        :param network:
-        :param station:
-        :param location:
-        :param channel:
-        :param starttime:
-        :param endtime:
-        :param automerge:
+        Directly access waveforms.
+
+        This enables a more exact specification of what one wants to
+        retrieve from an ASDF file. Most importantly it honors the start and
+        end time and only reads those samples that are actually desired -
+        this is especially important for large, continuous data sets.
+
+        :type network: str
+        :param network: The network code. Can contain wildcards.
+        :type station: str
+        :param station: The station code. Can contain wildcards.
+        :type location: str
+        :param location: The location code. Can contain wildcards.
+        :type channel: str
+        :param channel: The channel code. Can contain wildcards.
+        :type starttime: :class:`obspy.core.utcdatetime.UTCDateTime`.
+        :param starttime: The time of the first sample.
+        :type endtime: :class:`obspy.core.utcdatetime.UTCDateTime`.
+        :param endtime: The time of the last sample.
+        :type tag: str
+        :param tag: The tag to extract.
+        :type automerge: bool
+        :param automerge: Automatically merge adjacent traces if they are
+            exactly adjacent (e.g. last sample from previous trace + first
+            sample of next trace are one delta apart).
         """
         st = obspy.Stream()
 
