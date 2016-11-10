@@ -20,6 +20,7 @@ import copy
 import io
 import itertools
 import math
+import multiprocessing
 import os
 import re
 import sys
@@ -2144,105 +2145,17 @@ class ASDFDataSet(object):
         # The output queue will collect the reports from the jobs.
         output_queue = multiprocessing.Queue()
 
-        class Process(multiprocessing.Process):
-            def __init__(self, in_queue, out_queue, in_filename,
-                         out_filename, in_lock, out_lock, print_lock,
-                         processing_function, process_name,
-                         total_task_count, cpu_count, traceback_limit):
-                super(Process, self).__init__()
-                self.input_queue = in_queue
-                self.output_queue = out_queue
-                self.input_filename = in_filename
-                self.output_filename = out_filename
-                self.input_file_lock = in_lock
-                self.output_file_lock = out_lock
-                self.print_lock = print_lock
-                self.processing_function = processing_function
-                self.__process_name = process_name
-                self.__task_count = 0
-                self.__total_task_count = total_task_count
-                self.__cpu_count = cpu_count
-                self.__traceback_limit = traceback_limit
-
-            def run(self):
-                while True:
-                    self.__task_count += 1
-                    stationtag = self.input_queue.get(timeout=1)
-                    if stationtag == POISON_PILL:
-                        self.input_queue.task_done()
-                        break
-
-                    # Only print on "rank" 0.
-                    if self.__process_name == 0:
-                        with self.print_lock:
-                            print(" -> Processing approximately task %i of "
-                                  "%i ..." % (min((self.__task_count - 1) *
-                                                  self.__cpu_count,
-                                                  self.__total_task_count),
-                                              self.__total_task_count))
-
-                    station, tag = stationtag
-
-                    with self.input_file_lock:
-                        input_data_set = ASDFDataSet(self.input_filename)
-                        stream, inv = \
-                            input_data_set.get_data_for_tag(station, tag)
-                        input_data_set.flush()
-                        del input_data_set
-
-                    try:
-                        output_stream = self.processing_function(stream, inv)
-                    except Exception:
-                        msg = ("\nError during the processing of station '%s' "
-                               "and tag '%s' on CPU %i:" % (
-                                stationtag[0], stationtag[1],
-                                self.__process_name))
-
-                        # Extract traceback from the exception.
-                        exc_info = sys.exc_info()
-                        stack = traceback.extract_stack(
-                            limit=self.__traceback_limit)
-                        tb = traceback.extract_tb(exc_info[2])
-                        full_tb = stack[:-1] + tb
-                        exc_line = traceback.format_exception_only(
-                            *exc_info[:2])
-                        tb = ("Traceback (At max %i levels - most recent call "
-                              "last):\n" % self.__traceback_limit)
-                        tb += "".join(traceback.format_list(full_tb))
-                        tb += "\n"
-                        # A bit convoluted but compatible with Python 2 and
-                        # 3 and hopefully all encoding problems.
-                        tb += "".join(
-                            _i.decode(errors="ignore")
-                            if hasattr(_i, "decode") else _i
-                            for _i in exc_line)
-
-                        with self.print_lock:
-                            print(msg)
-                            print(tb)
-
-                        self.input_queue.task_done()
-                        continue
-
-                    if output_stream:
-                        with self.output_file_lock:
-                            output_data_set = ASDFDataSet(self.output_filename)
-                            output_data_set.add_waveforms(
-                                output_stream, tag=tag_map[tag])
-                            del output_data_set
-
-                    self.input_queue.task_done()
-
         # Create n processes, with n being the number of available CPUs.
         processes = []
         for i in range(cpu_count):
-            processes.append(Process(
+            processes.append(_Process(
                 in_queue=input_queue, out_queue=output_queue,
                 in_filename=input_filename, out_filename=output_filename,
                 in_lock=input_file_lock, out_lock=output_file_lock,
                 print_lock=print_lock, processing_function=process_function,
                 process_name=i, total_task_count=len(station_tags),
-                cpu_count=cpu_count, traceback_limit=traceback_limit))
+                cpu_count=cpu_count, traceback_limit=traceback_limit,
+                tag_map=tag_map))
 
         print("Launching processing using multiprocessing on %i cores ..." %
               cpu_count)
@@ -2358,3 +2271,98 @@ class ASDFDataSet(object):
         if automerge:
             st.merge(method=-1)
         return st
+
+
+class _Process(multiprocessing.Process):
+    """
+    Internal process used for the processing data in parallel with the
+    multi-processing module.
+    """
+    def __init__(self, in_queue, out_queue, in_filename,
+                 out_filename, in_lock, out_lock, print_lock,
+                 processing_function, process_name,
+                 total_task_count, cpu_count, traceback_limit, tag_map):
+        super(_Process, self).__init__()
+        self.input_queue = in_queue
+        self.output_queue = out_queue
+        self.input_filename = in_filename
+        self.output_filename = out_filename
+        self.input_file_lock = in_lock
+        self.output_file_lock = out_lock
+        self.print_lock = print_lock
+        self.processing_function = processing_function
+        self.__process_name = process_name
+        self.__task_count = 0
+        self.__total_task_count = total_task_count
+        self.__cpu_count = cpu_count
+        self.__traceback_limit = traceback_limit
+        self.__tag_map = tag_map
+
+    def run(self):
+        while True:
+            self.__task_count += 1
+            stationtag = self.input_queue.get(timeout=1)
+            if stationtag == POISON_PILL:
+                self.input_queue.task_done()
+                break
+
+            # Only print on "rank" 0.
+            if self.__process_name == 0:
+                with self.print_lock:
+                    print(" -> Processing approximately task %i of "
+                          "%i ..." % (min((self.__task_count - 1) *
+                                          self.__cpu_count,
+                                          self.__total_task_count),
+                                      self.__total_task_count))
+
+            station, tag = stationtag
+
+            with self.input_file_lock:
+                input_data_set = ASDFDataSet(self.input_filename)
+                stream, inv = \
+                    input_data_set.get_data_for_tag(station, tag)
+                input_data_set.flush()
+                del input_data_set
+
+            try:
+                output_stream = self.processing_function(stream, inv)
+            except Exception:
+                msg = ("\nError during the processing of station '%s' "
+                       "and tag '%s' on CPU %i:" % (
+                           stationtag[0], stationtag[1],
+                           self.__process_name))
+
+                # Extract traceback from the exception.
+                exc_info = sys.exc_info()
+                stack = traceback.extract_stack(
+                    limit=self.__traceback_limit)
+                tb = traceback.extract_tb(exc_info[2])
+                full_tb = stack[:-1] + tb
+                exc_line = traceback.format_exception_only(
+                    *exc_info[:2])
+                tb = ("Traceback (At max %i levels - most recent call "
+                      "last):\n" % self.__traceback_limit)
+                tb += "".join(traceback.format_list(full_tb))
+                tb += "\n"
+                # A bit convoluted but compatible with Python 2 and
+                # 3 and hopefully all encoding problems.
+                tb += "".join(
+                    _i.decode(errors="ignore")
+                    if hasattr(_i, "decode") else _i
+                    for _i in exc_line)
+
+                with self.print_lock:
+                    print(msg)
+                    print(tb)
+
+                self.input_queue.task_done()
+                continue
+
+            if output_stream:
+                with self.output_file_lock:
+                    output_data_set = ASDFDataSet(self.output_filename)
+                    output_data_set.add_waveforms(
+                        output_stream, tag=self.__tag_map[tag])
+                    del output_data_set
+
+            self.input_queue.task_done()
