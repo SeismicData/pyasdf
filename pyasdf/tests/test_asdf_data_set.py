@@ -119,7 +119,7 @@ def test_data_set_creation(tmpdir):
         inv_asdf = \
             getattr(data_set.waveforms, "%s_%s" % station).StationXML
         inv_file = obspy.read_inventory(
-            os.path.join(data_path, "%s.%s..BH*.xml" % station))
+            os.path.join(data_path, "%s.%s..BH_.xml" % station))
         assert inv_file == inv_asdf
     # Test the event.
     cat_file = obspy.read_events(os.path.join(data_path, "quake.xml"))
@@ -301,9 +301,9 @@ def test_dot_accessors(example_data_set):
     assert waveform == waveform_file
 
     assert data_set.waveforms.AE_113A.StationXML == \
-        obspy.read_inventory(os.path.join(data_path, "AE.113A..BH*.xml"))
+        obspy.read_inventory(os.path.join(data_path, "AE.113A..BH_.xml"))
     assert data_set.waveforms.TA_POKR.StationXML == \
-        obspy.read_inventory(os.path.join(data_path, "TA.POKR..BH*.xml"))
+        obspy.read_inventory(os.path.join(data_path, "TA.POKR..BH_.xml"))
 
 
 def test_stationxml_is_invalid_tag_name(tmpdir):
