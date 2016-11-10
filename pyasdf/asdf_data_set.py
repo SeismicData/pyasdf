@@ -29,6 +29,7 @@ import traceback
 import uuid
 import warnings
 
+import dill
 import h5py
 import lxml.etree
 import numpy as np
@@ -2152,7 +2153,8 @@ class ASDFDataSet(object):
                 in_queue=input_queue, out_queue=output_queue,
                 in_filename=input_filename, out_filename=output_filename,
                 in_lock=input_file_lock, out_lock=output_file_lock,
-                print_lock=print_lock, processing_function=process_function,
+                print_lock=print_lock,
+                processing_function=dill.dumps(process_function),
                 process_name=i, total_task_count=len(station_tags),
                 cpu_count=cpu_count, traceback_limit=traceback_limit,
                 tag_map=tag_map))
@@ -2290,7 +2292,7 @@ class _Process(multiprocessing.Process):
         self.input_file_lock = in_lock
         self.output_file_lock = out_lock
         self.print_lock = print_lock
-        self.processing_function = processing_function
+        self.processing_function = dill.loads(processing_function)
         self.__process_name = process_name
         self.__task_count = 0
         self.__total_task_count = total_task_count

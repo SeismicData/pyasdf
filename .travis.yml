@@ -31,7 +31,7 @@ before_install:
   # Build docs on Python 3.5 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then conda install --yes sphinx; fi
   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
-  - pip install coveralls mpi4py prov
+  - pip install coveralls mpi4py prov dill
 
 install:
   - pip install --no-deps -v -e .

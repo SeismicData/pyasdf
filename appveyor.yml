@@ -30,7 +30,7 @@ install:
   - "conda create -q --yes -n test python=%PYTHON_VERSION%"
   - "activate test"
   # Install default dependencies
-  - "conda install -q --yes obspy pytest flake8 colorama h5py nose"
+  - "conda install -q --yes obspy pytest flake8 colorama h5py nose dill"
   - "pip install prov"
   # list package versions
   - "conda list"
