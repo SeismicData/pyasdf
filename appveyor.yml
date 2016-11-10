@@ -41,5 +41,4 @@ build: false
 test_script:
   - "%CMD_IN_ENV% python setup.py develop"
   # Print some system information.
-  - "python -c 'import pyasdf; pyasdf.print_sys_info()'"
   - "python -m pyasdf.tests"
