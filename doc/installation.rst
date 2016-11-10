@@ -6,9 +6,9 @@ pyasdf and Dependencies
 
 ``pyasdf`` supports Python version 2.7, 3.4, and 3.5 and it depends on the
 following Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``,
-``flake8``, ``pytest``, ``prov``, and optionally ``mpi4py``. You can install
-``pyasdf`` with or without parallel I/O support; the later requires ``mpi4py``
-and parallel versions of ``hdf5`` and ``h5py``.
+``flake8``, ``pytest``, ``prov``, ``dill``, and optionally ``mpi4py``. You can
+install ``pyasdf`` with or without parallel I/O support; the later requires
+``mpi4py`` and parallel versions of ``hdf5`` and ``h5py``.
 
 If you know what you are doing, install it any way you see fit. Otherwise do
 yourself a favor and download the
@@ -26,7 +26,7 @@ installed with ``conda``, the remaining one is installed with ``pip``:
 .. code-block:: bash
 
     $ conda update conda
-    $ conda install -c obspy obspy colorama pytest pip flake8 h5py
+    $ conda install -c conda-forge obspy colorama pytest pip flake8 h5py dill
     $ pip install prov
 
 
@@ -45,7 +45,7 @@ installable via ``conda`` has no parallel I/O support.
 .. code-block:: bash
 
     $ conda update conda
-    $ conda install -c obspy obspy colorama pytest pip flake8
+    $ conda install -c conda-forge obspy colorama pytest pip flake8 dill
     $ pip install prov
 
 
@@ -101,17 +101,18 @@ which will print something along the following lines::
     Darwin 14.3.0 64bit
     Machine: x86_64, Processor: i386 with 8 cores
     ===============================================================================
-    HDF5 version 1.8.13, h5py version: 2.3.1
-    MPI: Open MPI, version: 1.8.3, mpi4py version: 1.3.1
+    HDF5 version 1.8.15, h5py version: 2.5.0
+    MPI: Open MPI, version: 1.10.1, mpi4py version: 2.0.0
     Parallel I/O support: True
     Problematic multiprocessing: False
     ===============================================================================
     Other_modules:
-        lxml: 3.4.2
-        numpy: 1.9.2
-        obspy: 1.0.0
-        prov: 1.3.2
-        scipy: 0.15.1
+        dill: 0.2.5
+        lxml: 3.6.0
+        numpy: 1.10.4
+        obspy: 1.0.2
+        prov: 1.4.0
+        scipy: 0.17.0
 
 
 This should enable you to judge if ``pyasdf`` can run on your system.

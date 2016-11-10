@@ -48,7 +48,7 @@ setup_config = dict(
     license="BSD",
     platforms="OS Independent",
     install_requires=["numpy", "obspy>=1.0.0", "h5py", "colorama", "pytest",
-                      "flake8", "prov"],
+                      "flake8", "prov", "dill"],
     extras_require={"mpi": ["mpi4py"]},
     package_data={
         "pyasdf": get_package_data()},
