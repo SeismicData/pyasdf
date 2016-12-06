@@ -11,9 +11,18 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
 import sys
-import os
+
+# Mock modules as per RTF FAQ to avoid hard C dependencies
+from mock import Mock as MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return Mock()
+
+MOCK_MODULES = ['numpy', 'matplotlib', 'mpi4py', 'h5py']
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 import sphinx_rtd_theme
 import pyasdf
