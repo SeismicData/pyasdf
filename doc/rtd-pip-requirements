@@ -1,1 +1,8 @@
+numpy
+h5py
+colorama
+prov
+dill
 sphinx_rtd_theme==0.1.9
+-e git+git@github.com:SeismicData/asdf_validate.git@9d4283b87f98c91f7636442b7599f85657b72958#egg=asdf_validate
+-e git+git@github.com:SeismicData/SEIS-PROV.git@81f327a63a6d1a34261b062a86a63e5bc364615f#egg=seis_prov_validate&subdirectory=validator
