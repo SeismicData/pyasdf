@@ -82,6 +82,7 @@ def _focmec_or_id(value):
         raise TypeError
     return str(value)
 
+
 _event_or_id = _type_or_none(_event_or_id)
 _origin_or_id = _type_or_none(_origin_or_id)
 _magnitude_or_id = _type_or_none(_magnitude_or_id)
