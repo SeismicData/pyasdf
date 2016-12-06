@@ -18,6 +18,12 @@ see these two web sites:
 We gratefully acknowledge support from the EU-FP7 725 690 **VERCE** project
 (number 283543, `www.verce.eu <http://www.verce.eu>`_).
 
+.. note::
+
+    This is **A**\ daptable **S**\ eismic **D**\ ata **F**\ ormat - if you are looking
+    for the **A**\ dvanced **S**\ cientific **D**\ ata **F**\ ormat, go here:
+    https://asdf.readthedocs.io/en/latest/
+
 
 .. toctree::
     :hidden:
