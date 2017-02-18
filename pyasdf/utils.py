@@ -300,10 +300,10 @@ class AuxiliaryDataContainer(object):
 
     @property
     def file(self):
-        if self.data_type != "Files":
+        if self.data_type.lower() not in ["files", "file"]:
             raise ASDFAttributeError(
                 "The 'file' property is only available "
-                "for auxiliary data with the data type 'Files'.")
+                "for auxiliary data with the data type 'Files' or 'File'.")
         if self.__file_cache is not None:
             return self.__file_cache
 
