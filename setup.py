@@ -14,6 +14,10 @@ Changelog
 
 ::
 
+    Version 0.1.2 (March 7, 2017)
+    ---------------------------
+    * Also shipping license file.
+
     Version 0.1.1 (March 7, 2017)
     ---------------------------
     * Stable, tagged version.
@@ -61,7 +65,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.1.1",
+    version="0.1.2",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",

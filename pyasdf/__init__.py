@@ -16,7 +16,7 @@ from .asdf_data_set import ASDFDataSet
 __all__ = ["__version__", "ASDFDataSet", "ASDFException", "ASDFWarning",
            "WaveformNotInFileException", "print_sys_info", "get_sys_info"]
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 
 def print_sys_info():

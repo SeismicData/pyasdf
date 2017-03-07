@@ -93,7 +93,7 @@ information about the current system.
 
 which will print something along the following lines::
 
-    pyasdf version 0.1.1
+    pyasdf version 0.1.2
     ===============================================================================
     CPython 2.7.9, compiler: GCC 4.2.1 (Apple Inc. build 5577)
     Darwin 14.3.0 64bit
