@@ -26,8 +26,7 @@ installed with ``conda``, the remaining one is installed with ``pip``:
 .. code-block:: bash
 
     $ conda update conda
-    $ conda install -c conda-forge obspy colorama pytest pip flake8 h5py dill
-    $ pip install prov
+    $ conda install -c conda-forge obspy colorama pytest pip flake8 h5py dill prov
 
 
 Dependencies for the parallel I/O version
@@ -45,8 +44,7 @@ installable via ``conda`` has no parallel I/O support.
 .. code-block:: bash
 
     $ conda update conda
-    $ conda install -c conda-forge obspy colorama pytest pip flake8 dill
-    $ pip install prov
+    $ conda install -c conda-forge obspy colorama pytest pip flake8 dill prov
 
 
 For all of the following steps make sure that the MPI package of your local
