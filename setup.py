@@ -1,10 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Setup script for the pyasdf module.
+Python module for the Adaptable Seismic Data Format (ASDF).
+
+For further information and contact information please see these two web sites:
+
+* Landing page of the ASDF data format: http://seismic-data.org
+* Github repository of pyasdf: http://www.github.com/SeismicData/pyasdf
+
+
+Changelog
+---------
+
+::
+
+    Version 0.1.1 (March 7, 2017)
+    ---------------------------
+    * Stable, tagged version.
+
+
+Licensing Information
+---------------------
 
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2014
+    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2017
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -12,6 +31,9 @@ import inspect
 import os
 
 from setuptools import setup, find_packages
+
+
+DOCSTRING = __doc__.strip().split("\n")
 
 
 def get_package_data():
@@ -39,8 +61,9 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.0.1a",
-    description="Module for creating and processing ASDF files.",
+    version="0.1.1",
+    description=DOCSTRING[0],
+    long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
     author_email="krischer@geophysik.uni-muenchen.de",
     url="https://github.com/SeismicData/pyasdf",
