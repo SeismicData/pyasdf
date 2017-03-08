@@ -2292,7 +2292,7 @@ class _Process(multiprocessing.Process):
         self.input_file_lock = in_lock
         self.output_file_lock = out_lock
         self.print_lock = print_lock
-        self.processing_function = dill.loads(processing_function)
+        self.processing_function = processing_function
         self.__process_name = process_name
         self.__task_count = 0
         self.__total_task_count = total_task_count
@@ -2326,8 +2326,11 @@ class _Process(multiprocessing.Process):
                 input_data_set.flush()
                 del input_data_set
 
+            # Using dill as it works on more systems.
+            func = dill.loads(self.processing_function)
+
             try:
-                output_stream = self.processing_function(stream, inv)
+                output_stream = func(stream, inv)
             except Exception:
                 msg = ("\nError during the processing of station '%s' "
                        "and tag '%s' on CPU %i:" % (
