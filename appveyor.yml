@@ -51,6 +51,7 @@ install:
     - cmd: python --version
     - cmd: conda config --add channels conda-forge
     - cmd: conda update --yes --quiet conda
+    - cmd: conda install --yes --quiet obvious-ci
     - cmd: conda install --yes --quiet pytest flake8 colorama h5py nose dill prov
     - cmd: conda list
 
