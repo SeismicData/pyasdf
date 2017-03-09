@@ -71,6 +71,10 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
+# Always raise ASDF warnings as they are important for the user.
+warnings.simplefilter('always', ASDFWarning)
+
+
 class ASDFDataSet(object):
     """
     Object dealing with Adaptable Seismic Data Format (ASDF).
