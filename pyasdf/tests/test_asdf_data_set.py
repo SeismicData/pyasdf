@@ -16,6 +16,7 @@ import json
 import shutil
 import os
 import random
+import warnings
 
 import h5py
 import numpy as np
@@ -26,7 +27,7 @@ import pytest
 
 from pyasdf import ASDFDataSet
 from pyasdf.exceptions import (WaveformNotInFileException, ASDFValueError,
-                               ASDFAttributeError)
+                               ASDFAttributeError, ASDFWarning)
 from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
 
 
@@ -2752,3 +2753,26 @@ def test_get_waveforms_method(tmpdir):
     np.testing.assert_allclose(
         st[0].data,
         [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+
+
+def test_warning_that_data_exists_shows_up_every_time(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    ds = ASDFDataSet(asdf_filename)
+
+    tr = obspy.read()[0]
+    # Make sure hash is unique.
+    tr.stats.starttime += 12345.789
+
+    # No warning for first time.
+    with warnings.catch_warnings(record=True) as w:
+        ds.add_waveforms(tr, tag="a")
+    assert len(w) == 0
+
+    # Warning for all subsequent times.
+    for _i in range(10):
+        _i += 1
+        with warnings.catch_warnings(record=True) as w:
+            ds.add_waveforms(tr, tag="a")
+        assert len(w) == 1, "Run %i" % _i
+        assert w[0].category is ASDFWarning, "Run %i" % _i
+        assert "already exists in file" in str(w[0].message), "Run %i" % _i
