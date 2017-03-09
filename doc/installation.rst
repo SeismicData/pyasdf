@@ -93,24 +93,24 @@ information about the current system.
 
 which will print something along the following lines::
 
-    pyasdf version 0.1.3
+    pyasdf version 0.1.4
     ===============================================================================
     CPython 2.7.9, compiler: GCC 4.2.1 (Apple Inc. build 5577)
     Darwin 14.3.0 64bit
     Machine: x86_64, Processor: i386 with 8 cores
     ===============================================================================
-    HDF5 version 1.8.15, h5py version: 2.5.0
+    HDF5 version 1.8.17, h5py version: 2.5.0
     MPI: Open MPI, version: 1.10.1, mpi4py version: 2.0.0
     Parallel I/O support: True
     Problematic multiprocessing: False
     ===============================================================================
     Other_modules:
         dill: 0.2.5
-        lxml: 3.6.0
-        numpy: 1.10.4
-        obspy: 1.0.2
+        lxml: 3.7.2
+        numpy: 1.11.3
+        obspy: 1.0.3
         prov: 1.4.0
-        scipy: 0.17.0
+        scipy: 0.18.1
 
 
 This should enable you to judge if ``pyasdf`` can run on your system.
