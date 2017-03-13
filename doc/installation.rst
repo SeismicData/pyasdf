@@ -10,32 +10,46 @@ following Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``,
 install ``pyasdf`` with or without parallel I/O support; the later requires
 ``mpi4py`` and parallel versions of ``hdf5`` and ``h5py``.
 
+``pyasdf`` itself is available on pypi and also as a conda package in the
+``conda-forge`` channel (non-parallel only).
+
 If you know what you are doing, install it any way you see fit. Otherwise do
 yourself a favor and download the
 `Anaconda Python distribution <https://store.continuum.io/cshop/anaconda/>`_
-for your chosen Python version. After downloading, update it, and install the
-dependencies.
+for your chosen Python version.
 
 
-Dependencies for the non-parallel I/O version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. note:: **When to choose the parallel I/O version?**
 
-Almost all dependencies for ``pyasdf`` with no parallel I/O support can be
-installed with ``conda``, the remaining one is installed with ``pip``:
+    Please note that in most cases it is not worth it to install the parallel
+    I/O version. For one most machines (aside from actual HPC machines)
+    don't even have the necessary hardware to do actually parallel I/O. Also
+    seismological waveform data is usually not that big in volume so a single
+    reading/writing thread might be sufficient.
+
+    But if your application does indeed benefit from parallel I/O follow the
+    instructions below.
+
+
+Non-parallel ``pyasdf``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This is very easy - just execute this one line and it will install all the
+dependencies including ``pyasdf``.
 
 .. code-block:: bash
 
-    $ conda update conda
-    $ conda install -c conda-forge obspy colorama pytest pip flake8 h5py dill prov
+    $ conda install -c conda-forge pyasdf
 
 
-Dependencies for the parallel I/O version
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``pyasdf`` with parallel I/O
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. note::
 
-    There currently are some issues in combination of Python 3 and MPI so if
-    you want to utilize parallel I/O best stick to Python 2.7 for now.
+    There currently might be some issues in combination of Python 3 and MPI
+    so if you want to utilize parallel I/O best stick to Python 2.7 for now.
 
 
 The version with parallel I/O support is a bit more difficult as the ``h5py``
@@ -70,21 +84,13 @@ internal API for version 2.0. This has to be accounted for when installing the
 parallel ``h5py`` version. See here for more details:
 https://github.com/SeismicData/pyasdf/issues/11
 
-Installing pyasdf
-^^^^^^^^^^^^^^^^^
-
-``pyasdf`` is currently not on pypi but eventually be. For now, best install via git.
+Finally install ``pyasdf`` with
 
 .. code-block:: bash
 
-    $ git clone https://github.com/SeismicData/pyasdf.git
-    $ cd pyasdf
-    $ pip install -v -e .
+    $ pip install pyasdf
 
-The ``-e`` flag results in an editable installation meaning the a simple ``git
-pull`` is enough to update ``pyasdf``.
-
-After everything is installed, run the following command to print
+After everything is installed, you can run the following command to print
 information about the current system.
 
 .. code-block:: bash
@@ -119,7 +125,6 @@ is problematic, ``pyasdf`` will not be able to run on more than one machine
 without MPI. Please see
 `here <https://github.com/obspy/obspy/wiki/Notes-on-Parallel-Processing-with-Python-and-ObsPy>`_
 for information about why and how to fix it.
-
 
 
 
