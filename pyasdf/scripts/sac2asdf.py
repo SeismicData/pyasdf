@@ -2,9 +2,11 @@ from __future__ import print_function
 
 import argparse
 import collections
-import obspy
 import os
 import re
+
+import obspy
+from obspy.io.sac.util import get_sac_reftime
 
 import pyasdf
 
@@ -89,7 +91,7 @@ def _add_to_adsf_file(f, files, tag, verbose=False):
         if ev:
             event_id = event_handler.get_resource_identifier(
                 latitude=ev[1], longitude=ev[0], depth=ev[2],
-                origin_time=tr.stats.starttime + ev[3])
+                origin_time=get_sac_reftime(tr.stats.sac) + ev[3])
         else:
             event_id = None
 
