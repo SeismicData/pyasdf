@@ -10,18 +10,67 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import copy
+import io
 import os
 import sys
 
 import numpy as np
 import obspy
 from obspy.io.sac import SACTrace
+import pytest
 
 import pyasdf
 from pyasdf.scripts import sac2asdf
 
 
-def test_sac2asdf_script(tmpdir):
+def test_sac2asdf_failure_cases(tmpdir):
+    tmpdir = tmpdir.strpath
+    output_file = os.path.join(tmpdir, "out.h5")
+
+    sys_argv_backup = copy.copy(sys.argv)
+    try:
+        sys.argv = sys.argv[:1]
+        sys.argv.append(tmpdir)
+        sys.argv.append(output_file)
+        # Invalid tag.
+        sys.argv.append("RaNdOm")
+        with pytest.raises(ValueError):
+            sac2asdf.__main__()
+    finally:
+        # Restore to not mess with any of pytests logic.
+        sys.argv = sys_argv_backup
+
+    sys_argv_backup = copy.copy(sys.argv)
+    try:
+        sys.argv = sys.argv[:1]
+        # Not a folder
+        sys.argv.append(os.path.join(tmpdir, "12345"))
+        sys.argv.append(output_file)
+        sys.argv.append("random")
+        with pytest.raises(ValueError):
+            sac2asdf.__main__()
+    finally:
+        # Restore to not mess with any of pytests logic.
+        sys.argv = sys_argv_backup
+
+    with io.open(output_file, "wt") as fh:
+        fh.write("1")
+
+    sys_argv_backup = copy.copy(sys.argv)
+    try:
+        sys.argv = sys.argv[:1]
+        sys.argv.append(tmpdir)
+        # File already exists.
+        sys.argv.append(output_file)
+        sys.argv.append("random")
+        with pytest.raises(ValueError):
+            sac2asdf.__main__()
+    finally:
+        # Restore to not mess with any of pytests logic.
+        sys.argv = sys_argv_backup
+
+
+def test_sac2asdf_script(tmpdir, capsys):
     tmpdir = tmpdir.strpath
 
     # Create some test data
@@ -84,6 +133,9 @@ def test_sac2asdf_script(tmpdir):
         # Restore to not mess with any of pytests logic.
         sys.argv = sys_argv_backup
 
+    non_verbose_out, non_verbose_err = capsys.readouterr()
+    assert not non_verbose_err
+
     assert os.path.exists(output_file)
     with pyasdf.ASDFDataSet(output_file, mode="r") as ds:
         # 2 Events.
@@ -140,3 +192,21 @@ def test_sac2asdf_script(tmpdir):
         assert origin.time == obspy.UTCDateTime(
             year=2013, julday=123, hour=13, minute=43, second=17,
             microsecond=100000) + 10.0
+
+    # Run once again in verbose mode but just test that the output is
+    # actually more.
+    os.remove(output_file)
+    sys_argv_backup = copy.copy(sys.argv)
+    try:
+        sys.argv = sys.argv[:1]
+        sys.argv.append("--verbose")
+        sys.argv.append(tmpdir)
+        sys.argv.append(output_file)
+        sys.argv.append("random")
+        sac2asdf.__main__()
+    finally:
+        # Restore to not mess with any of pytests logic.
+        sys.argv = sys_argv_backup
+    verbose_out, verbose_err = capsys.readouterr()
+    assert not verbose_err
+    assert len(verbose_out) > len(non_verbose_out)
