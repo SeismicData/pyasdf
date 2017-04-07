@@ -96,7 +96,6 @@ def test_sac2asdf_script(tmpdir, capsys):
     sac = SACTrace(data=data_1, **header)
     sac.write(os.path.join(tmpdir, "a.sac"))
 
-
     data_2 = 2.0 * np.arange(10, dtype=np.float32)
     header = {'kstnm': 'BBBB',
               'knetwk': 'AA',
@@ -143,7 +142,7 @@ def test_sac2asdf_script(tmpdir, capsys):
         # 2 Stations.
         assert len(ds.waveforms) == 2
 
-        events = ds.events
+        events = ds.events  # flake8: noqa
 
         # Data should actually be fully identical
         np.testing.assert_equal(
