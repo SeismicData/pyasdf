@@ -4,6 +4,7 @@ import argparse
 import collections
 import os
 import re
+import sys
 
 import obspy
 from obspy.io.sac.util import get_sac_reftime
@@ -57,7 +58,8 @@ def _add_to_adsf_file(f, files, tag, verbose=False):
 
     for filename in files:
         if not verbose:
-            print(".", end="", flush=True)
+            print(".", end="")
+            sys.stdout.flush()
         else:
             print("Attempting to add '%s'." % filename)
         try:
