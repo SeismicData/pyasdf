@@ -35,7 +35,9 @@ Non-parallel ``pyasdf``
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 This is very easy - just execute this one line and it will install all the
-dependencies including ``pyasdf``.
+dependencies including ``pyasdf`` (assuming you installed the
+`Anaconda Python distribution <https://store.continuum.io/cshop/anaconda/>`_
+as recommended above).
 
 .. code-block:: bash
 
