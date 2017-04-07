@@ -13,6 +13,9 @@ Changelog
 ---------
 
 ::
+    Version 0.2.0 (April 7, 2017)
+    ---------------------------
+    * New script to convert a folder of SAC files to ASDF.
 
     Version 0.1.4 (March 9, 2017)
     ---------------------------
@@ -73,7 +76,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.1.x",
+    version="0.2.0",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
