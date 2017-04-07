@@ -27,7 +27,8 @@ before_install:
   - sudo rm -rf /dev/shm
   - sudo ln -s /run/shm /dev/shm
   # NOTE: Remove nose when matplotlib/matplotlib#4188 is fixed.
-  - conda install --yes -c obspy obspy python=$TRAVIS_PYTHON_VERSION nose
+  - conda config --add channels conda-forge
+  - conda install --yes obspy python=$TRAVIS_PYTHON_VERSION nose
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
   # Build docs on Python 3.5 for now.
   - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then conda install --yes sphinx; fi
