@@ -143,7 +143,9 @@ def write_stationxmls(f, channels, starttime, endtime):
                                 latitude=_i[3],
                                 longitude=_i[2],
                                 elevation=_i[4],
-                                depth=_i[5]) for _i in values])])],
+                                depth=_i[5],
+                                start_date=starttime,
+                                end_date=endtime) for _i in values])])],
             source="pyasdf sac2asdf converter")
         f.add_stationxml(inv)
 
@@ -174,5 +176,5 @@ def __main__():
                      verbose=args.verbose, tag=args.tag)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     __main__()
