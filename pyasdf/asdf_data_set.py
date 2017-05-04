@@ -196,12 +196,12 @@ class ASDFDataSet(object):
             self.__file.attrs["file_format_version"] = \
                 self._zeropad_ascii_string(FORMAT_VERSION)
 
-        # Create the waveform and provenance groups.
-        if "Waveforms" not in self.__file:
+        # Create the waveform and provenance groups if mode is not "r".
+        if "Waveforms" not in self.__file and mode != "r":
             self.__file.create_group("Waveforms")
-        if "Provenance" not in self.__file:
+        if "Provenance" not in self.__file and mode != "r":
             self.__file.create_group("Provenance")
-        if "AuxiliaryData" not in self.__file:
+        if "AuxiliaryData" not in self.__file and mode != "r":
             self.__file.create_group("AuxiliaryData")
 
         # Easy access to the waveforms.
