@@ -544,17 +544,26 @@ class StationAccessor(object):
         # file around.
         self.__data_set = weakref.ref(asdf_data_set)
 
-    def __getattr__(self, item):
-        item = str(item).replace("_", ".")
+    def __getattr__(self, item, replace=True):
+        if replace:
+            item = str(item).replace("_", ".")
         if item not in self.__data_set()._waveform_group:
             raise AttributeError("Attribute '%s' not found." % item)
         return WaveformAccessor(item, self.__data_set())
 
     def __getitem__(self, item):
+        # Item access with replaced underscore and without. This is not
+        # strictly valid ASDF but it helps to be flexible.
         try:
-            return self.__getattr__(item)
+            return self.__getattr__(item, replace=False)
         except AttributeError as e:
-            raise KeyError(str(e))
+            try:
+                return self.__getattr__(item, replace=True)
+            except AttributeError as e:
+                raise KeyError(str(e))
+
+    def __contains__(self, item):
+        return item in [_i._station_name for _i in self]
 
     def __delattr__(self, item):
         # Triggers an AttributeError if the item does not exist.
