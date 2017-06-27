@@ -716,7 +716,7 @@ class ASDFDataSet(object):
         # Get time of first and time of last sample.
         data_starttime = obspy.UTCDateTime(
             float(data.attrs["starttime"]) / 1.0E9)
-        data_endtime = data_starttime + (idx_end - 1) * dt
+        data_endtime = data_starttime + float((idx_end - 1) * dt)
 
         # Modify the data indices to restrict the data if necessary.
         if starttime is not None and starttime > data_starttime:
