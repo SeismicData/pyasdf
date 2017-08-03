@@ -178,27 +178,39 @@ def get_coordinates(data, level="station"):
     if level == "station":
         coordinates = {}
 
-        # Small state machine.
-        net_state = None
-
-        tags = (network_tag, station_tag)
+        # Just triggering on network and station tags and getting the
+        # station elements' children does (for some reason) not work as the
+        # childrens will not be complete if there are a lot of them. Maybe
+        # this is some kind of shortcoming or bug of etree.iterparse()?
+        tags = (network_tag, station_tag, latitude_tag, longitude_tag,
+                elevation_tag)
         context = etree.iterparse(data, events=("start", ), tag=tags)
 
+        # Small state machine.
+        current_network = None
+        current_station = None
+        current_coordinates = {}
+
         for _, elem in context:
-            if elem.tag == station_tag:
-                station_coordinates = {}
-                for child in elem.getchildren():
-                    if child.tag == latitude_tag:
-                        station_coordinates["latitude"] = float(child.text)
-                    elif child.tag == longitude_tag:
-                        station_coordinates["longitude"] = float(child.text)
-                    elif child.tag == elevation_tag:
-                        station_coordinates["elevation_in_m"] = float(
-                            child.text)
-                coordinates["%s.%s" % (net_state, elem.get("code"))] = \
-                    station_coordinates
-            elif elem.tag == network_tag:
-                net_state = elem.get('code')
+            if elem.tag == network_tag:
+                current_network = elem.get('code')
+                current_station = None
+                current_coordinates = {}
+            elif elem.tag == station_tag:
+                current_station = elem.get('code')
+                current_coordinates = {}
+            elif elem.getparent().tag == station_tag:
+                if elem.tag == latitude_tag:
+                    current_coordinates["latitude"] = float(elem.text)
+                if elem.tag == longitude_tag:
+                    current_coordinates["longitude"] = float(elem.text)
+                if elem.tag == elevation_tag:
+                    current_coordinates["elevation_in_m"] = float(elem.text)
+                if len(current_coordinates) == 3:
+                    coordinates["%s.%s" % (current_network,
+                                           current_station)] = \
+                        current_coordinates
+                    current_coordinates = {}
         return coordinates
 
     # Return channel coordinates.

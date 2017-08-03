@@ -588,6 +588,32 @@ def test_coordinate_extraction(example_data_set):
         'elevation_in_m': 501.0}
 
 
+def test_coordinate_extraction_with_many_station_comments(tmpdir):
+    """
+    Regression test to guard against some strange/faulty behaviour of
+    etree.iterparse() when there are a larger number of child elements.
+    """
+    ds = ASDFDataSet(os.path.join(tmpdir.strpath, "test.h5"))
+    ds.add_stationxml(os.path.join(data_dir, "II.ABKT.xml"))
+    assert ds.waveforms.II_ABKT.coordinates == {
+        "latitude": 37.9304,
+        "longitude": 58.1189,
+        "elevation_in_m": 678.0}
+    assert ds.waveforms.II_ABKT.channel_coordinates == {
+        'II.ABKT.00.BHE': [{'latitude': 37.9304, 'local_depth_in_m': 7.0,
+                            'starttime': UTCDateTime(2010, 7, 14, 12, 0),
+                            'endtime': UTCDateTime(2013, 12, 30, 23, 59, 59),
+                            'longitude': 58.1189, 'elevation_in_m': 678.0}],
+        'II.ABKT.00.BHN': [{'latitude': 37.9304, 'local_depth_in_m': 7.0,
+                            'starttime': UTCDateTime(2010, 7, 14, 12, 0),
+                            'endtime': UTCDateTime(2013, 12, 30, 23, 59, 59),
+                            'longitude': 58.1189, 'elevation_in_m': 678.0}],
+        'II.ABKT.00.BHZ': [{'latitude': 37.9304, 'local_depth_in_m': 7.0,
+                            'starttime': UTCDateTime(2010, 7, 14, 12, 0),
+                            'endtime': UTCDateTime(2013, 12, 30, 23, 59, 59),
+                            'longitude': 58.1189, 'elevation_in_m': 678.0}]}
+
+
 def test_coordinate_extraction_channel_level(example_data_set):
     """
     Tests the quick coordinate extraction at the channel level.
