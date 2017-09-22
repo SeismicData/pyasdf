@@ -85,7 +85,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.2.1",
+    version="0.2.x",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
