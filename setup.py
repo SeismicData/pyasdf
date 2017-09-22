@@ -13,6 +13,15 @@ Changelog
 ---------
 
 ::
+    Version 0.2.1 (September 21, 2017)
+    ----------------------------------
+    * Don't attempt to write ASDF header info to files in read-only mode.
+    * get_coordinates() now works for StationXML files with a very large number
+      of comments.
+    * Station.__getattr__() now works with underscores or dots as the network
+      and station separator.
+    * __contains__() implemented for the station accessor object.
+
     Version 0.2.0 (April 7, 2017)
     ---------------------------
     * New script to convert a folder of SAC files to ASDF.
@@ -76,7 +85,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.2.x",
+    version="0.2.1",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
