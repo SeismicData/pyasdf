@@ -39,7 +39,7 @@ for key, value in list(COMPRESSIONS.items()):
 
 
 FORMAT_NAME = "ASDF"
-FORMAT_VERSION = "1.0.0"
+SUPPORTED_FORMAT_VERSIONS = ("1.0.0", "1.0.1")
 
 
 # Regular expression for allowed filenames within the provenance group.
@@ -48,13 +48,21 @@ PROV_FILENAME_REGEX = re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$")
 # Regular expression for allowed tag names.
 TAG_REGEX = re.compile(r"^[a-z_0-9]+$")
 
-# 4 and 8 bytes signed integers and floating points.
-VALID_SEISMOGRAM_DTYPES = (
-    np.dtype("<i4"), np.dtype(">i4"),
-    np.dtype("<i8"), np.dtype(">i8"),
-    np.dtype("<f4"), np.dtype(">f4"),
-    np.dtype("<f8"), np.dtype(">f8")
-)
+# Valid seismogram dtypes, per file format version.
+VALID_SEISMOGRAM_DTYPES = {
+    "1.0.0": (np.dtype("<i4"), np.dtype(">i4"),
+              np.dtype("<i8"), np.dtype(">i8"),
+              np.dtype("<f4"), np.dtype(">f4"),
+              np.dtype("<f8"), np.dtype(">f8")),
+    "1.0.1": (np.dtype("<i2"), np.dtype(">i2"),
+              np.dtype("<i4"), np.dtype(">i4"),
+              np.dtype("<i8"), np.dtype(">i8"),
+              np.dtype("<f4"), np.dtype(">f4"),
+              np.dtype("<f8"), np.dtype(">f8"))
+}
+
+# A small internal safety check.
+assert set(VALID_SEISMOGRAM_DTYPES.keys()) == set(SUPPORTED_FORMAT_VERSIONS)
 
 # MPI message tags used for communication.
 MSG_TAGS = [

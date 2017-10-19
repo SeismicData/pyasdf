@@ -28,7 +28,7 @@ import pytest
 from pyasdf import ASDFDataSet
 from pyasdf.exceptions import (WaveformNotInFileException, ASDFValueError,
                                ASDFAttributeError, ASDFWarning)
-from pyasdf.header import FORMAT_VERSION, FORMAT_NAME
+from pyasdf.header import FORMAT_NAME
 
 
 data_dir = os.path.join(os.path.dirname(os.path.abspath(
@@ -264,7 +264,7 @@ def test_assert_format_and_version_number_are_written(tmpdir):
     # Open again and assert name and version number.
     with h5py.File(asdf_filename, "r") as hdf5_file:
         assert hdf5_file.attrs["file_format_version"].decode() \
-           == FORMAT_VERSION
+           == "1.0.1"
         assert hdf5_file.attrs["file_format"].decode() == FORMAT_NAME
 
 
@@ -476,7 +476,7 @@ def test_format_version_decorator(example_data_set):
     read.
     """
     data_set = ASDFDataSet(example_data_set.filename)
-    assert data_set.asdf_format_version == FORMAT_VERSION
+    assert data_set.asdf_format_version == "1.0.1"
 
 
 def test_reading_and_writing_auxiliary_data(tmpdir):
