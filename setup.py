@@ -13,6 +13,11 @@ Changelog
 ---------
 
 ::
+    Version 0.3.0 (October 19, 2017)
+    ----------------------------------
+    * Support for ASDF 1.0.1 (the only difference to 1.0.0 is support for
+      16 bit integer waveform data).
+
     Version 0.2.1 (September 21, 2017)
     ----------------------------------
     * Don't attempt to write ASDF header info to files in read-only mode.
@@ -85,11 +90,11 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.2.x",
+    version="0.3.0",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
-    author_email="krischer@geophysik.uni-muenchen.de",
+    author_email="lion.krischer@gmail.com",
     url="https://github.com/SeismicData/pyasdf",
     packages=find_packages(),
     license="BSD",
