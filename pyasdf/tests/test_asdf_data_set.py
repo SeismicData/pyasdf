@@ -573,6 +573,22 @@ def test_format_version_handling(tmpdir):
     assert err.value.args[0] == (
         "ASDF version 'x.x.x' is not supported. Supported versions: 1.0.0, "
         "1.0.1")
+    # No file should be created.
+    assert not os.path.exists(filename)
+
+    # Create a file with a format name but no version.
+    with ASDFDataSet(filename) as ds:
+        del ds._ASDFDataSet__file.attrs["file_format_version"]
+    # Has to raise a warning and will write the file format version to the
+    # file.
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        with ASDFDataSet(filename) as ds:
+            assert ds.asdf_format_version_in_file == "1.0.1"
+            assert ds.asdf_format_version == "1.0.1"
+    assert w[0].message.args[0] == (
+        "No file format version given in file '%s'. The program will "
+        "continue but the result is undefined." % os.path.abspath(filename))
 
 
 def test_reading_and_writing_auxiliary_data(tmpdir):
