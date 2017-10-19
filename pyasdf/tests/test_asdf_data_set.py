@@ -598,7 +598,7 @@ def test_asdf_version_handling_during_writing(tmpdir):
 
     tr = obspy.Trace(data=np.zeros(10, dtype=np.int16),
                      header={"network": "XX", "station": "YYY",
-                             "location": "", "channnel": "BHX"})
+                             "location": "", "channel": "BHX"})
 
     # Fail with version 1.0.0.
     with ASDFDataSet(filename, format_version="1.0.0") as ds:
