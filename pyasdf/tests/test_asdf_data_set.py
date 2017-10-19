@@ -566,6 +566,14 @@ def test_format_version_handling(tmpdir):
         "will use version 1.0.0 - other tools might not be able to read "
         "the files again - proceed with caution.")
 
+    # Unsupported version number.
+    os.remove(filename)
+    with pytest.raises(ASDFValueError) as err:
+        ASDFDataSet(filename, format_version="x.x.x")
+    assert err.value.args[0] == (
+        "ASDF version 'x.x.x' is not supported. Supported versions: 1.0.0, "
+        "1.0.1")
+
 
 def test_reading_and_writing_auxiliary_data(tmpdir):
     """

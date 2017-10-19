@@ -139,9 +139,9 @@ class ASDFDataSet(object):
             ASDF file does not yes exist, or the version specified in the file.
         """
         if format_version and format_version not in SUPPORTED_FORMAT_VERSIONS:
-            raise ValueError(
-                "ASDF Version '%s' is not supported. Supported versions: %s" %
-                (format_version, ",".join(SUPPORTED_FORMAT_VERSIONS)))
+            raise ASDFValueError(
+                "ASDF version '%s' is not supported. Supported versions: %s" %
+                (format_version, ", ".join(SUPPORTED_FORMAT_VERSIONS)))
 
         self.__force_mpi = mpi
         self.debug = debug
