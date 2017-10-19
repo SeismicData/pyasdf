@@ -1184,7 +1184,8 @@ class ASDFDataSet(object):
             waveform = obspy.read(waveform)
 
         for trace in waveform:
-            if trace.data.dtype in VALID_SEISMOGRAM_DTYPES[self.asdf_format_version]:
+            if trace.data.dtype in \
+                    VALID_SEISMOGRAM_DTYPES[self.asdf_format_version]:
                 continue
             else:
                 if self.asdf_format_version == "1.0.0":
