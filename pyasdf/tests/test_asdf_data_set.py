@@ -468,15 +468,103 @@ def test_processing_multiprocessing(example_data_set):
     assert data_set == out_data_set
 
 
-def test_format_version_decorator(example_data_set):
+def test_format_version_handling(tmpdir):
     """
-    Tests the format version decorator.
+    Tests how pyasdf deals with different ASDF versions.
 
     Also more or less tests that the format version is correctly written and
     read.
     """
-    data_set = ASDFDataSet(example_data_set.filename)
-    assert data_set.asdf_format_version == "1.0.1"
+    filename = os.path.join(tmpdir.strpath, "test.h5")
+    # There are two attributes to the data set object:
+    #
+    # * The ASDF version in the file.
+    # * The used ASDF version.
+    #
+    # In most cases these should be identical.
+
+    # Create.
+    with ASDFDataSet(filename) as ds:
+        assert ds.asdf_format_version_in_file == "1.0.1"
+        assert ds.asdf_format_version == "1.0.1"
+    # Open again.
+    with ASDFDataSet(filename) as ds:
+        assert ds.asdf_format_version_in_file == "1.0.1"
+        assert ds.asdf_format_version == "1.0.1"
+
+    os.remove(filename)
+
+    # Directly specify it.
+    with ASDFDataSet(filename, format_version="1.0.1") as ds:
+        assert ds.asdf_format_version_in_file == "1.0.1"
+        assert ds.asdf_format_version == "1.0.1"
+    with ASDFDataSet(filename) as ds:
+        assert ds.asdf_format_version_in_file == "1.0.1"
+        assert ds.asdf_format_version == "1.0.1"
+
+    os.remove(filename)
+
+    # Also version 1.0.0
+    with ASDFDataSet(filename, format_version="1.0.0") as ds:
+        assert ds.asdf_format_version_in_file == "1.0.0"
+        assert ds.asdf_format_version == "1.0.0"
+    with ASDFDataSet(filename) as ds:
+        assert ds.asdf_format_version_in_file == "1.0.0"
+        assert ds.asdf_format_version == "1.0.0"
+
+    os.remove(filename)
+    # Both can also differ.
+    with ASDFDataSet(filename, format_version="1.0.0") as ds:
+        assert ds.asdf_format_version_in_file == "1.0.0"
+        assert ds.asdf_format_version == "1.0.0"
+    # Read again, but force an ASDF version that differs from the one in the
+    # file. A warning will be raised in this case.
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        with ASDFDataSet(filename, format_version="1.0.1") as ds:
+            assert ds.asdf_format_version_in_file == "1.0.0"
+            assert ds.asdf_format_version == "1.0.1"
+
+    assert w[0].message.args[0] == (
+        "You are forcing ASDF version 1.0.1 but the version of the file is "
+        "1.0.0. Please proceed with caution as other tools might not be able "
+        "to read the file again.")
+
+    # Once again but with some random version.
+    os.remove(filename)
+    # Both can also differ.
+    with ASDFDataSet(filename) as ds:
+        ds._ASDFDataSet__file.attrs["file_format_version"] = \
+            ds._zeropad_ascii_string("x.x.x")
+        assert ds.asdf_format_version_in_file == "x.x.x"
+        assert ds.asdf_format_version == "1.0.1"
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        with ASDFDataSet(filename) as ds:
+            assert ds.asdf_format_version_in_file == "x.x.x"
+            assert ds.asdf_format_version == "1.0.1"
+    assert w[0].message.args[0] == (
+        "The file claims an ASDF version of x.x.x. This version of pyasdf "
+        "only supports versions: 1.0.0, 1.0.1. All following write operations "
+        "will use version 1.0.1 - other tools might not be able to read "
+        "the files again - proceed with caution.")
+    # Again but force version.
+    os.remove(filename)
+    # Both can also differ.
+    with ASDFDataSet(filename) as ds:
+        ds._ASDFDataSet__file.attrs["file_format_version"] = \
+            ds._zeropad_ascii_string("x.x.x")
+        assert ds.asdf_format_version_in_file == "x.x.x"
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        with ASDFDataSet(filename, format_version="1.0.0") as ds:
+            assert ds.asdf_format_version_in_file == "x.x.x"
+            assert ds.asdf_format_version == "1.0.0"
+    assert w[0].message.args[0] == (
+        "The file claims an ASDF version of x.x.x. This version of pyasdf "
+        "only supports versions: 1.0.0, 1.0.1. All following write operations "
+        "will use version 1.0.0 - other tools might not be able to read "
+        "the files again - proceed with caution.")
 
 
 def test_reading_and_writing_auxiliary_data(tmpdir):

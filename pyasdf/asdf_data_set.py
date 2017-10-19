@@ -204,14 +204,15 @@ class ASDFDataSet(object):
             version_in_file = self.__file.attrs["file_format_version"].decode()
 
             if version_in_file not in SUPPORTED_FORMAT_VERSIONS:
-                self.asdf_version = format_version or __most_recent_version
+                self.asdf_format_version = (format_version or
+                                            __most_recent_version)
                 msg = ("The file claims an ASDF version of %s. This "
-                       "version of pyasdf only supports versions %s. All "
+                       "version of pyasdf only supports versions: %s. All "
                        "following write operations will use version %s - "
                        "other tools might not be able to read the files "
                        "again - proceed with caution." % (
                         version_in_file, ", ".join(SUPPORTED_FORMAT_VERSIONS),
-                        self.asdf_version))
+                        self.asdf_format_version))
                 warnings.warn(msg, ASDFWarning)
             else:
                 if format_version and format_version != version_in_file:
@@ -219,18 +220,19 @@ class ASDFDataSet(object):
                            "of the file is %s. Please proceed with caution "
                            "as other tools might not be able to read the "
                            "file again." % (format_version, version_in_file))
-                    self.asdf_version = format_version
+                    warnings.warn(msg, ASDFWarning)
+                    self.asdf_format_version = format_version
                 else:
-                    self.asdf_version = version_in_file
+                    self.asdf_format_version = version_in_file
         # Case 2: Format version not in file yet.
         else:
             # If not given, use the most recent one.
-            self.asdf_version = format_version or __most_recent_version
+            self.asdf_format_version = format_version or __most_recent_version
             self.__file.attrs["file_format_version"] = \
-                self._zeropad_ascii_string(self.asdf_version)
+                self._zeropad_ascii_string(self.asdf_format_version)
 
         # Just a final safety check - should not be able to fail!
-        assert self.asdf_version in SUPPORTED_FORMAT_VERSIONS
+        assert self.asdf_format_version in SUPPORTED_FORMAT_VERSIONS
 
         # Create the waveform and provenance groups if mode is not "r".
         if "Waveforms" not in self.__file and mode != "r":
@@ -356,9 +358,9 @@ class ASDFDataSet(object):
         return self.__file["AuxiliaryData"]
 
     @property
-    def asdf_format_version(self):
+    def asdf_format_version_in_file(self):
         """
-        Returns the version of the ASDF file.
+        Returns the version of the ASDF version specified in the file.
         """
         return self.__file.attrs["file_format_version"].decode()
 
@@ -807,7 +809,7 @@ class ASDFDataSet(object):
         tr.stats._format = FORMAT_NAME
         details = obspy.core.util.AttribDict()
         setattr(tr.stats, FORMAT_NAME.lower(), details)
-        details.format_version = self.asdf_version
+        details.format_version = self.asdf_format_version
 
         # Read all the ids if they are there.
         ids = ["event_id", "origin_id", "magnitude_id", "focal_mechanism_id"]
@@ -862,7 +864,7 @@ class ASDFDataSet(object):
         ret = "{format} file [format version: {version}]: '{filename}' ({" \
               "size})".format(
                   format=FORMAT_NAME,
-                  version=self.asdf_format_version,
+                  version=self.asdf_format_version_in_file,
                   filename=os.path.relpath(self.filename),
                   size=self.pretty_filesize)
         ret += "\n\tContains %i event(s)" % len(self.events)
@@ -1182,16 +1184,16 @@ class ASDFDataSet(object):
             waveform = obspy.read(waveform)
 
         for trace in waveform:
-            if trace.data.dtype in VALID_SEISMOGRAM_DTYPES[self.asdf_version]:
+            if trace.data.dtype in VALID_SEISMOGRAM_DTYPES[self.asdf_format_version]:
                 continue
             else:
-                if self.asdf_version == "1.0.0":
+                if self.asdf_format_version == "1.0.0":
                     raise TypeError("The trace's dtype ('%s') is not allowed "
                                     "inside ASDF 1.0.0. Allowed are little "
                                     "and big endian 4 and 8 byte signed "
                                     "integers and floating point numbers." %
                                     trace.data.dtype.name)
-                elif self.asdf_version == "1.0.1":
+                elif self.asdf_format_version == "1.0.1":
                     raise TypeError("The trace's dtype ('%s') is not allowed "
                                     "inside ASDF 1.0.1. Allowed are little "
                                     "and big endian 2, 4, and 8 byte signed "
