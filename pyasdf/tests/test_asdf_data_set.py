@@ -611,11 +611,35 @@ def test_asdf_version_handling_during_writing(tmpdir):
         assert len(ds.waveforms) == 0
 
     # Works fine with version 1.0.1.
+    os.remove(filename)
     with ASDFDataSet(filename, format_version="1.0.1") as ds:
         ds.add_waveforms(tr, tag="test")
         assert len(ds.waveforms) == 1
-        tr_new = ds.XX_YYY.test[0]
+        tr_new = ds.waveforms.XX_YYY.test[0]
         assert tr_new.data.dtype == np.int16
+
+    # Some dtypes should not work at all.
+    tr = obspy.Trace(data=np.zeros(10, dtype=np.int8),
+                     header={"network": "XX", "station": "YYY",
+                             "location": "", "channnel": "BHX"})
+    os.remove(filename)
+    with ASDFDataSet(filename, format_version="1.0.0") as ds:
+        with pytest.raises(TypeError) as err:
+            ds.add_waveforms(tr, tag="test")
+        assert err.value.args[0] == (
+            "The trace's dtype ('int8') is not allowed inside ASDF 1.0.0. "
+            "Allowed are little and big endian 4 and 8 byte signed integers "
+            "and floating point numbers.")
+        assert len(ds.waveforms) == 0
+    os.remove(filename)
+    with ASDFDataSet(filename, format_version="1.0.1") as ds:
+        with pytest.raises(TypeError) as err:
+            ds.add_waveforms(tr, tag="test")
+        assert err.value.args[0] == (
+            "The trace's dtype ('int8') is not allowed inside ASDF 1.0.1. "
+            "Allowed are little and big endian 2, 4, and 8 byte signed "
+            "integers and 4 and 8 byte floating point numbers.")
+        assert len(ds.waveforms) == 0
 
 
 def test_reading_and_writing_auxiliary_data(tmpdir):
