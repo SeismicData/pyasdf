@@ -74,6 +74,10 @@ implementation.
     $ conda uninstall mpi4py
     $ pip install mpi4py
 
+    # Also make sure that there is no hdf5 or h5py in the current conda
+    # environment!
+    $ conda uninstall h5py hdf5
+
 Keep in mind that ``h5py`` must be compiled with parallel I/O support and that
 it is linked against the same MPI as ``mpi4py`` which of course should be the
 same that is used by your computer.
