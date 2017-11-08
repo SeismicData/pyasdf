@@ -66,7 +66,7 @@ def _add_to_adsf_file(f, files, tag, verbose=False):
             tr = obspy.read(filename, format="SAC")[0]
             if verbose:
                 print("Success.")
-        except:
+        except Exception:
             print("\nFailed to read '%s' as a SAC file." % filename)
             continue
 

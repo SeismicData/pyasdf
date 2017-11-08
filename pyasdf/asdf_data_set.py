@@ -332,7 +332,7 @@ class ASDFDataSet(object):
         """
         try:
             self.__file.close()
-        except:
+        except Exception:
             pass
 
     def _zeropad_ascii_string(self, text):
@@ -436,14 +436,14 @@ class ASDFDataSet(object):
         with io.BytesIO(_read_string_array(data)) as buf:
             try:
                 cat = obspy.read_events(buf, format="quakeml")
-            except:
+            except Exception:
                 # ObsPy is not able to read empty QuakeML files but they are
                 # still valid QuakeML files.
                 buf.seek(0, 0)
                 result = None
                 try:
                     result = obspy.core.quakeml._validate(buf)
-                except:
+                except Exception:
                     pass
                 # If validation is successful, but the initial read failed,
                 # it must have been an empty QuakeML object.

@@ -265,7 +265,7 @@ class AuxiliaryDataContainer(object):
             # It might be returned as a byte string on some systems.
             try:
                 self.provenance_id = self.provenance_id.decode()
-            except:  # pragma: no cover
+            except Exception:  # pragma: no cover
                 pass
         else:
             self.provenance_id = None
@@ -295,7 +295,7 @@ class AuxiliaryDataContainer(object):
     def __del__(self):
         try:
             self.__file_cache.close()
-        except:
+        except Exception:
             pass
 
     @property
@@ -1293,7 +1293,7 @@ def to_list_of_resource_identifiers(obj, name, obj_type):
     else:
         try:
             obj = obspy.core.event.ResourceIdentifier(obj)
-        except:
+        except Exception:
             msg = "Invalid type for %s." % name
             raise TypeError(msg)
     return [obj]
