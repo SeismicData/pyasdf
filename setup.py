@@ -13,6 +13,11 @@ Changelog
 ---------
 
 ::
+    Version 0.4.x (TBD)
+    -------------------
+    * New get_waveform_attributes() method to quickly get all attributes
+      for the waveforms of a stations (see #38, #39).
+
     Version 0.3.0 (October 19, 2017)
     ----------------------------------
     * Support for ASDF 1.0.1 (the only difference to 1.0.0 is support for
