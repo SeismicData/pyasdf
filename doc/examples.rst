@@ -14,4 +14,5 @@ This page collect useful examples on how to to some things with ``pyasdf``.
     examples/create_observed_asdf_file
     examples/process_observed
     examples/parallel_pyflex
+    examples/source_receiver_geometry
 
