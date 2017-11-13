@@ -2965,3 +2965,30 @@ def test_warning_that_data_exists_shows_up_every_time(tmpdir):
         assert len(w) == 1, "Run %i" % _i
         assert w[0].category is ASDFWarning, "Run %i" % _i
         assert "already exists in file" in str(w[0].message), "Run %i" % _i
+
+
+def test_get_waveform_attributes(example_data_set):
+    with ASDFDataSet(example_data_set.filename) as ds:
+        assert ds.waveforms.AE_113A.get_waveform_attributes() == {
+            'AE.113A..BHE__2013-05-24T05:40:00__'
+            '2013-05-24T06:50:00__raw_recording': {
+                'event_ids': [
+                    'smi:service.iris.edu/fdsnws/event/1/query?'
+                    'eventid=4218658'],
+                'sampling_rate': 40.0,
+                'starttime': 1369374000000000000},
+            'AE.113A..BHN__2013-05-24T05:40:00__'
+            '2013-05-24T06:50:00__raw_recording': {
+                'event_ids': [
+                    'smi:service.iris.edu/fdsnws/event/1/query?'
+                    'eventid=4218658'],
+                'sampling_rate': 40.0,
+                'starttime': 1369374000000000000},
+            'AE.113A..BHZ__2013-05-24T05:40:00__'
+            '2013-05-24T06:50:00__raw_recording': {
+                'event_ids': [
+                    'smi:service.iris.edu/fdsnws/event/1/query?'
+                    'eventid=4218658'],
+                'sampling_rate': 40.0,
+                'starttime': 1369374000000000000}
+        }

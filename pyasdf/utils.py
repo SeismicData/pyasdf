@@ -726,6 +726,39 @@ class WaveformAccessor(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def get_waveform_attributes(self):
+        """
+        Get a dictionary of the attributes of all waveform data sets.
+
+        This works purely on the meta data level and is thus fast. Event,
+        origin, arrival, and focmec ids will be returned as lists as they can
+        be set multiple times per data-set.
+        """
+        plural_keys = ["event_id", "origin_id",
+                       "magnitude_id", "focal_mechanism_id"]
+
+        attributes = {}
+        for _i in self.list():
+            if _i == "StationXML":
+                continue
+
+            attrs = {}
+            for k, v in self.__hdf5_group[_i].attrs.items():
+                # Make sure its an actual string.
+                try:
+                    v = v.decode()
+                except Exception:
+                    pass
+
+                if k in plural_keys:
+                    k += "s"
+                    v = v.split(",")
+                attrs[k] = v
+            if attrs:
+                attributes[_i] = attrs
+
+        return attributes
+
     @property
     def coordinates(self):
         """
