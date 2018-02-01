@@ -468,6 +468,27 @@ def test_processing_multiprocessing(example_data_set):
     assert data_set == out_data_set
 
 
+def test_processing_multiprocessing_without_compression(example_data_set):
+    """
+    Tests the processing using multiprocessing on a ASDF file without
+    compression.
+    """
+    def null_processing(st, inv):
+        return st
+
+    data_set = ASDFDataSet(example_data_set.filename, compression=None)
+    output_filename = os.path.join(example_data_set.tmpdir, "output.h5")
+    # Do not actually do anything. Apply an empty function.
+    data_set.process(null_processing, output_filename,
+                     {"raw_recording": "raw_recording"})
+
+    del data_set
+    data_set = ASDFDataSet(example_data_set.filename)
+    out_data_set = ASDFDataSet(output_filename)
+
+    assert data_set == out_data_set
+
+
 def test_format_version_handling(tmpdir):
     """
     Tests how pyasdf deals with different ASDF versions.
