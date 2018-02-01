@@ -15,6 +15,7 @@ import numpy as np
 # List all compression options.
 COMPRESSIONS = {
     None: (None, None),
+    (None, None): (None, None),
     "lzf": ("lzf", None),
     "gzip-0": ("gzip", 0),
     "gzip-1": ("gzip", 1),
