@@ -1833,7 +1833,7 @@ class ASDFDataSet(object):
         if self.mpi:
             self.mpi.comm.barrier()
 
-        if not self.mpi and self.__compression[0]:
+        if not self.mpi:
             compression = self.__compression
         else:
             compression = None
