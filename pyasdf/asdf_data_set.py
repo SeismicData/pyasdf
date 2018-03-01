@@ -1294,10 +1294,19 @@ class ASDFDataSet(object):
             ds.attrs[key] = value
 
     def __get_waveform_ds_name(self, net, sta, loc, cha, start, end, tag):
+        fmt_string = "%Y-%m-%dT%H:%M:%S"
+        s = start.strftime(fmt_string)
+        e = start.strftime(fmt_string)
+
+        # Add microseconds if two waveforms start in the same second
+        if s == e:
+            fmt_string = "%Y-%m-%dT%H:%M:%S.%f"
+            s = start.strftime(fmt_string)
+            e = start.strftime(fmt_string)
+
         return "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
             net=net, sta=sta, loc=loc, cha=cha,
-            start=start.strftime("%Y-%m-%dT%H:%M:%S"),
-            end=end.strftime("%Y-%m-%dT%H:%M:%S"),
+            start=s, end=e,
             tag=tag)
 
     def _add_trace_get_collective_information(
