@@ -1313,8 +1313,8 @@ class ASDFDataSet(object):
         # Add nanoseconds if two waveforms start in the same second. Only do
         # so for recent ASDF versions.
         if s == e and self._loose_asdf_format_version >= LooseVersion("1.0.2"):
-            s = "." + "%09i" % (start._ns % int(1e9))
-            e = "." + "%09i" % (end._ns % int(1e9))
+            s += "." + "%09i" % (start._ns % int(1e9))
+            e += "." + "%09i" % (end._ns % int(1e9))
 
         return "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
             net=net, sta=sta, loc=loc, cha=cha,

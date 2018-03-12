@@ -3022,3 +3022,54 @@ def test_get_waveform_attributes(example_data_set):
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000}
         }
+
+
+def test_datesets_with_less_then_1_second_length(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    tr = obspy.Trace(np.linspace(0, 1, 777),
+                     header={"network": "AA", "station": "BB", "location": "",
+                             "channel": "000",
+                             "starttime": obspy.UTCDateTime(38978345.3445843)})
+
+    # Don't use nano-seconds if longer than one second.
+    with ASDFDataSet(asdf_filename) as ds:
+        tr.stats.sampling_rate = 1.0
+        ds.add_waveforms(tr, tag="test")
+        dataset_name = ds.waveforms["AA.BB"].list()[0]
+    os.remove(asdf_filename)
+
+    assert dataset_name == \
+        "AA.BB..000__1971-03-28T03:19:05__1971-03-28T03:32:01__test"
+
+    # Do, if shorter than one second.
+    with ASDFDataSet(asdf_filename) as ds:
+        tr.stats.sampling_rate = 474505737
+        ds.add_waveforms(tr, tag="test")
+        dataset_name = ds.waveforms["AA.BB"].list()[0]
+    os.remove(asdf_filename)
+
+    assert dataset_name == (
+        "AA.BB..000__1971-03-28T03:19:05.344584304__"
+        "1971-03-28T03:19:05.344585939__test")
+
+    # Don't do it for older versions to not write invalid files.
+    with ASDFDataSet(asdf_filename, format_version="1.0.1") as ds:
+        tr.stats.sampling_rate = 474505737
+        ds.add_waveforms(tr, tag="test")
+        dataset_name = ds.waveforms["AA.BB"].list()[0]
+    os.remove(asdf_filename)
+
+    assert dataset_name == (
+        "AA.BB..000__1971-03-28T03:19:05__1971-03-28T03:19:05__test")
+
+    # Check that leading nulls are also written.
+    with ASDFDataSet(asdf_filename) as ds:
+        tr.stats.starttime = obspy.UTCDateTime(0)
+        ds.add_waveforms(tr, tag="test")
+        dataset_name = ds.waveforms["AA.BB"].list()[0]
+    os.remove(asdf_filename)
+
+    assert dataset_name == (
+        "AA.BB..000__1970-01-01T00:00:00.000000000__"
+        "1970-01-01T00:00:00.000001635__test")
