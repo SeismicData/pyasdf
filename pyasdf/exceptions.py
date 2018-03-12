@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2015
+    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2015-2018
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """

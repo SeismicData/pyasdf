@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2015
+    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2013-2018
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -16,7 +16,7 @@ from .asdf_data_set import ASDFDataSet
 __all__ = ["__version__", "ASDFDataSet", "ASDFException", "ASDFWarning",
            "WaveformNotInFileException", "print_sys_info", "get_sys_info"]
 
-__version__ = "0.3.x"
+__version__ = "0.4.0"
 
 
 def print_sys_info():

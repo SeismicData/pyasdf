@@ -13,7 +13,7 @@ Changelog
 ---------
 
 ::
-    Version 0.4.x (TBD)
+    Version 0.4.0 (March 12, 2018)
     -------------------
     * Support for ASDF version 1.0.2. Allows writing traces that are less than
       one second short (see #44, #45).
@@ -106,7 +106,7 @@ setup_config = dict(
     packages=find_packages(),
     license="BSD",
     platforms="OS Independent",
-    install_requires=["numpy", "obspy>=1.0.0", "h5py", "colorama", "pytest",
+    install_requires=["numpy", "obspy>=1.1.0", "h5py", "colorama", "pytest",
                       "flake8", "prov", "dill"],
     extras_require={"mpi": ["mpi4py"]},
     package_data={
@@ -122,7 +122,6 @@ setup_config = dict(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering',
