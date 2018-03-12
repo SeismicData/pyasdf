@@ -15,6 +15,8 @@ Changelog
 ::
     Version 0.4.x (TBD)
     -------------------
+    * Support for ASDF version 1.0.2. Allows writing traces that are less than
+      one second short (see #44, #45).
     * New get_waveform_attributes() method to quickly get all attributes
       for the waveforms of a stations (see #38, #39).
 

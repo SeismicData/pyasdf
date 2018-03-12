@@ -264,7 +264,7 @@ def test_assert_format_and_version_number_are_written(tmpdir):
     # Open again and assert name and version number.
     with h5py.File(asdf_filename, "r") as hdf5_file:
         assert hdf5_file.attrs["file_format_version"].decode() \
-           == "1.0.1"
+           == "1.0.2"
         assert hdf5_file.attrs["file_format"].decode() == FORMAT_NAME
 
 
@@ -506,16 +506,25 @@ def test_format_version_handling(tmpdir):
 
     # Create.
     with ASDFDataSet(filename) as ds:
-        assert ds.asdf_format_version_in_file == "1.0.1"
-        assert ds.asdf_format_version == "1.0.1"
+        assert ds.asdf_format_version_in_file == "1.0.2"
+        assert ds.asdf_format_version == "1.0.2"
     # Open again.
     with ASDFDataSet(filename) as ds:
-        assert ds.asdf_format_version_in_file == "1.0.1"
-        assert ds.asdf_format_version == "1.0.1"
+        assert ds.asdf_format_version_in_file == "1.0.2"
+        assert ds.asdf_format_version == "1.0.2"
 
     os.remove(filename)
 
     # Directly specify it.
+    with ASDFDataSet(filename, format_version="1.0.2") as ds:
+        assert ds.asdf_format_version_in_file == "1.0.2"
+        assert ds.asdf_format_version == "1.0.2"
+    with ASDFDataSet(filename) as ds:
+        assert ds.asdf_format_version_in_file == "1.0.2"
+        assert ds.asdf_format_version == "1.0.2"
+
+    os.remove(filename)
+
     with ASDFDataSet(filename, format_version="1.0.1") as ds:
         assert ds.asdf_format_version_in_file == "1.0.1"
         assert ds.asdf_format_version == "1.0.1"
@@ -558,17 +567,17 @@ def test_format_version_handling(tmpdir):
         ds._ASDFDataSet__file.attrs["file_format_version"] = \
             ds._zeropad_ascii_string("x.x.x")
         assert ds.asdf_format_version_in_file == "x.x.x"
-        assert ds.asdf_format_version == "1.0.1"
+        assert ds.asdf_format_version == "1.0.2"
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         with ASDFDataSet(filename) as ds:
             assert ds.asdf_format_version_in_file == "x.x.x"
-            assert ds.asdf_format_version == "1.0.1"
+            assert ds.asdf_format_version == "1.0.2"
     assert w[0].message.args[0] == (
         "The file claims an ASDF version of x.x.x. This version of pyasdf "
-        "only supports versions: 1.0.0, 1.0.1. All following write operations "
-        "will use version 1.0.1 - other tools might not be able to read "
-        "the files again - proceed with caution.")
+        "only supports versions: 1.0.0, 1.0.1, 1.0.2. All following write "
+        "operations will use version 1.0.2 - other tools might not be able to "
+        "read the files again - proceed with caution.")
     # Again but force version.
     os.remove(filename)
     # Both can also differ.
@@ -583,9 +592,9 @@ def test_format_version_handling(tmpdir):
             assert ds.asdf_format_version == "1.0.0"
     assert w[0].message.args[0] == (
         "The file claims an ASDF version of x.x.x. This version of pyasdf "
-        "only supports versions: 1.0.0, 1.0.1. All following write operations "
-        "will use version 1.0.0 - other tools might not be able to read "
-        "the files again - proceed with caution.")
+        "only supports versions: 1.0.0, 1.0.1, 1.0.2. All following write "
+        "operations will use version 1.0.0 - other tools might not be able to "
+        "read the files again - proceed with caution.")
 
     # Unsupported version number.
     os.remove(filename)
@@ -593,7 +602,7 @@ def test_format_version_handling(tmpdir):
         ASDFDataSet(filename, format_version="x.x.x")
     assert err.value.args[0] == (
         "ASDF version 'x.x.x' is not supported. Supported versions: 1.0.0, "
-        "1.0.1")
+        "1.0.1, 1.0.2")
     # No file should be created.
     assert not os.path.exists(filename)
 
@@ -605,8 +614,8 @@ def test_format_version_handling(tmpdir):
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         with ASDFDataSet(filename) as ds:
-            assert ds.asdf_format_version_in_file == "1.0.1"
-            assert ds.asdf_format_version == "1.0.1"
+            assert ds.asdf_format_version_in_file == "1.0.2"
+            assert ds.asdf_format_version == "1.0.2"
     assert w[0].message.args[0] == (
         "No file format version given in file '%s'. The program will "
         "continue but the result is undefined." % os.path.abspath(filename))

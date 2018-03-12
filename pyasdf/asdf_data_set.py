@@ -17,6 +17,7 @@ import obspy
 
 import collections
 import copy
+from distutils.version import LooseVersion
 import io
 import itertools
 import math
@@ -198,7 +199,7 @@ class ASDFDataSet(object):
 
         # Deal with the file format version. `format_version` is either None
         # or valid (this is checked above).
-        __most_recent_version = "1.0.1"
+        __most_recent_version = "1.0.2"
         # Case 1: Already some kind of format version in the file.
         if "file_format_version" in self.__file.attrs:
             version_in_file = self.__file.attrs["file_format_version"].decode()
@@ -233,6 +234,10 @@ class ASDFDataSet(object):
 
         # Just a final safety check - should not be able to fail!
         assert self.asdf_format_version in SUPPORTED_FORMAT_VERSIONS
+
+        # Useful for programmatic checks.
+        self._loose_asdf_format_version = \
+            LooseVersion(self.asdf_format_version)
 
         # Create the waveform and provenance groups if mode is not "r".
         if "Waveforms" not in self.__file and mode != "r":
@@ -1201,6 +1206,13 @@ class ASDFDataSet(object):
                                     "integers and 4 and 8 byte floating point "
                                     "numbers." %
                                     trace.data.dtype.name)
+                elif self.asdf_format_version == "1.0.2":
+                    raise TypeError("The trace's dtype ('%s') is not allowed "
+                                    "inside ASDF 1.0.2. Allowed are little "
+                                    "and big endian 2, 4, and 8 byte signed "
+                                    "integers and 4 and 8 byte floating point "
+                                    "numbers." %
+                                    trace.data.dtype.name)
                 else:  # pragma: no cover
                     raise NotImplementedError
         return waveform
@@ -1296,13 +1308,13 @@ class ASDFDataSet(object):
     def __get_waveform_ds_name(self, net, sta, loc, cha, start, end, tag):
         fmt_string = "%Y-%m-%dT%H:%M:%S"
         s = start.strftime(fmt_string)
-        e = start.strftime(fmt_string)
+        e = end.strftime(fmt_string)
 
-        # Add microseconds if two waveforms start in the same second
-        if s == e:
-            fmt_string = "%Y-%m-%dT%H:%M:%S.%f"
-            s = start.strftime(fmt_string)
-            e = start.strftime(fmt_string)
+        # Add nanoseconds if two waveforms start in the same second. Only do
+        # so for recent ASDF versions.
+        if s == e and self._loose_asdf_format_version >= LooseVersion("1.0.2"):
+            s = "." + "%09i" % (start._ns % int(1e9))
+            e = "." + "%09i" % (end._ns % int(1e9))
 
         return "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
             net=net, sta=sta, loc=loc, cha=cha,

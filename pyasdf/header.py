@@ -39,7 +39,7 @@ for key, value in list(COMPRESSIONS.items()):
 
 
 FORMAT_NAME = "ASDF"
-SUPPORTED_FORMAT_VERSIONS = ("1.0.0", "1.0.1")
+SUPPORTED_FORMAT_VERSIONS = ("1.0.0", "1.0.1", "1.0.2")
 
 
 # Regular expression for allowed filenames within the provenance group.
@@ -55,6 +55,11 @@ VALID_SEISMOGRAM_DTYPES = {
               np.dtype("<f4"), np.dtype(">f4"),
               np.dtype("<f8"), np.dtype(">f8")),
     "1.0.1": (np.dtype("<i2"), np.dtype(">i2"),
+              np.dtype("<i4"), np.dtype(">i4"),
+              np.dtype("<i8"), np.dtype(">i8"),
+              np.dtype("<f4"), np.dtype(">f4"),
+              np.dtype("<f8"), np.dtype(">f8")),
+    "1.0.2": (np.dtype("<i2"), np.dtype(">i2"),
               np.dtype("<i4"), np.dtype(">i4"),
               np.dtype("<i8"), np.dtype(">i8"),
               np.dtype("<f4"), np.dtype(">f4"),
