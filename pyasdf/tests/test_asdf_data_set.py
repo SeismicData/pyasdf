@@ -71,6 +71,7 @@ def example_data_set(tmpdir):
     # new one.
     return Namespace(filename=asdf_filename, tmpdir=tmpdir.strpath)
 
+
 def test_tags_attribute(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     data_path = os.path.join(data_dir, "small_sample_data_set")
