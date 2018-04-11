@@ -493,7 +493,7 @@ class ASDFDataSet(object):
         self.__file["QuakeML"][:] = data
 
     @property
-    def tags(self):
+    def waveform_tags(self):
         """
         Returns a set with all tags in the dataset.
         """

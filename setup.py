@@ -13,6 +13,11 @@ Changelog
 ---------
 
 ::
+    Version 0.4.x
+    -------------
+    * New .waveform_tags property for the dataset object return a set of all
+      available waveform tags (see #46, #47)
+
     Version 0.4.0 (March 12, 2018)
     -------------------
     * Support for ASDF version 1.0.2. Allows writing traces that are less than
