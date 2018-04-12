@@ -72,6 +72,21 @@ def example_data_set(tmpdir):
     return Namespace(filename=asdf_filename, tmpdir=tmpdir.strpath)
 
 
+def test_waveform_tags_attribute(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    data_set = ASDFDataSet(asdf_filename)
+
+    itag = 1
+    for filename in glob.glob(os.path.join(data_path, "*.mseed")):
+        data_set.add_waveforms(filename, tag="tag%d" % itag)
+        itag += 1
+
+    expected = set([u"tag1", u"tag2", u"tag3", u"tag4", u"tag5", u"tag6"])
+    assert data_set.waveform_tags == expected
+
+
 def test_data_set_creation(tmpdir):
     """
     Test data set creation with a small test dataset.

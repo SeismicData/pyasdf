@@ -492,6 +492,14 @@ class ASDFDataSet(object):
         self.__file["QuakeML"].resize(data.shape)
         self.__file["QuakeML"][:] = data
 
+    @property
+    def waveform_tags(self):
+        """
+        Returns a set with all tags in the dataset.
+        """
+        return set(itertools.chain.from_iterable(i.get_waveform_tags()
+                                                 for i in self.waveforms))
+
     def add_auxiliary_data_file(
             self, filename_or_object, path, parameters=None,
             provenance_id=None):
