@@ -246,6 +246,8 @@ class ASDFDataSet(object):
             self.__file.create_group("Provenance")
         if "AuxiliaryData" not in self.__file and mode != "r":
             self.__file.create_group("AuxiliaryData")
+        if "References" not in self.__file and mode != "r":
+            self.__file.create_group("References")
 
         # Easy access to the waveforms.
         self.waveforms = StationAccessor(self)
@@ -361,6 +363,10 @@ class ASDFDataSet(object):
     @property
     def _auxiliary_data_group(self):
         return self.__file["AuxiliaryData"]
+
+    @property
+    def _reference_group(self):
+        return self.__file["References"]
 
     @property
     def asdf_format_version_in_file(self):
@@ -1224,6 +1230,74 @@ class ASDFDataSet(object):
                 else:  # pragma: no cover
                     raise NotImplementedError
         return waveform
+
+    def create_reference(self, ref, net, sta, loc, chan, starttime, endtime,
+                         tag=None, overwrite=False):
+        """
+        Create a region reference for fast lookup of segements of
+        continuous data.
+        """
+
+        # Build the station name
+        _station_name = "%s.%s" % (net, sta)
+        # Iterate over datasets in waveform group to find matching
+        # net:sta:loc:chan combination.
+        for _key in self._waveform_group[_station_name]:
+            _net, _sta, _loc, _remainder = _key.split(".")
+
+            if _net != net or _sta != sta or _loc != loc:
+                continue
+
+            _chan, _ts, _te, _tag = _remainder.split("__")
+            if _chan != chan or (tag is not None and _tag != tag):
+                continue
+
+            _ds = self._waveform_group["%s/%s" % (_station_name, _key)]
+
+            _ts = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
+            _samprate = _ds.attrs["sampling_rate"]
+            _te = _ts + len(_ds)/_samprate
+            if _te < starttime or _ts > endtime:
+                continue
+
+            _offset = int((starttime-_ts)*_samprate)
+            _nsamp = int((endtime-starttime)*_samprate)
+            _ref = _ds.regionref[_offset:_offset+_nsamp+1]
+
+            if ref not in self._reference_group:
+                _ref_grp = self._reference_group.create_group(ref)
+            else:
+                _ref_grp = self._reference_group[ref]
+
+            _handle = ".".join((_net, _sta, _loc, _chan))
+
+            if overwrite is True and _handle in _ref_grp:
+                del(_ref_grp[_handle])
+
+            if _handle not in _ref_grp:
+                _ref_ds = _ref_grp.create_dataset(_handle,
+                                                  (1,),
+                                                  dtype=h5py.special_dtype(ref=h5py.RegionReference))
+                _ref_ds.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
+                _ref_ds.attrs["starttime"] = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
+                _ref_ds[0] = _ref
+            else:
+                print("Will not overwrite existing reference")
+                continue
+
+    def get_data_for_reference(self, ref, net, sta, loc, chan):
+        _handle = "%s/%s.%s.%s.%s" % (ref, net, sta, loc, chan)
+        if _handle not in self._reference_group:
+            raise(IOError("Data not found"))
+        _ref = self._reference_group[_handle][0]
+        tr = obspy.Trace(data=self.__file[_ref][_ref])
+        tr.stats.network = net
+        tr.stats.station = sta
+        tr.stats.location = loc
+        tr.stats.channel = chan
+        tr.stats.starttime = obspy.UTCDateTime(self._reference_group[_handle].attrs["starttime"]*1e-9)
+        tr.stats.delta = 1/self._reference_group[_handle].attrs["sampling_rate"]
+        return(tr)
 
     def get_provenance_document(self, document_name):
         """
