@@ -1231,73 +1231,186 @@ class ASDFDataSet(object):
                     raise NotImplementedError
         return waveform
 
-    def create_reference(self, ref, net, sta, loc, chan, starttime, endtime,
-                         tag=None, overwrite=False):
+    def create_reference(self, ref, starttime, endtime, net=None, sta=None,
+                         loc=None, chan=None, tag=None, overwrite=False):
         """
         Create a region reference for fast lookup of segements of
         continuous data.
         """
 
-        # Build the station name
-        _station_name = "%s.%s" % (net, sta)
-        # Iterate over datasets in waveform group to find matching
-        # net:sta:loc:chan combination.
-        for _key in self._waveform_group[_station_name]:
-            _net, _sta, _loc, _remainder = _key.split(".")
+        if isinstance(net, str):
+            net = (net,)
+        elif isinstance(net, tuple) or isinstance(net, list) or net is None:
+            pass
+        else:
+            raise(TypeError(net))
 
-            if _net != net or _sta != sta or _loc != loc:
-                continue
+        if isinstance(sta, str):
+            sta = (sta,)
+        elif isinstance(sta, tuple) or isinstance(sta, list) or sta is None:
+            pass
+        else:
+            raise(TypeError(sta))
 
-            _chan, _ts, _te, _tag = _remainder.split("__")
-            if _chan != chan or (tag is not None and _tag != tag):
-                continue
+        if isinstance(loc, str):
+            loc = (loc,)
+        elif isinstance(loc, tuple) or isinstance(loc, list) or loc is None:
+            pass
+        else:
+            raise(TypeError(loc))
 
-            _ds = self._waveform_group["%s/%s" % (_station_name, _key)]
+        if isinstance(chan, str):
+            chan = (chan,)
+        elif isinstance(chan, tuple) or isinstance(chan, list) or chan is None:
+            pass
+        else:
+            raise(TypeError(chan))
 
-            _ts = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
-            _samprate = _ds.attrs["sampling_rate"]
-            _te = _ts + len(_ds)/_samprate
-            if _te < starttime or _ts > endtime:
-                continue
+        if isinstance(tag, str):
+            tag = (tag,)
+        elif isinstance(tag, tuple) or isinstance(tag, list) or tag is None:
+            pass
+        else:
+            raise(TypeError(tag))
 
-            _offset = int((starttime-_ts)*_samprate)
-            _nsamp = int((endtime-starttime)*_samprate)
-            _ref = _ds.regionref[_offset:_offset+_nsamp+1]
+        _predicate_net    = lambda _key: net  == None\
+                                         or _key.split(".")[0] in net
 
-            if ref not in self._reference_group:
-                _ref_grp = self._reference_group.create_group(ref)
-            else:
-                _ref_grp = self._reference_group[ref]
+        _predicate_sta    = lambda _key: sta  == None\
+                                         or _key.split(".")[1] in sta
 
-            _handle = ".".join((_net, _sta, _loc, _chan))
+        _predicate_loc    = lambda _key: loc  == None\
+                                         or _key.split(".")[2] in loc
 
-            if overwrite is True and _handle in _ref_grp:
-                del(_ref_grp[_handle])
+        _predicate_chan   = lambda _key: chan == None\
+                                         or _key.split(".")[-1].split("__")[0] in chan
 
-            if _handle not in _ref_grp:
-                _ref_ds = _ref_grp.create_dataset(_handle,
-                                                  (1,),
-                                                  dtype=h5py.special_dtype(ref=h5py.RegionReference))
-                _ref_ds.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
-                _ref_ds.attrs["starttime"] = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
-                _ref_ds[0] = _ref
-            else:
-                print("Will not overwrite existing reference")
-                continue
+        _predicate_tag    = lambda _key: tag  == None\
+                                         or _key.split(".")[-1].split("__")[-1] in tag
 
-    def get_data_for_reference(self, ref, net, sta, loc, chan):
-        _handle = "%s/%s.%s.%s.%s" % (ref, net, sta, loc, chan)
-        if _handle not in self._reference_group:
-            raise(IOError("Data not found"))
-        _ref = self._reference_group[_handle][0]
-        tr = obspy.Trace(data=self.__file[_ref][_ref])
-        tr.stats.network = net
-        tr.stats.station = sta
-        tr.stats.location = loc
-        tr.stats.channel = chan
-        tr.stats.starttime = obspy.UTCDateTime(self._reference_group[_handle].attrs["starttime"]*1e-9)
-        tr.stats.delta = 1/self._reference_group[_handle].attrs["sampling_rate"]
-        return(tr)
+        _predicate_netsta = lambda _key:     _predicate_net(_key)\
+                                         and _predicate_sta(_key)
+
+        _predicate_locchantag = lambda _key:     _predicate_loc(_key)\
+                                             and _predicate_chan(_key)\
+                                             and _predicate_tag(_key)
+
+        for _station_name in itertools.ifilter(_predicate_netsta,
+                                               self._waveform_group.keys()):
+            for _key in itertools.ifilter(_predicate_locchantag,
+                                          self._waveform_group[_station_name].keys()):
+
+                _net, _sta, _loc, _remainder = _key.split(".")
+                _chan = _remainder.split("__")[0]
+
+                _ds = self._waveform_group["%s/%s" % (_station_name, _key)]
+
+                _ts       = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
+                _samprate = _ds.attrs["sampling_rate"]
+                _te       = _ts + len(_ds)/_samprate
+                if _te < starttime or _ts > endtime:
+                    continue
+
+                _offset = int((starttime-_ts)*_samprate)
+                _nsamp  = int((endtime-starttime)*_samprate)
+                _ref    = _ds.regionref[_offset:_offset+_nsamp+1]
+
+                if ref not in self._reference_group:
+                    _ref_grp = self._reference_group.create_group(ref)
+                else:
+                    _ref_grp = self._reference_group[ref]
+
+                _net  = "__" if _net  == "" else _net
+                _sta  = "__" if _sta  == "" else _sta
+                _loc  = "__" if _loc  == "" else _loc
+                _chan = "__" if _chan == "" else _chan
+                _handle = "/".join((_net, _sta, _loc, _chan))
+
+                if overwrite is True and _handle in _ref_grp:
+                    del(_ref_grp[_handle])
+
+                if _handle not in _ref_grp:
+                    _ref_ds = _ref_grp.create_dataset(_handle,
+                                                      (1,),
+                                                      dtype=h5py.special_dtype(ref=h5py.RegionReference))
+                    _ref_ds.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
+                    _ref_ds.attrs["starttime"] = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
+                    _ref_ds[0] = _ref
+                else:
+                    print("Will not overwrite existing reference")
+                    continue
+
+    def get_data_for_reference(self, ref, net=None, sta=None, loc=None,
+                               chan=None):
+        """
+        Create a region reference for fast lookup of segements of
+        continuous data.
+        """
+        if not isinstance(ref, str):
+            raise(TypeError("reference must be type ::str::"))
+        if ref not in self._reference_group:
+            raise(IOError("reference does not exist: %s" % ref))
+
+        if isinstance(net, str):
+            net = (net,)
+        elif isinstance(net, tuple) or isinstance(net, list) or net is None:
+            pass
+        else:
+            raise(TypeError(net))
+
+        if isinstance(sta, str):
+            sta = (sta,)
+        elif isinstance(sta, tuple) or isinstance(sta, list) or sta is None:
+            pass
+        else:
+            raise(TypeError(sta))
+
+        if isinstance(loc, str):
+            loc = (loc,)
+        elif isinstance(loc, tuple) or isinstance(loc, list) or loc is None:
+            pass
+        else:
+            raise(TypeError(loc))
+
+        if isinstance(chan, str):
+            chan = (chan,)
+        elif isinstance(chan, tuple) or isinstance(chan, list) or chan is None:
+            pass
+        else:
+            raise(TypeError(chan))
+
+        _predicate_net  = lambda _key: net  == None or _key in net
+        _predicate_sta  = lambda _key: sta  == None or _key in sta
+        _predicate_loc  = lambda _key: loc  == None or _key in loc
+        _predicate_chan = lambda _key: chan == None or _key in chan
+
+        _st = obspy.Stream()
+        _ref_grp = self._reference_group[ref]
+        for _net in itertools.ifilter(_predicate_net,
+                                      _ref_grp.keys()):
+            _net_grp = _ref_grp[_net]
+
+            for _sta in itertools.ifilter(_predicate_sta,
+                                          _net_grp.keys()):
+                _sta_grp = _net_grp[_sta]
+
+                for _loc in itertools.ifilter(_predicate_loc,
+                                              _sta_grp.keys()):
+                    _loc_grp = _sta_grp[_loc]
+
+                    for _chan in itertools.ifilter(_predicate_chan,
+                                                   _loc_grp.keys()):
+                        _ds  = _loc_grp[_chan]
+                        _ref = _ds[0]
+                        _tr = obspy.Trace(data=self.__file[_ref][_ref])
+                        _tr.stats.network   = _net  if _net  != "__" else ""
+                        _tr.stats.station   = _sta  if _sta  != "__" else ""
+                        _tr.stats.location  = _loc  if _loc  != "__" else ""
+                        _tr.stats.channel   = _chan if _chan != "__" else ""
+                        _tr.stats.starttime = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
+                        _tr.stats.delta = 1/_ds.attrs["sampling_rate"]
+                        _st.append(_tr)
+        return(_st)
 
     def get_provenance_document(self, document_name):
         """
