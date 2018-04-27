@@ -1325,40 +1325,28 @@ class ASDFDataSet(object):
         etc...
         """
 
-        if isinstance(net, str) or isinstance(net, unicode):
-            net = (net,)
-        elif isinstance(net, tuple) or isinstance(net, list) or net is None:
-            pass
-        else:
-            raise(TypeError(net))
+        def _coerce(obj):
+            if isinstance(obj, str):
+                obj = (obj,)
+            elif isinstance(obj, tuple)\
+                    or isinstance(obj, list)\
+                    or obj is None:
+                pass
+            else:
+                try:
+                    if isinstance(obj, unicode):
+                        obj = (obj,)
+                    else:
+                        raise(TypeError(obj))
+                except NameError:
+                    pass
+            return(obj)
 
-        if isinstance(sta, str) or isinstance(sta, unicode):
-            sta = (sta,)
-        elif isinstance(sta, tuple) or isinstance(sta, list) or sta is None:
-            pass
-        else:
-            raise(TypeError(sta))
-
-        if isinstance(loc, str) or isinstance(loc, unicode):
-            loc = (loc,)
-        elif isinstance(loc, tuple) or isinstance(loc, list) or loc is None:
-            pass
-        else:
-            raise(TypeError(loc))
-
-        if isinstance(chan, str) or isinstance(chan, unicode):
-            chan = (chan,)
-        elif isinstance(chan, tuple) or isinstance(chan, list) or chan is None:
-            pass
-        else:
-            raise(TypeError(chan))
-
-        if isinstance(tag, str) or isinstance(tag, unicode):
-            tag = (tag,)
-        elif isinstance(tag, tuple) or isinstance(tag, list) or tag is None:
-            pass
-        else:
-            raise(TypeError(tag))
+        net = _coerce(net)
+        sta = _coerce(sta)
+        loc = _coerce(loc)
+        chan = _coerce(chan)
+        tag = _coerce(tag)
 
         _ref_dtype = h5py.special_dtype(ref=h5py.RegionReference)
 
@@ -1386,10 +1374,10 @@ class ASDFDataSet(object):
                    and _predicate_tag(_key))
 
         _wf_grp = self._waveform_group
-        for _station_name in itertools.ifilter(_predicate_netsta,
-                                               self._waveform_group.keys()):
-            for _key in itertools.ifilter(_predicate_locchantag,
-                                          _wf_grp[_station_name].keys()):
+        for _station_name in filter(_predicate_netsta,
+                                    self._waveform_group.keys()):
+            for _key in filter(_predicate_locchantag,
+                               _wf_grp[_station_name].keys()):
 
                 _net, _sta, _loc, _remainder = _key.split(".")
                 _chan = _remainder.split("__")[0]
@@ -1494,38 +1482,29 @@ class ASDFDataSet(object):
 
         etc...
         """
-        if not isinstance(ref, str) and not isinstance(ref, unicode):
-            raise(TypeError("reference must be type ::str::"))
         if ref not in self._reference_group:
             raise(IOError("reference does not exist: %s" % ref))
 
-        if isinstance(net, str) or isinstance(net, unicode):
-            net = (net,)
-        elif isinstance(net, tuple) or isinstance(net, list) or net is None:
-            pass
-        else:
-            raise(TypeError(net))
+        def _coerce(obj):
+            if isinstance(obj, str):
+                obj = (obj,)
+            elif isinstance(obj, tuple)\
+                    or isinstance(obj, list)\
+                    or obj is None:
+                pass
+            else:
+                try:
+                    if isinstance(obj, unicode):
+                        obj = (obj,)
+                    else:
+                        raise(TypeError(obj))
+                except NameError:
+                    pass
 
-        if isinstance(sta, str) or isinstance(sta, unicode):
-            sta = (sta,)
-        elif isinstance(sta, tuple) or isinstance(sta, list) or sta is None:
-            pass
-        else:
-            raise(TypeError(sta))
-
-        if isinstance(loc, str) or isinstance(loc, unicode):
-            loc = (loc,)
-        elif isinstance(loc, tuple) or isinstance(loc, list) or loc is None:
-            pass
-        else:
-            raise(TypeError(loc))
-
-        if isinstance(chan, str) or isinstance(chan, unicode):
-            chan = (chan,)
-        elif isinstance(chan, tuple) or isinstance(chan, list) or chan is None:
-            pass
-        else:
-            raise(TypeError(chan))
+        net = _coerce(net)
+        sta = _coerce(sta)
+        loc = _coerce(loc)
+        chan = _coerce(chan)
 
         def _predicate_net(_key):
             return(net is None or _key in net)
@@ -1541,20 +1520,16 @@ class ASDFDataSet(object):
 
         _st = obspy.Stream()
         _ref_grp = self._reference_group[ref]
-        for _net in itertools.ifilter(_predicate_net,
-                                      _ref_grp.keys()):
+        for _net in filter(_predicate_net, _ref_grp.keys()):
             _net_grp = _ref_grp[_net]
 
-            for _sta in itertools.ifilter(_predicate_sta,
-                                          _net_grp.keys()):
+            for _sta in filter(_predicate_sta, _net_grp.keys()):
                 _sta_grp = _net_grp[_sta]
 
-                for _loc in itertools.ifilter(_predicate_loc,
-                                              _sta_grp.keys()):
+                for _loc in filter(_predicate_loc, _sta_grp.keys()):
                     _loc_grp = _sta_grp[_loc]
 
-                    for _chan in itertools.ifilter(_predicate_chan,
-                                                   _loc_grp.keys()):
+                    for _chan in filter(_predicate_chan, _loc_grp.keys()):
                         _ds = _loc_grp[_chan]
                         _ref = _ds[0]
                         _tr = obspy.Trace(data=self.__file[_ref][_ref])
