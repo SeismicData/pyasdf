@@ -1234,95 +1234,186 @@ class ASDFDataSet(object):
     def create_reference(self, ref, starttime, endtime, net=None, sta=None,
                          loc=None, chan=None, tag=None, overwrite=False):
         """
-        Create a region reference for fast lookup of segements of
-        continuous data.
+        Creates a region reference for fast lookup of data segments.
+
+        :param ref: The reference label to apply.
+        :type ref: str
+        :param starttime: Start time of reference.
+        :type starttime: :class:`obspy.core.utcdatetime.UTCDateTime`
+        :param endtime: End time of reference.
+        :type endtime: :class:`obspy.core.utcdatetime.UTCDateTime`
+        :param net: Networks to create references for.
+        :type net: str, tuple
+        :param sta: Stations to create references for.
+        :type sta: str, tuple
+        :param loc: Location codes to create references for.
+        :type loc: str, tuple
+        :param chan: Channels to create references for.
+        :type chan: str, tuple
+        :param tag: Tag to create references for.
+        :type tag: str, tuple
+        :param overwrite: Overwrite existing references for this label.
+        :type overwrite: bool
+
+        This methodology is useful for creating subsets of a dataset
+        without duplicating waveforms.
+
+        .. rubric:: Example
+
+        Consider an ASDFDataSet populated with continuous waveforms for
+        stations from two networks (AA and BB):
+
+            - AA.XXX
+            - AA.YYY
+            - AA.ZZZ
+            - BB.UUU
+            - BB.VVV
+            - BB.WWW
+
+        It may be useful to process event-segmented waveforms, where
+        a one-minute window of data is needed. We can create references
+        to these windowed data segments for fast extraction:
+
+        .. code-block:: python
+
+            >>> ds.create_reference("event000001",
+            ...                     obspy.UTCDateTime("2016001T01:00:00"),
+            ...                     obspy.UTCDateTime("2016001T01:01:00"))
+            >>> ds.get_data_for_reference("event000001")
+            18 Trace(s) in Stream:
+            AA.XXX..HHZ | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+            ...
+            (16 other traces)
+            ...
+            BB.WWW..HHE | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+
+        Or perhaps we only want to include data from network AA in the
+        referenced data set:
+
+        .. code-block:: python
+
+            >>> ds.create_reference("event000001",
+            ...                     obspy.UTCDateTime("2016001T01:00:00"),
+            ...                     obspy.UTCDateTime("2016001T01:01:00"),
+            ...                     net="AA",
+            ...                     overwrite=True)
+            >>> ds.get_data_for_reference("event000001")
+            9 Trace(s) in Stream:
+            AA.XXX..HHZ | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+            ...
+            (7 other traces)
+            ...
+            AA.ZZZ..HHE | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+
+        Or only horizontal component data:
+
+        .. code-block:: python
+
+            >>> ds.create_reference("event000001",
+            ...                     obspy.UTCDateTime("2016001T01:00:00"),
+            ...                     obspy.UTCDateTime("2016001T01:01:00"),
+            ...                     chan=("HHN", "HHE"),
+            ...                     overwrite=True)
+            >>> ds.get_data_for_reference("event000001")
+            12 Trace(s) in Stream:
+            AA.XXX..HHN | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+            ...
+            (10 other traces)
+            ...
+            BB.WWW..HHE | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+
+        etc...
         """
 
-        if isinstance(net, str):
+        if isinstance(net, str) or isinstance(net, unicode):
             net = (net,)
         elif isinstance(net, tuple) or isinstance(net, list) or net is None:
             pass
         else:
             raise(TypeError(net))
 
-        if isinstance(sta, str):
+        if isinstance(sta, str) or isinstance(sta, unicode):
             sta = (sta,)
         elif isinstance(sta, tuple) or isinstance(sta, list) or sta is None:
             pass
         else:
             raise(TypeError(sta))
 
-        if isinstance(loc, str):
+        if isinstance(loc, str) or isinstance(loc, unicode):
             loc = (loc,)
         elif isinstance(loc, tuple) or isinstance(loc, list) or loc is None:
             pass
         else:
             raise(TypeError(loc))
 
-        if isinstance(chan, str):
+        if isinstance(chan, str) or isinstance(chan, unicode):
             chan = (chan,)
         elif isinstance(chan, tuple) or isinstance(chan, list) or chan is None:
             pass
         else:
             raise(TypeError(chan))
 
-        if isinstance(tag, str):
+        if isinstance(tag, str) or isinstance(tag, unicode):
             tag = (tag,)
         elif isinstance(tag, tuple) or isinstance(tag, list) or tag is None:
             pass
         else:
             raise(TypeError(tag))
 
-        _predicate_net    = lambda _key: net  == None\
-                                         or _key.split(".")[0] in net
+        _ref_dtype = h5py.special_dtype(ref=h5py.RegionReference)
 
-        _predicate_sta    = lambda _key: sta  == None\
-                                         or _key.split(".")[1] in sta
+        def _predicate_net(_key):
+            return(net is None or _key.split(".")[0] in net)
 
-        _predicate_loc    = lambda _key: loc  == None\
-                                         or _key.split(".")[2] in loc
+        def _predicate_sta(_key):
+            return(sta is None or _key.split(".")[1] in sta)
 
-        _predicate_chan   = lambda _key: chan == None\
-                                         or _key.split(".")[-1].split("__")[0] in chan
+        def _predicate_loc(_key):
+            return(loc is None or _key.split(".")[2] in loc)
 
-        _predicate_tag    = lambda _key: tag  == None\
-                                         or _key.split(".")[-1].split("__")[-1] in tag
+        def _predicate_chan(_key):
+            return(chan is None or _key.split(".")[-1].split("__")[0] in chan)
 
-        _predicate_netsta = lambda _key:     _predicate_net(_key)\
-                                         and _predicate_sta(_key)
+        def _predicate_tag(_key):
+            return(tag is None or _key.split(".")[-1].split("__")[-1] in tag)
 
-        _predicate_locchantag = lambda _key:     _predicate_loc(_key)\
-                                             and _predicate_chan(_key)\
-                                             and _predicate_tag(_key)
+        def _predicate_netsta(_key):
+            return(_predicate_net(_key) and _predicate_sta(_key))
 
+        def _predicate_locchantag(_key):
+            return(_predicate_loc(_key)
+                   and _predicate_chan(_key)
+                   and _predicate_tag(_key))
+
+        _wf_grp = self._waveform_group
         for _station_name in itertools.ifilter(_predicate_netsta,
                                                self._waveform_group.keys()):
             for _key in itertools.ifilter(_predicate_locchantag,
-                                          self._waveform_group[_station_name].keys()):
+                                          _wf_grp[_station_name].keys()):
 
                 _net, _sta, _loc, _remainder = _key.split(".")
                 _chan = _remainder.split("__")[0]
 
                 _ds = self._waveform_group["%s/%s" % (_station_name, _key)]
 
-                _ts       = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
+                _ts = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
                 _samprate = _ds.attrs["sampling_rate"]
-                _te       = _ts + len(_ds)/_samprate
+                _te = _ts + len(_ds)/_samprate
                 if _te < starttime or _ts > endtime:
                     continue
 
                 _offset = int((starttime-_ts)*_samprate)
-                _nsamp  = int((endtime-starttime)*_samprate)
-                _ref    = _ds.regionref[_offset:_offset+_nsamp+1]
+                _nsamp = int((endtime-starttime)*_samprate)
+                _ref = _ds.regionref[_offset:_offset+_nsamp+1]
 
                 if ref not in self._reference_group:
                     _ref_grp = self._reference_group.create_group(ref)
                 else:
                     _ref_grp = self._reference_group[ref]
 
-                _net  = "__" if _net  == "" else _net
-                _sta  = "__" if _sta  == "" else _sta
-                _loc  = "__" if _loc  == "" else _loc
+                _net = "__" if _net == "" else _net
+                _sta = "__" if _sta == "" else _sta
+                _loc = "__" if _loc == "" else _loc
                 _chan = "__" if _chan == "" else _chan
                 _handle = "/".join((_net, _sta, _loc, _chan))
 
@@ -1332,9 +1423,10 @@ class ASDFDataSet(object):
                 if _handle not in _ref_grp:
                     _ref_ds = _ref_grp.create_dataset(_handle,
                                                       (1,),
-                                                      dtype=h5py.special_dtype(ref=h5py.RegionReference))
+                                                      dtype=_ref_dtype)
                     _ref_ds.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
-                    _ref_ds.attrs["starttime"] = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
+                    _ts = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
+                    _ref_ds.attrs["starttime"] = _ts
                     _ref_ds[0] = _ref
                 else:
                     print("Will not overwrite existing reference")
@@ -1343,46 +1435,109 @@ class ASDFDataSet(object):
     def get_data_for_reference(self, ref, net=None, sta=None, loc=None,
                                chan=None):
         """
-        Create a region reference for fast lookup of segements of
-        continuous data.
+        Retrieve referenced data.
+
+        :param ref: Reference label.
+        :type ref: str
+        :param net: Networks to retrieve referenced data for.
+        :type net: str, tuple
+        :param sta: Stations to retrieve referenced data for.
+        :type sta: str, tuple
+        :param loc: Location codes to retrieve referenced data for.
+        :type loc: str, tuple
+        :param chan: Channels to retrieve referenced data for.
+        :type chan: str, tuple
+        :returns: Referenced data.
+        :rtype: :class:`~obspy.core.stream.Stream`
+
+        .. rubric:: Example
+
+        Consider an ASDFDataSet with references pointing to event-segmented
+        waveforms (see :func:`create_reference`). We can retrieve data
+        for a particular reference label:
+
+        .. code-block:: python
+
+            >>> ds.get_data_for_reference("event000001")
+            18 Trace(s) in Stream:
+            AA.XXX..HHZ | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+            ...
+            (16 other traces)
+            ...
+            BB.WWW..HHE | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+
+        Or for only the BB network:
+
+        .. code-block:: python
+
+            >>> ds.get_data_for_reference("event000001",
+            ...                           net="BB")
+            9 Trace(s) in Stream:
+            BB.UUU..HHZ | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+            ...
+            (7 other traces)
+            ...
+            BB.WWW..HHE | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+
+        Or for only horizontal components:
+
+        .. code-block:: python
+
+            >>> ds.get_data_for_reference("event000001",
+            ...                           chan=("HHN","HHE"))
+            12 Trace(s) in Stream:
+            AA.XXX..HHN | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+            ...
+            (10 other traces)
+            ...
+            BB.WWW..HHE | 2016-01-01T01:00:00.00Z ... | 100.0 Hz, 6001 samples
+
+        etc...
         """
-        if not isinstance(ref, str):
+        if not isinstance(ref, str) and not isinstance(ref, unicode):
             raise(TypeError("reference must be type ::str::"))
         if ref not in self._reference_group:
             raise(IOError("reference does not exist: %s" % ref))
 
-        if isinstance(net, str):
+        if isinstance(net, str) or isinstance(net, unicode):
             net = (net,)
         elif isinstance(net, tuple) or isinstance(net, list) or net is None:
             pass
         else:
             raise(TypeError(net))
 
-        if isinstance(sta, str):
+        if isinstance(sta, str) or isinstance(sta, unicode):
             sta = (sta,)
         elif isinstance(sta, tuple) or isinstance(sta, list) or sta is None:
             pass
         else:
             raise(TypeError(sta))
 
-        if isinstance(loc, str):
+        if isinstance(loc, str) or isinstance(loc, unicode):
             loc = (loc,)
         elif isinstance(loc, tuple) or isinstance(loc, list) or loc is None:
             pass
         else:
             raise(TypeError(loc))
 
-        if isinstance(chan, str):
+        if isinstance(chan, str) or isinstance(chan, unicode):
             chan = (chan,)
         elif isinstance(chan, tuple) or isinstance(chan, list) or chan is None:
             pass
         else:
             raise(TypeError(chan))
 
-        _predicate_net  = lambda _key: net  == None or _key in net
-        _predicate_sta  = lambda _key: sta  == None or _key in sta
-        _predicate_loc  = lambda _key: loc  == None or _key in loc
-        _predicate_chan = lambda _key: chan == None or _key in chan
+        def _predicate_net(_key):
+            return(net is None or _key in net)
+
+        def _predicate_sta(_key):
+            return(sta is None or _key in sta)
+
+        def _predicate_loc(_key):
+            return(loc is None or _key in loc)
+
+        def _predicate_chan(_key):
+            return(chan is None or _key in chan)
 
         _st = obspy.Stream()
         _ref_grp = self._reference_group[ref]
@@ -1400,14 +1555,16 @@ class ASDFDataSet(object):
 
                     for _chan in itertools.ifilter(_predicate_chan,
                                                    _loc_grp.keys()):
-                        _ds  = _loc_grp[_chan]
+                        _ds = _loc_grp[_chan]
                         _ref = _ds[0]
                         _tr = obspy.Trace(data=self.__file[_ref][_ref])
-                        _tr.stats.network   = _net  if _net  != "__" else ""
-                        _tr.stats.station   = _sta  if _sta  != "__" else ""
-                        _tr.stats.location  = _loc  if _loc  != "__" else ""
-                        _tr.stats.channel   = _chan if _chan != "__" else ""
-                        _tr.stats.starttime = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
+                        _tr.stats.network = _net if _net != "__" else ""
+                        _tr.stats.station = _sta if _sta != "__" else ""
+                        _tr.stats.location = _loc if _loc != "__" else ""
+                        _tr.stats.channel = _chan if _chan != "__" else ""
+                        _tr.stats.starttime = obspy.UTCDateTime(
+                                _ds.attrs["starttime"]*1e-9
+                                )
                         _tr.stats.delta = 1/_ds.attrs["sampling_rate"]
                         _st.append(_tr)
         return(_st)

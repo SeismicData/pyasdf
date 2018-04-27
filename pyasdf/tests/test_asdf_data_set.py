@@ -87,6 +87,36 @@ def test_waveform_tags_attribute(tmpdir):
     assert data_set.waveform_tags == expected
 
 
+def test_reference_creation(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    data_set = ASDFDataSet(asdf_filename)
+
+    for filename in glob.glob(os.path.join(data_path, "*.mseed")):
+        data_set.add_waveforms(filename, tag="raw")
+
+    data_set.create_reference("ref1",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              net="AE")
+    st = data_set.get_data_for_reference("ref1")
+
+    assert len(st) == 3
+    for tr in st:
+        assert tr.stats.network == "AE"
+
+    data_set.create_reference("ref2",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              chan="BHZ")
+    st = data_set.get_data_for_reference("ref2")
+
+    assert len(st) == 2
+    for tr in st:
+        assert tr.stats.channel == "BHZ"
+
+
 def test_data_set_creation(tmpdir):
     """
     Test data set creation with a small test dataset.
