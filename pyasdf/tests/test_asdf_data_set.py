@@ -101,7 +101,6 @@ def test_reference_creation(tmpdir):
                               obspy.UTCDateTime("2013-05-24T05:55:00"),
                               net="AE")
     st = data_set.get_data_for_reference("ref1")
-
     assert len(st) == 3
     for tr in st:
         assert tr.stats.network == "AE"
@@ -111,10 +110,31 @@ def test_reference_creation(tmpdir):
                               obspy.UTCDateTime("2013-05-24T05:55:00"),
                               chan="BHZ")
     st = data_set.get_data_for_reference("ref2")
-
     assert len(st) == 2
     for tr in st:
         assert tr.stats.channel == "BHZ"
+
+    data_set.create_reference("ref3",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              chan=("BHN", "BHE"))
+    st = data_set.get_data_for_reference("ref3")
+    assert len(st) == 4
+    for tr in st:
+        assert tr.stats.channel in ("BHN", "BHE")
+
+    data_set.create_reference("ref4",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              net="TA",
+                              sta=("POKR",),
+                              chan="BHZ")
+    st = data_set.get_data_for_reference("ref4")
+    assert len(st) == 1
+    for tr in st:
+        assert tr.stats.channel == "BHZ"\
+                and tr.stats.station == "POKR"\
+                and tr.stats.network == "TA"
 
 
 def test_data_set_creation(tmpdir):
