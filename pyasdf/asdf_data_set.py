@@ -1376,9 +1376,9 @@ class ASDFDataSet(object):
         _wf_grp = self._waveform_group
         for _station_name in filter(_predicate_netsta,
                                     self._waveform_group.keys()):
+            print(_station_name)
             for _key in filter(_predicate_locchantag,
                                _wf_grp[_station_name].keys()):
-
                 _net, _sta, _loc, _remainder = _key.split(".")
                 _chan = _remainder.split("__")[0]
 
@@ -1500,6 +1500,7 @@ class ASDFDataSet(object):
                         raise(TypeError(obj))
                 except NameError:
                     pass
+            return(obj)
 
         net = _coerce(net)
         sta = _coerce(sta)
