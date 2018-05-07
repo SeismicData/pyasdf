@@ -1348,7 +1348,7 @@ class ASDFDataSet(object):
         chan = _coerce(chan)
         tag = _coerce(tag)
 
-        _ref_dtype = h5py.special_dtype(ref=h5py.RegionReference)
+        #_ref_dtype = h5py.special_dtype(ref=h5py.RegionReference)
 
         def _predicate_net(_key):
             return(net is None or _key.split(".")[0] in net)
@@ -1376,11 +1376,9 @@ class ASDFDataSet(object):
         _wf_grp = self._waveform_group
         for _station_name in filter(_predicate_netsta,
                                     self._waveform_group.keys()):
-            print(_station_name)
             for _key in filter(_predicate_locchantag,
                                _wf_grp[_station_name].keys()):
-                _net, _sta, _loc, _remainder = _key.split(".")
-                _chan = _remainder.split("__")[0]
+                _net, _sta, _loc, _chan = _key.split("__")[0].split(".")
 
                 _ds = self._waveform_group["%s/%s" % (_station_name, _key)]
 
@@ -1391,8 +1389,8 @@ class ASDFDataSet(object):
                     continue
 
                 _offset = int((starttime-_ts)*_samprate)
-                _nsamp = int((endtime-starttime)*_samprate)
-                _ref = _ds.regionref[_offset:_offset+_nsamp+1]
+                _nsamp = int(round((endtime-starttime)*_samprate, 0))
+                #_ref = _ds.regionref[_offset:_offset+_nsamp+1]
 
                 if ref not in self._reference_group:
                     _ref_grp = self._reference_group.create_group(ref)
@@ -1409,13 +1407,14 @@ class ASDFDataSet(object):
                     del(_ref_grp[_handle])
 
                 if _handle not in _ref_grp:
-                    _ref_ds = _ref_grp.create_dataset(_handle,
-                                                      (1,),
-                                                      dtype=_ref_dtype)
-                    _ref_ds.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
+                    _ref = _ref_grp.create_dataset(_handle,
+                                                   (2,),
+                                                   dtype=np.int64)
+                    _ref.attrs["reference_path"] = _ds.name
+                    _ref.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
                     _ts = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
-                    _ref_ds.attrs["starttime"] = _ts
-                    _ref_ds[0] = _ref
+                    _ref.attrs["starttime"] = _ts
+                    _ref[:] = [_offset, _offset+_nsamp]
                 else:
                     print("Will not overwrite existing reference")
                     continue
@@ -1531,17 +1530,20 @@ class ASDFDataSet(object):
                     _loc_grp = _sta_grp[_loc]
 
                     for _chan in filter(_predicate_chan, _loc_grp.keys()):
-                        _ds = _loc_grp[_chan]
-                        _ref = _ds[0]
-                        _tr = obspy.Trace(data=self.__file[_ref][_ref])
+                        _ref = _loc_grp[_chan]
+                        _tr = obspy.Trace(
+                                data=self.__file[
+                                    _ref.attrs["reference_path"]
+                                    ][_ref[0]: _ref[1]]
+                        )
                         _tr.stats.network = _net if _net != "__" else ""
                         _tr.stats.station = _sta if _sta != "__" else ""
                         _tr.stats.location = _loc if _loc != "__" else ""
                         _tr.stats.channel = _chan if _chan != "__" else ""
                         _tr.stats.starttime = obspy.UTCDateTime(
-                                _ds.attrs["starttime"]*1e-9
+                                _ref.attrs["starttime"]*1e-9
                                 )
-                        _tr.stats.delta = 1/_ds.attrs["sampling_rate"]
+                        _tr.stats.delta = 1/_ref.attrs["sampling_rate"]
                         _st.append(_tr)
         return(_st)
 
