@@ -3020,6 +3020,7 @@ def test_get_waveform_attributes(example_data_set):
                 'event_ids': [
                     'smi:service.iris.edu/fdsnws/event/1/query?'
                     'eventid=4218658'],
+                'mask': np.bool(False),
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000},
             'AE.113A..BHN__2013-05-24T05:40:00__'
@@ -3027,6 +3028,7 @@ def test_get_waveform_attributes(example_data_set):
                 'event_ids': [
                     'smi:service.iris.edu/fdsnws/event/1/query?'
                     'eventid=4218658'],
+                'mask': np.bool(False),
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000},
             'AE.113A..BHZ__2013-05-24T05:40:00__'
@@ -3034,6 +3036,7 @@ def test_get_waveform_attributes(example_data_set):
                 'event_ids': [
                     'smi:service.iris.edu/fdsnws/event/1/query?'
                     'eventid=4218658'],
+                'mask': np.bool(False),
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000}
         }
