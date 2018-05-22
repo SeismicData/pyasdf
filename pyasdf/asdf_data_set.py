@@ -246,8 +246,8 @@ class ASDFDataSet(object):
             self.__file.create_group("Provenance")
         if "AuxiliaryData" not in self.__file and mode != "r":
             self.__file.create_group("AuxiliaryData")
-        if "References" not in self.__file and mode != "r":
-            self.__file.create_group("References")
+        if "References" not in self.__file["AuxiliaryData"] and mode != "r":
+            self.__file.create_group("AuxiliaryData/References")
 
         # Easy access to the waveforms.
         self.waveforms = StationAccessor(self)
@@ -366,7 +366,7 @@ class ASDFDataSet(object):
 
     @property
     def _reference_group(self):
-        return self.__file["References"]
+        return self.__file["AuxiliaryData/References"]
 
     @property
     def asdf_format_version_in_file(self):
@@ -1234,7 +1234,7 @@ class ASDFDataSet(object):
     def create_reference(self, ref, starttime, endtime, net=None, sta=None,
                          loc=None, chan=None, tag=None, overwrite=False):
         """
-        Creates a region reference for fast lookup of data segments.
+        Creates a reference for fast lookup of data segments.
 
         :param ref: The reference label to apply.
         :type ref: str
@@ -1348,8 +1348,6 @@ class ASDFDataSet(object):
         chan = _coerce(chan)
         tag = _coerce(tag)
 
-        #_ref_dtype = h5py.special_dtype(ref=h5py.RegionReference)
-
         def _predicate_net(_key):
             return(net is None or _key.split(".")[0] in net)
 
@@ -1390,7 +1388,6 @@ class ASDFDataSet(object):
 
                 _offset = int((starttime-_ts)*_samprate)
                 _nsamp = int(round((endtime-starttime)*_samprate, 0))
-                #_ref = _ds.regionref[_offset:_offset+_nsamp+1]
 
                 if ref not in self._reference_group:
                     _ref_grp = self._reference_group.create_group(ref)
