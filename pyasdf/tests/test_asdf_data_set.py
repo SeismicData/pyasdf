@@ -87,6 +87,56 @@ def test_waveform_tags_attribute(tmpdir):
     assert data_set.waveform_tags == expected
 
 
+def test_reference_creation(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    data_set = ASDFDataSet(asdf_filename)
+
+    for filename in glob.glob(os.path.join(data_path, "*.mseed")):
+        data_set.add_waveforms(filename, tag="raw")
+
+    data_set.create_reference("ref1",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              net="AE")
+    st = data_set.get_data_for_reference("ref1")
+    assert len(st) == 3
+    for tr in st:
+        assert tr.stats.network == "AE"
+
+    data_set.create_reference("ref2",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              chan="BHZ")
+    st = data_set.get_data_for_reference("ref2")
+    assert len(st) == 2
+    for tr in st:
+        assert tr.stats.channel == "BHZ"
+
+    data_set.create_reference("ref3",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              chan=("BHN", "BHE"))
+    st = data_set.get_data_for_reference("ref3")
+    assert len(st) == 4
+    for tr in st:
+        assert tr.stats.channel in ("BHN", "BHE")
+
+    data_set.create_reference("ref4",
+                              obspy.UTCDateTime("2013-05-24T05:50:00"),
+                              obspy.UTCDateTime("2013-05-24T05:55:00"),
+                              net="TA",
+                              sta=("POKR",),
+                              chan="BHZ")
+    st = data_set.get_data_for_reference("ref4")
+    assert len(st) == 1
+    for tr in st:
+        assert tr.stats.channel == "BHZ"\
+                and tr.stats.station == "POKR"\
+                and tr.stats.network == "TA"
+
+
 def test_data_set_creation(tmpdir):
     """
     Test data set creation with a small test dataset.
@@ -142,6 +192,60 @@ def test_data_set_creation(tmpdir):
     cat_asdf = data_set.events
     # from IPython.core.debugger import Tracer; Tracer(colors="Linux")()
     assert cat_file == cat_asdf
+
+
+def test_masked_data_creation(tmpdir):
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    data_path = os.path.join(data_dir, "small_sample_data_set")
+
+    data_set = ASDFDataSet(asdf_filename)
+
+    filename = os.path.join(data_path, "AE.113A..BHZ.mseed")
+
+    ts1 = obspy.UTCDateTime("2013-05-24T05:40:00")
+    te1 = obspy.UTCDateTime("2013-05-24T06:00:00")
+    ts2 = obspy.UTCDateTime("2013-05-24T06:10:00")
+    te2 = obspy.UTCDateTime("2013-05-24T06:50:00")
+
+    st_file_raw = obspy.read(filename)
+
+    st_file_masked = st_file_raw.copy().trim(starttime=ts1, endtime=te1)\
+        + st_file_raw.copy().trim(starttime=ts2, endtime=te2)
+    st_file_masked.merge()
+
+    # This will cast dtype from int to float
+    st_file_masked_filtered = st_file_masked.copy()
+    st_file_masked_filtered = st_file_masked_filtered.split()
+    st_file_masked_filtered.filter("bandpass", freqmin=0.1, freqmax=10)
+    st_file_masked_filtered.merge()
+
+    data_set.add_waveforms(st_file_masked, tag="masked")
+    data_set.add_waveforms(st_file_masked_filtered, tag="masked_filtered")
+
+    st_asdf_masked = data_set.waveforms["AE.113A"]["masked"]
+    st_asdf_masked_filtered = data_set.waveforms["AE.113A"]["masked_filtered"]
+
+    trfm = st_file_masked[0]
+    trfmf = st_file_masked_filtered[0]
+    tram = st_asdf_masked[0]
+    tramf = st_asdf_masked_filtered[0]
+
+    for tr in (trfm, trfmf):
+        del(tr.stats.mseed)
+        del(tr.stats._format)
+        del(tr.stats.processing)
+
+    for tr in (tram, tramf):
+        del(tr.stats.asdf)
+        del(tr.stats._format)
+
+    assert trfm.stats == tram.stats
+    assert all(trfm.data.mask == tram.data.mask)
+    assert all(trfm.data[~trfm.data.mask] == tram.data[~tram.data.mask])
+
+    assert trfmf.stats == tramf.stats
+    assert all(trfmf.data.mask == tramf.data.mask)
+    assert all(trfmf.data[~trfmf.data.mask] == tramf.data[~tramf.data.mask])
 
 
 def test_equality_checks(example_data_set):
@@ -3020,6 +3124,7 @@ def test_get_waveform_attributes(example_data_set):
                 'event_ids': [
                     'smi:service.iris.edu/fdsnws/event/1/query?'
                     'eventid=4218658'],
+                'mask': np.bool(False),
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000},
             'AE.113A..BHN__2013-05-24T05:40:00__'
@@ -3027,6 +3132,7 @@ def test_get_waveform_attributes(example_data_set):
                 'event_ids': [
                     'smi:service.iris.edu/fdsnws/event/1/query?'
                     'eventid=4218658'],
+                'mask': np.bool(False),
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000},
             'AE.113A..BHZ__2013-05-24T05:40:00__'
@@ -3034,6 +3140,7 @@ def test_get_waveform_attributes(example_data_set):
                 'event_ids': [
                     'smi:service.iris.edu/fdsnws/event/1/query?'
                     'eventid=4218658'],
+                'mask': np.bool(False),
                 'sampling_rate': 40.0,
                 'starttime': 1369374000000000000}
         }
