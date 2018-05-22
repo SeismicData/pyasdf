@@ -818,6 +818,12 @@ class ASDFDataSet(object):
                     self.single_item_read_limit_in_mb))
             raise ASDFValueError(msg)
 
+        tr = self.__extract_waveform(waveform_name, idx_start, idx_end)
+
+        return(tr)
+
+    def __extract_waveform(self, waveform_name, idx_start, idx_end):
+
         network, station, location, channel = waveform_name.split(".")[:4]
         channel = channel[:channel.find("__")]
         data = self.__file["Waveforms"]["%s.%s" % (network, station)][
@@ -830,7 +836,7 @@ class ASDFDataSet(object):
             _data = data[idx_start: idx_end]
 
         tr = obspy.Trace(data=_data)
-        tr.stats.starttime = data_starttime
+        tr.stats.starttime = obspy.UTCDateTime(data.attrs["starttime"]*1.E-9)
         tr.stats.sampling_rate = data.attrs["sampling_rate"]
         tr.stats.network = network
         tr.stats.station = station
@@ -860,7 +866,7 @@ class ASDFDataSet(object):
         # Add the tag to the stats dictionary.
         details.tag = wf_name2tag(waveform_name)
 
-        return tr
+        return(tr)
 
     def _get_auxiliary_data(self, data_type, tag):
         group = self._auxiliary_data_group[data_type][tag]
@@ -1407,11 +1413,11 @@ class ASDFDataSet(object):
         _wf_grp = self._waveform_group
         for _station_name in filter(_predicate_netsta,
                                     self._waveform_group.keys()):
-            for _key in filter(_predicate_locchantag,
+            for waveform_name in filter(_predicate_locchantag,
                                _wf_grp[_station_name].keys()):
-                _net, _sta, _loc, _chan = _key.split("__")[0].split(".")
+                _net, _sta, _loc, _chan = waveform_name.split("__")[0].split(".")
 
-                _ds = self._waveform_group["%s/%s" % (_station_name, _key)]
+                _ds = self._waveform_group["%s/%s" % (_station_name, waveform_name)]
 
                 _ts = obspy.UTCDateTime(_ds.attrs["starttime"]*1e-9)
                 _samprate = _ds.attrs["sampling_rate"]
@@ -1421,6 +1427,8 @@ class ASDFDataSet(object):
 
                 _offset = int((starttime-_ts)*_samprate)
                 _nsamp = int(round((endtime-starttime)*_samprate, 0))
+                idx_start = _offset if _offset >= 0 else 0
+                idx_end = _offset + _nsamp
 
                 if ref not in self._reference_group:
                     _ref_grp = self._reference_group.create_group(ref)
@@ -1440,11 +1448,11 @@ class ASDFDataSet(object):
                     _ref = _ref_grp.create_dataset(_handle,
                                                    (2,),
                                                    dtype=np.int64)
-                    _ref.attrs["reference_path"] = _ds.name
+                    _ref.attrs["waveform_name"] = waveform_name
                     _ref.attrs["sampling_rate"] = _ds.attrs["sampling_rate"]
                     _ts = _ds.attrs["starttime"] + int(_offset/_samprate*1.e9)
                     _ref.attrs["starttime"] = _ts
-                    _ref[:] = [_offset, _offset+_nsamp]
+                    _ref[:] = [idx_start, idx_end]
                 else:
                     print("Will not overwrite existing reference")
                     continue
@@ -1561,19 +1569,12 @@ class ASDFDataSet(object):
 
                     for _chan in filter(_predicate_chan, _loc_grp.keys()):
                         _ref = _loc_grp[_chan]
-                        _tr = obspy.Trace(
-                                data=self.__file[
-                                    _ref.attrs["reference_path"]
-                                    ][_ref[0]: _ref[1]]
-                        )
-                        _tr.stats.network = _net if _net != "__" else ""
-                        _tr.stats.station = _sta if _sta != "__" else ""
-                        _tr.stats.location = _loc if _loc != "__" else ""
-                        _tr.stats.channel = _chan if _chan != "__" else ""
-                        _tr.stats.starttime = obspy.UTCDateTime(
-                                _ref.attrs["starttime"]*1e-9
-                                )
-                        _tr.stats.delta = 1/_ref.attrs["sampling_rate"]
+
+                        waveform_name = _ref.attrs["waveform_name"]
+                        idx_start, idx_end = _ref[:]
+                        _tr = self.__extract_waveform(waveform_name,
+                                                   idx_start,
+                                                   idx_end)
                         _st.append(_tr)
         return(_st)
 
