@@ -86,6 +86,7 @@ class ASDFDataSet(object):
     def __init__(self, filename, compression="gzip-3", shuffle=True,
                  debug=False, mpi=None, mode="a",
                  single_item_read_limit_in_mb=1024.0,
+                 chunk_size=None,
                  format_version=None):
         """
         :type filename: str
@@ -133,6 +134,8 @@ class ASDFDataSet(object):
             the interactive command line when just exploring an ASDF data
             set. There are other ways to still access data and even this
             setting can be overwritten.
+        :param chunk_size: Dataset chunk size in seconds.
+        :type chunk_size: tuple, None
         :type format_version: str
         :type format_version: The version of ASDF to use. If not given,
             it will use the most recent version (currently 1.0.1) if the
@@ -142,6 +145,10 @@ class ASDFDataSet(object):
             raise ASDFValueError(
                 "ASDF version '%s' is not supported. Supported versions: %s" %
                 (format_version, ", ".join(SUPPORTED_FORMAT_VERSIONS)))
+
+        # Dataset chunk size in seconds. Set to True for auto-chunking;
+        # None for no chunking.
+        self.chunk_size = chunk_size
 
         self.__force_mpi = mpi
         self.debug = debug
@@ -1059,7 +1066,8 @@ class ASDFDataSet(object):
             # If this did not work - append.
             self.add_waveforms(waveform=trace, tag=tag)
 
-    def add_waveforms(self, waveform, tag, event_id=None, origin_id=None,
+    def add_waveforms(self, waveform, tag, chunk_size=None,
+                      event_id=None, origin_id=None,
                       magnitude_id=None, focal_mechanism_id=None,
                       provenance_id=None, labels=None):
         """
@@ -1073,6 +1081,10 @@ class ASDFDataSet(object):
             mandatory for all traces and facilitates identification of the data
             within one ASDF volume. The ``"raw_record"`` path is,
             by convention, reserved to raw, recorded, unprocessed data.
+        :param chunk_size: Dataset chunk size in seconds. This
+            overrides the default class value specified at object
+            instatiation.
+        :type chunk_size: tuple, bool
         :type tag: str
         :param event_id: The event or id which the waveform is associated
             with. This is useful for recorded data if a clear association is
@@ -1170,6 +1182,10 @@ class ASDFDataSet(object):
         tag = self.__parse_and_validate_tag(tag)
         waveform = self.__parse_waveform_input_and_validate(waveform)
 
+        chunk_size = chunk_size if chunk_size is not None\
+                else self.chunk_size if self.chunk_size is not None \
+                else None
+
         # Actually add the data.
         for trace in waveform:
             if isinstance(trace.data, np.ma.masked_array):
@@ -1177,8 +1193,8 @@ class ASDFDataSet(object):
             # Complicated multi-step process but it enables one to use
             # parallel I/O with the same functions.
             info = self._add_trace_get_collective_information(
-                trace, tag, event_id=event_id, origin_id=origin_id,
-                magnitude_id=magnitude_id,
+                trace, tag, chunk_size=chunk_size, event_id=event_id,
+                origin_id=origin_id, magnitude_id=magnitude_id,
                 focal_mechanism_id=focal_mechanism_id,
                 provenance_id=provenance_id, labels=labels)
             if info is None:
@@ -1347,7 +1363,7 @@ class ASDFDataSet(object):
             tag=tag)
 
     def _add_trace_get_collective_information(
-            self, trace, tag, event_id=None, origin_id=None,
+            self, trace, tag, chunk_size=None, event_id=None, origin_id=None,
             magnitude_id=None, focal_mechanism_id=None,
             provenance_id=None, labels=None):
         """
@@ -1370,6 +1386,11 @@ class ASDFDataSet(object):
             net=trace.stats.network, sta=trace.stats.station,
             loc=trace.stats.location, cha=trace.stats.channel,
             start=trace.stats.starttime, end=trace.stats.endtime, tag=tag)
+
+        if chunk_size is None or chunk_size is True:
+            chunks = chunk_size
+        else:
+            chunks = (int(round(chunk_size * trace.stats.sampling_rate, 0)),)
 
         group_name = "%s/%s" % (station_name, data_name)
         if group_name in self._waveform_group:
@@ -1401,7 +1422,8 @@ class ASDFDataSet(object):
                 "compression_opts": self.__compression[1],
                 "shuffle": self.__shuffle,
                 "fletcher32": fletcher32,
-                "maxshape": (None,)
+                "maxshape": (None,),
+                "chunks": chunks
             },
             "dataset_attrs": {
                 # Starttime is the epoch time in nanoseconds.
