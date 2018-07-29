@@ -68,7 +68,8 @@ from .utils import is_mpi_env, StationAccessor, sizeof_fmt, ReceivedMessage,\
     AuxiliaryDataGroupAccessor, AuxiliaryDataContainer, get_multiprocessing, \
     ProvenanceAccessor, split_qualified_name, _read_string_array, \
     FilteredWaveformAccessor, label2string, labelstring2list, \
-    AuxiliaryDataAccessor, wf_name2tag, to_list_of_resource_identifiers
+    AuxiliaryDataAccessor, wf_name2tag, to_list_of_resource_identifiers, \
+    replace_None
 from .inventory_utils import isolate_and_merge_station, merge_inventories
 
 
@@ -602,6 +603,7 @@ class ASDFDataSet(object):
         if provenance_id is not None:
             # Will raise an error if not a valid qualified name.
             split_qualified_name(provenance_id)
+        replace_None(parameters) # Maps None values to h5py.Empty()
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(

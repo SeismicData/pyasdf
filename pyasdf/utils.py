@@ -1330,3 +1330,13 @@ def to_list_of_resource_identifiers(obj, name, obj_type):
             msg = "Invalid type for %s." % name
             raise TypeError(msg)
     return [obj]
+
+def replace_None(param):
+    """
+    Due to a limitation of h5py, parameters that contain None
+    are mapped to an instance of h5py.Empty.
+    """
+    for k, v in param.items():
+        if v is None:
+            param[k] = h5py.Empty(np.dtype("S10"))
+
