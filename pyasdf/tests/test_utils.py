@@ -95,5 +95,6 @@ def test_sizeof_fmt_function():
     assert sizeof_fmt(1024 ** 4) == "1.0 TB"
 
 def test_replace_None():
+    from h5py import Empty
     a = replace_None({u'user': None})
-    assert a == {u'user': Empty(dtype=dtype('S10'))}
+    assert a[u'user']
