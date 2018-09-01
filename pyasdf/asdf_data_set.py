@@ -603,7 +603,8 @@ class ASDFDataSet(object):
         if provenance_id is not None:
             # Will raise an error if not a valid qualified name.
             split_qualified_name(provenance_id)
-        replace_None(parameters) # Maps None values to h5py.Empty()
+        # Maps None values to h5py.Empty()
+        replace_None(parameters)
         # Complicated multi-step process but it enables one to use
         # parallel I/O with the same functions.
         info = self._add_auxiliary_data_get_collective_information(
