@@ -96,4 +96,4 @@ def test_sizeof_fmt_function():
 
 def test_replace_None():
     a = replace_None({u'user': None})
-    assert a == {u'user: Empty(dtype=dtype('S10'))}
+    assert a == {u'user': Empty(dtype=dtype('S10'))}
