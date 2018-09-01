@@ -1340,3 +1340,4 @@ def replace_None(param):
     for k, v in param.items():
         if v is None:
             param[k] = h5py.Empty(np.dtype("S10"))
+        return param
