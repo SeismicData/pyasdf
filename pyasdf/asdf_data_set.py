@@ -86,7 +86,7 @@ class ASDFDataSet(object):
 
     def __init__(self, filename, compression="gzip-3", shuffle=True,
                  debug=False, mpi=None, mode="a",
-                 single_item_read_limit_in_mb=1024.0,
+                 single_item_read_limit_in_mb=4096.0,
                  format_version=None):
         """
         :type filename: str
@@ -793,27 +793,38 @@ class ASDFDataSet(object):
         Retrieves the waveform for a certain path name as a Trace object. For
         internal use only, use the dot accessors for outside access.
         """
-        idx_start, idx_end, data_starttime, array_size_in_mb = \
-            self._get_idx_and_size_estimate(waveform_name,
-                                            starttime, endtime)
-
-        if array_size_in_mb > self.single_item_read_limit_in_mb:
-            msg = ("The current selection would read %.2f MB into memory from "
-                   "'%s'. The current limit is %.2f MB. Adjust by setting "
-                   "'ASDFDataSet.single_item_read_limit_in_mb' or use a "
-                   "different method to read the waveform data." % (
-                    array_size_in_mb, waveform_name,
-                    self.single_item_read_limit_in_mb))
-            raise ASDFValueError(msg)
-
         network, station, location, channel = waveform_name.split(".")[:4]
         channel = channel[:channel.find("__")]
         data = self.__file["Waveforms"]["%s.%s" % (network, station)][
             waveform_name]
+        # Read once upfront to optmize a bit.
+        attrs = dict(data.attrs)
+
+        # Only do the checks if the filesize actually allows for it as its
+        # fairly expensive or if start or endtime are given.
+        if ((self.filesize > self.single_item_read_limit_in_mb * 1024 ** 2) or
+                starttime is not None or endtime is not None):
+            idx_start, idx_end, data_starttime, array_size_in_mb = \
+                self._get_idx_and_size_estimate(waveform_name,
+                                                starttime, endtime)
+
+            if array_size_in_mb > self.single_item_read_limit_in_mb:
+                msg = ("The current selection would read %.2f MB into memory "
+                       "from '%s'. The current limit is %.2f MB. Adjust by "
+                       "setting 'ASDFDataSet.single_item_read_limit_in_mb' or "
+                       "use a different method to read the waveform data." % (
+                        array_size_in_mb, waveform_name,
+                        self.single_item_read_limit_in_mb))
+                raise ASDFValueError(msg)
+        else:
+            idx_start = 0
+            idx_end = data.shape[0]
+            data_starttime = obspy.UTCDateTime(
+                float(attrs["starttime"]) / 1.0E9)
 
         tr = obspy.Trace(data=data[idx_start: idx_end])
         tr.stats.starttime = data_starttime
-        tr.stats.sampling_rate = data.attrs["sampling_rate"]
+        tr.stats.sampling_rate = attrs["sampling_rate"]
         tr.stats.network = network
         tr.stats.station = station
         tr.stats.location = location
@@ -827,17 +838,17 @@ class ASDFDataSet(object):
         # Read all the ids if they are there.
         ids = ["event_id", "origin_id", "magnitude_id", "focal_mechanism_id"]
         for name in ids:
-            if name in data.attrs:
+            if name in attrs:
                 setattr(details, name + "s",
                         [obspy.core.event.ResourceIdentifier(_i) for _i in
-                         data.attrs[name].tostring().decode().split(",")])
+                         attrs[name].tostring().decode().split(",")])
 
-        if "provenance_id" in data.attrs:
+        if "provenance_id" in attrs:
             details.provenance_id = \
-                data.attrs["provenance_id"].tostring().decode()
+                attrs["provenance_id"].tostring().decode()
 
-        if "labels" in data.attrs:
-            details.labels = labelstring2list(data.attrs["labels"])
+        if "labels" in attrs:
+            details.labels = labelstring2list(attrs["labels"])
 
         # Add the tag to the stats dictionary.
         details.tag = wf_name2tag(waveform_name)

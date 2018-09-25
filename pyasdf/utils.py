@@ -894,22 +894,27 @@ class WaveformAccessor(object):
                     self.__class__.__name__, str(item)))
             return station
 
-        # Get an estimate of the total require memory.
-        total_size = sum([
-            self.__data_set()._get_idx_and_size_estimate(
-                _i, starttime=starttime, endtime=endtime)[3]
-            for _i in items])
+        # Get an estimate of the total require memory. But only estimate it
+        # if the file is actually larger than the memory as the test is fairly
+        # expensive but we don't really care for small files.
+        if (self.__data_set().filesize >
+                self.__data_set().single_item_read_limit_in_mb * 1024 ** 2):
+            total_size = sum([
+                self.__data_set()._get_idx_and_size_estimate(
+                    _i, starttime=starttime, endtime=endtime)[3]
+                for _i in items])
 
-        # Raise an error to not read an extreme amount of data into memory.
-        if total_size > self.__data_set().single_item_read_limit_in_mb:
-            msg = ("All waveforms for station '%s' and item '%s' would "
-                   "require '%.2f MB of memory. The current limit is %.2f "
-                   "MB. Adjust by setting "
-                   "'ASDFDataSet.single_item_read_limit_in_mb' or use a "
-                   "different method to read the waveform data." % (
-                       self._station_name, item, total_size,
-                       self.__data_set().single_item_read_limit_in_mb))
-            raise ASDFValueError(msg)
+            # Raise an error to not read an extreme amount of data into memory.
+            if total_size > self.__data_set().single_item_read_limit_in_mb:
+                msg = (
+                    "All waveforms for station '%s' and item '%s' would "
+                    "require '%.2f MB of memory. The current limit is %.2f "
+                    "MB. Adjust by setting "
+                    "'ASDFDataSet.single_item_read_limit_in_mb' or use a "
+                    "different method to read the waveform data." % (
+                        self._station_name, item, total_size,
+                        self.__data_set().single_item_read_limit_in_mb))
+                raise ASDFValueError(msg)
 
         traces = [self.__data_set()._get_waveform(_i, starttime=starttime,
                                                   endtime=endtime)

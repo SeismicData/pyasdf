@@ -2889,7 +2889,7 @@ def test_dataset_accessing_limit(tmpdir):
     tr.stats.station = "YY"
     tr.stats.channel = "BHZ"
 
-    ds = ASDFDataSet(asdf_filename)
+    ds = ASDFDataSet(asdf_filename, compression=None)
     ds.add_waveforms(tr, tag="random")
 
     # The default limit (1GB) is plenty to read that.
@@ -2907,14 +2907,16 @@ def test_dataset_accessing_limit(tmpdir):
     assert st[0].stats.station == "YY"
     assert st[0].stats.npts == 131072
 
-    # Any smaller and it has a problem.
-    ds.single_item_read_limit_in_mb = 0.45
+    # Any smaller and it has a problem. There is some leverage here as it
+    # checks the file of the size before doing the expensive computation
+    # regarding the size estimation.
+    ds.single_item_read_limit_in_mb = 0.2
     with pytest.raises(ASDFValueError) as e:
         ds.waveforms.XX_YY.random
 
     assert e.value.args[0] == (
         "All waveforms for station 'XX.YY' and item 'random' would require "
-        "'0.50 MB of memory. The current limit is 0.45 MB. Adjust by setting "
+        "'0.50 MB of memory. The current limit is 0.20 MB. Adjust by setting "
         "'ASDFDataSet.single_item_read_limit_in_mb' or use a different "
         "method to read the waveform data.")
     # hdf5 garbage collection messing with Python's...
@@ -2927,7 +2929,7 @@ def test_dataset_accessing_limit(tmpdir):
     assert e.value.args[0] == (
         "The current selection would read 0.50 MB into memory from "
         "'XX.YY..BHZ__1970-01-01T00:00:00__"
-        "1970-01-02T12:24:31__random'. The current limit is 0.45 MB. "
+        "1970-01-02T12:24:31__random'. The current limit is 0.20 MB. "
         "Adjust by setting "
         "'ASDFDataSet.single_item_read_limit_in_mb' or use a different "
         "method to read the waveform data.")
