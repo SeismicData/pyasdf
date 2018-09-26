@@ -133,7 +133,9 @@ class ASDFDataSet(object):
             is mainly to guard against accidentally filling ones memory on
             the interactive command line when just exploring an ASDF data
             set. There are other ways to still access data and even this
-            setting can be overwritten.
+            setting can be overwritten. This test will only be triggered when
+            the file is beigger thatn this limit in the first place as the test
+            is fairly expensive.
         :type format_version: str
         :type format_version: The version of ASDF to use. If not given,
             it will use the most recent version (currently 1.0.1) if the
