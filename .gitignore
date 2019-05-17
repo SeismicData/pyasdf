@@ -1,3 +1,6 @@
 *.egg-info
 doc/_build/
 .cache
+*.pyc
+.coverage
+.pytest_cache

@@ -37,7 +37,6 @@ import numpy as np
 import prov
 import prov.model
 
-
 # Minimum compatibility wrapper between Python 2 and 3.
 try:
     filter = itertools.ifilter
@@ -824,7 +823,13 @@ class ASDFDataSet(object):
             data_starttime = obspy.UTCDateTime(
                 float(attrs["starttime"]) / 1.0E9)
 
-        tr = obspy.Trace(data=data[idx_start: idx_end])
+        if "mask" in data.attrs and data.attrs["mask"] != np.bool(False):
+            _data = np.ma.masked_values(data[idx_start: idx_end],
+                                        data.attrs["mask"])
+        else:
+            _data = data[idx_start: idx_end]
+
+        tr = obspy.Trace(data=_data)
         tr.stats.starttime = data_starttime
         tr.stats.sampling_rate = attrs["sampling_rate"]
         tr.stats.network = network
@@ -1180,6 +1185,8 @@ class ASDFDataSet(object):
 
         # Actually add the data.
         for trace in waveform:
+            if isinstance(trace.data, np.ma.masked_array):
+                self.__set_masked_array_fill_value(trace)
             # Complicated multi-step process but it enables one to use
             # parallel I/O with the same functions.
             info = self._add_trace_get_collective_information(
@@ -1191,6 +1198,16 @@ class ASDFDataSet(object):
                 continue
             self._add_trace_write_collective_information(info)
             self._add_trace_write_independent_information(info, trace)
+
+    def __set_masked_array_fill_value(self, trace):
+        if trace.data.dtype.kind in ("i", "u"):
+            _info = np.iinfo
+        elif trace.data.dtype.kind == "f":
+            _info = np.finfo
+        else:
+            raise(NotImplementedError("fill value for dtype %s not defined"
+                                      % trace.data.dtype))
+        trace.data.set_fill_value(_info(trace.data.dtype).min)
 
     def __parse_and_validate_tag(self, tag):
         tag = tag.strip()
@@ -1308,7 +1325,7 @@ class ASDFDataSet(object):
         :param trace:
         :return:
         """
-        self._waveform_group[info["data_name"]][:] = trace.data
+        self._waveform_group[info["data_name"]][:] = np.ma.filled(trace.data)
 
     def _add_trace_write_collective_information(self, info):
         """
@@ -1380,6 +1397,12 @@ class ASDFDataSet(object):
         else:
             fletcher32 = True
 
+        # Determine appropriate mask value.
+        if not isinstance(trace.data, np.ma.masked_array):
+            _mask = np.bool(False)
+        else:
+            _mask = trace.data.fill_value
+
         info = {
             "station_name": station_name,
             "data_name": group_name,
@@ -1397,7 +1420,8 @@ class ASDFDataSet(object):
                 # Starttime is the epoch time in nanoseconds.
                 "starttime":
                     int(round(trace.stats.starttime.timestamp * 1.0E9)),
-                "sampling_rate": trace.stats.sampling_rate
+                "sampling_rate": trace.stats.sampling_rate,
+                "mask": _mask
             }
         }
 
