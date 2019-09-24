@@ -4,6 +4,7 @@ python:
   - "2.7"
   - "3.5"
   - "3.6"
+  - "3.7"
 
 env:
   global:
@@ -29,9 +30,9 @@ before_install:
   - conda config --add channels conda-forge
   - conda install --yes obspy python=$TRAVIS_PYTHON_VERSION nose
   - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
-  # Build docs on Python 3.5 for now.
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then conda install --yes sphinx; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
+  # Build docs on Python 3.7 for now.
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then conda install --yes sphinx; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
   - pip install coveralls mpi4py prov dill
 
 install:
