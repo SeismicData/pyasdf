@@ -1660,7 +1660,7 @@ class ASDFDataSet(object):
                 asdf_data_set=station._WaveformAccessor__data_set(),
                 filtered_items=wfs)
 
-        raise StopIteration
+        return
 
     def process_two_files_without_parallel_output(
             self, other_ds, process_function, traceback_limit=3):
