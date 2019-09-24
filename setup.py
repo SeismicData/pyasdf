@@ -14,6 +14,10 @@ Changelog
 
 ::
 
+    Version 0.5.1 (September 24, 2019)
+    ----------------------------------
+    * Restore the ability to run tests with `python -m pyasdf.tests`.
+
     Version 0.5.0 (September 24, 2019)
     ----------------------------------
     * Implement ASDF version 1.0.3 which allows a bit more flexibility
@@ -111,7 +115,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.5.0",
+    version="0.5.1",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
