@@ -77,6 +77,7 @@ from .header import (
     PROV_FILENAME_REGEX,
     TAG_REGEX,
     VALID_SEISMOGRAM_DTYPES,
+    AUXILIARY_DATA_PATH_PART_PATTERN,
 )
 from .query import Query, merge_query_functions
 from .utils import (
@@ -252,7 +253,7 @@ class ASDFDataSet(object):
 
         # Deal with the file format version. `format_version` is either None
         # or valid (this is checked above).
-        __most_recent_version = "1.0.2"
+        __most_recent_version = "1.0.3"
         # Case 1: Already some kind of format version in the file.
         if "file_format_version" in self.__file.attrs:
             version_in_file = self.__file.attrs["file_format_version"].decode()
@@ -675,12 +676,17 @@ class ASDFDataSet(object):
 
         for path in tag_path:
             # Assert each path piece.
-            tag_pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$"
+            tag_pattern = AUXILIARY_DATA_PATH_PART_PATTERN[
+                self.asdf_format_version
+            ]
             if re.match(tag_pattern, path) is None:
                 raise ASDFValueError(
-                    "Tag name '{name}' is invalid. It must validate "
-                    "against the regular expression '{pattern}'.".format(
-                        name=path, pattern=tag_pattern
+                    "Path part name '{name}' is invalid. It must validate "
+                    "against the regular expression '{pattern}' in ASDF "
+                    "version '{version}'.".format(
+                        name=path,
+                        pattern=tag_pattern,
+                        version=self.asdf_format_version,
                     )
                 )
 
@@ -910,7 +916,7 @@ class ASDFDataSet(object):
             or starttime is not None
             or endtime is not None
         ):
-            idx_start, idx_end, data_starttime, array_size_in_mb = self._get_idx_and_size_estimate(
+            idx_start, idx_end, data_starttime, array_size_in_mb = self._get_idx_and_size_estimate(  # NOQA
                 waveform_name, starttime, endtime
             )
 
@@ -1382,6 +1388,14 @@ class ASDFDataSet(object):
                     raise TypeError(
                         "The trace's dtype ('%s') is not allowed "
                         "inside ASDF 1.0.2. Allowed are little "
+                        "and big endian 2, 4, and 8 byte signed "
+                        "integers and 4 and 8 byte floating point "
+                        "numbers." % trace.data.dtype.name
+                    )
+                elif self.asdf_format_version == "1.0.3":
+                    raise TypeError(
+                        "The trace's dtype ('%s') is not allowed "
+                        "inside ASDF 1.0.3. Allowed are little "
                         "and big endian 2, 4, and 8 byte signed "
                         "integers and 4 and 8 byte floating point "
                         "numbers." % trace.data.dtype.name
@@ -2296,7 +2310,7 @@ class ASDFDataSet(object):
                 for key, value in self.stream_buffer.items():
                     if value is not None:
                         for trace in value:
-                            output_dataset._add_trace_write_independent_information(
+                            output_dataset._add_trace_write_independent_information(  # NOQA
                                 trace.stats.__info, trace
                             )
                     self._send_mpi(
@@ -2428,7 +2442,7 @@ class ASDFDataSet(object):
                 if stream is None:
                     continue
                 for trace in stream:
-                    info = output_dataset._add_trace_get_collective_information(
+                    info = output_dataset._add_trace_get_collective_information(  # NOQA
                         trace, tag_map[key[1]]
                     )
                     trace.stats.__info = info

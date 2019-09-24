@@ -292,7 +292,7 @@ def test_assert_format_and_version_number_are_written(tmpdir):
 
     # Open again and assert name and version number.
     with h5py.File(asdf_filename, "r") as hdf5_file:
-        assert hdf5_file.attrs["file_format_version"].decode() == "1.0.2"
+        assert hdf5_file.attrs["file_format_version"].decode() == "1.0.3"
         assert hdf5_file.attrs["file_format"].decode() == FORMAT_NAME
 
 
@@ -560,16 +560,25 @@ def test_format_version_handling(tmpdir):
 
     # Create.
     with ASDFDataSet(filename) as ds:
-        assert ds.asdf_format_version_in_file == "1.0.2"
-        assert ds.asdf_format_version == "1.0.2"
+        assert ds.asdf_format_version_in_file == "1.0.3"
+        assert ds.asdf_format_version == "1.0.3"
     # Open again.
     with ASDFDataSet(filename) as ds:
-        assert ds.asdf_format_version_in_file == "1.0.2"
-        assert ds.asdf_format_version == "1.0.2"
+        assert ds.asdf_format_version_in_file == "1.0.3"
+        assert ds.asdf_format_version == "1.0.3"
 
     os.remove(filename)
 
     # Directly specify it.
+    with ASDFDataSet(filename, format_version="1.0.3") as ds:
+        assert ds.asdf_format_version_in_file == "1.0.3"
+        assert ds.asdf_format_version == "1.0.3"
+    with ASDFDataSet(filename) as ds:
+        assert ds.asdf_format_version_in_file == "1.0.3"
+        assert ds.asdf_format_version == "1.0.3"
+
+    os.remove(filename)
+
     with ASDFDataSet(filename, format_version="1.0.2") as ds:
         assert ds.asdf_format_version_in_file == "1.0.2"
         assert ds.asdf_format_version == "1.0.2"
@@ -623,17 +632,17 @@ def test_format_version_handling(tmpdir):
             "file_format_version"
         ] = ds._zeropad_ascii_string("x.x.x")
         assert ds.asdf_format_version_in_file == "x.x.x"
-        assert ds.asdf_format_version == "1.0.2"
+        assert ds.asdf_format_version == "1.0.3"
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         with ASDFDataSet(filename) as ds:
             assert ds.asdf_format_version_in_file == "x.x.x"
-            assert ds.asdf_format_version == "1.0.2"
+            assert ds.asdf_format_version == "1.0.3"
     assert w[0].message.args[0] == (
         "The file claims an ASDF version of x.x.x. This version of pyasdf "
-        "only supports versions: 1.0.0, 1.0.1, 1.0.2. All following write "
-        "operations will use version 1.0.2 - other tools might not be able to "
-        "read the files again - proceed with caution."
+        "only supports versions: 1.0.0, 1.0.1, 1.0.2, 1.0.3. All following "
+        "write operations will use version 1.0.3 - other tools might not be "
+        "able to read the files again - proceed with caution."
     )
     # Again but force version.
     os.remove(filename)
@@ -650,9 +659,9 @@ def test_format_version_handling(tmpdir):
             assert ds.asdf_format_version == "1.0.0"
     assert w[0].message.args[0] == (
         "The file claims an ASDF version of x.x.x. This version of pyasdf "
-        "only supports versions: 1.0.0, 1.0.1, 1.0.2. All following write "
-        "operations will use version 1.0.0 - other tools might not be able to "
-        "read the files again - proceed with caution."
+        "only supports versions: 1.0.0, 1.0.1, 1.0.2, 1.0.3. All following "
+        "write operations will use version 1.0.0 - other tools might not be "
+        "able to read the files again - proceed with caution."
     )
 
     # Unsupported version number.
@@ -661,7 +670,7 @@ def test_format_version_handling(tmpdir):
         ASDFDataSet(filename, format_version="x.x.x")
     assert err.value.args[0] == (
         "ASDF version 'x.x.x' is not supported. Supported versions: 1.0.0, "
-        "1.0.1, 1.0.2"
+        "1.0.1, 1.0.2, 1.0.3"
     )
     # No file should be created.
     assert not os.path.exists(filename)
@@ -674,8 +683,8 @@ def test_format_version_handling(tmpdir):
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         with ASDFDataSet(filename) as ds:
-            assert ds.asdf_format_version_in_file == "1.0.2"
-            assert ds.asdf_format_version == "1.0.2"
+            assert ds.asdf_format_version_in_file == "1.0.3"
+            assert ds.asdf_format_version == "1.0.3"
     assert w[0].message.args[0] == (
         "No file format version given in file '%s'. The program will "
         "continue but the result is undefined." % os.path.abspath(filename)
@@ -800,6 +809,49 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     aux_data.parameters == parameters
 
     del newer_data_set
+
+
+def test_reading_and_writing_auxiliary_data_with_extended_path_names(tmpdir):
+    """
+    ASDF 1.0.3 allows more characters in the auxiliary data tag names - test
+    that here.
+    """
+    # Version 1.0.2 does not allow funky chars.
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    with ASDFDataSet(asdf_filename, format_version="1.0.2") as ds:
+        data = np.random.random(100)
+        data_type = "RandomArrays"
+        path = "test_data/hallo/A.B.C/$1/A"
+        parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+        with pytest.raises(ValueError) as err:
+            ds.add_auxiliary_data(
+                data=data,
+                data_type=data_type,
+                path=path,
+                parameters=parameters,
+            )
+    assert err.value.args[0] == (
+        "Path part name 'A.B.C' is invalid. It must validate against the "
+        "regular expression '^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$' in ASDF "
+        "version '1.0.2'."
+    )
+
+    # But version 1.0.3 does.
+    asdf_filename_2 = os.path.join(tmpdir.strpath, "test_2.h5")
+    data = np.random.random(100)
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+    with ASDFDataSet(asdf_filename_2) as ds:
+        data_type = "RandomArrays"
+        path = "test_data/hallo/A.B.C/$1/A"
+        ds.add_auxiliary_data(
+            data=data, data_type=data_type, path=path, parameters=parameters
+        )
+
+    # Open again and check.
+    with ASDFDataSet(asdf_filename_2) as ds:
+        aux = ds.auxiliary_data.RandomArrays.test_data.hallo["A.B.C"]["$1"].A
+        np.testing.assert_equal(aux.data[:], data)
+        assert aux.parameters == parameters
 
 
 def test_looping_over_stations(example_data_set):
@@ -1295,9 +1347,8 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
 
     # With provenance id.
     data = np.random.random((10, 10))
-    # The data must NOT start with a number.
     data_type = "RandomArrays"
-    path = "A.B.C"
+    path = "(ABC)"
 
     with pytest.raises(ASDFValueError) as err:
         data_set.add_auxiliary_data(
@@ -1305,9 +1356,9 @@ def test_adding_auxiliary_data_with_wrong_tag_name_raises(tmpdir):
         )
 
     assert err.value.args[0] == (
-        "Tag name 'A.B.C' is invalid. It must validate "
-        "against the regular expression "
-        "'^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$'."
+        "Path part name '(ABC)' is invalid. It must validate against the "
+        r"regular expression '^[a-zA-Z0-9-_\.!#$%&*+,:;<=>\?@\^~]+$' in ASDF "
+        "version '1.0.3'."
     )
 
     data_set.__del__()

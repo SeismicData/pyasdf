@@ -39,7 +39,16 @@ for key, value in list(COMPRESSIONS.items()):
 
 
 FORMAT_NAME = "ASDF"
-SUPPORTED_FORMAT_VERSIONS = ("1.0.0", "1.0.1", "1.0.2")
+SUPPORTED_FORMAT_VERSIONS = ("1.0.0", "1.0.1", "1.0.2", "1.0.3")
+
+
+AUXILIARY_DATA_PATH_PART_PATTERN = {
+    "1.0.0": r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$",
+    "1.0.1": r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$",
+    "1.0.2": r"^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$",
+    # Allow funky (but still ASCII) chars.
+    "1.0.3": r"^[a-zA-Z0-9-_\.!#$%&*+,:;<=>\?@\^~]+$",
+}
 
 
 # Regular expression for allowed filenames within the provenance group.
@@ -73,6 +82,18 @@ VALID_SEISMOGRAM_DTYPES = {
         np.dtype(">f8"),
     ),
     "1.0.2": (
+        np.dtype("<i2"),
+        np.dtype(">i2"),
+        np.dtype("<i4"),
+        np.dtype(">i4"),
+        np.dtype("<i8"),
+        np.dtype(">i8"),
+        np.dtype("<f4"),
+        np.dtype(">f4"),
+        np.dtype("<f8"),
+        np.dtype(">f8"),
+    ),
+    "1.0.3": (
         np.dtype("<i2"),
         np.dtype(">i2"),
         np.dtype("<i4"),
