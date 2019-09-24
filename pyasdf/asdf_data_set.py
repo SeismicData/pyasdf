@@ -2017,7 +2017,7 @@ class ASDFDataSet(object):
         output_filename,
         tag_map,
         traceback_limit=3,
-        **kwargs,
+        **kwargs
     ):
         """
         Process the contents of an ``ASDF`` file in parallel.
