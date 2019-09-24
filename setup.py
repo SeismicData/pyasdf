@@ -13,6 +13,7 @@ Changelog
 ---------
 
 ::
+
     Version 0.5.0 (September 24, 2019)
     ----------------------------------
     * Implement ASDF version 1.0.3 which allows a bit more flexibility
