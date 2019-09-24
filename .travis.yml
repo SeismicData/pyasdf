@@ -11,14 +11,14 @@ env:
     secure: "gfu3DCSoUVi/69Dc4cCIHXVYaA6Phgggzs8YL02c6Q/zDQCgiufv2JatRO40cwAu6qqjLXuxoWv+4PbZky0+Mdhn9XLLYq/Fmv4jtWBgTtBxnYxpKqBsLWKT99gDdFbYxm91bf8kg+IaS1S5PXBA3hFkiy0hHrDPPdrNa5CmYgE="
 
 install:
-  - pip install numpy pytest coveralls
-  - pip install -v -e .
+  - pip install numpy pytest python-coveralls pytest-cov
+  - pip install -v .
   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install sphinx sphinx_rtd_theme==0.1.9; fi
 
 script:
-  - coverage run --source=pyasdf -m pyasdf.tests
+  - py.test --cov pyasdf --cov-report term-missing
   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
 
 after_success:
-  - cd $TRAVIS_BUILD_DIR; coveralls
+  - coveralls
   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
