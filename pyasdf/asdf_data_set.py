@@ -662,12 +662,15 @@ class ASDFDataSet(object):
             b: 2
         """
         # Assert the data type name.
-        pattern = r"^[A-Z][A-Za-z0-9]*$"
+        pattern = AUXILIARY_DATA_PATH_PART_PATTERN[self.asdf_format_version]
         if re.match(pattern, data_type) is None:
             raise ASDFValueError(
                 "Data type name '{name}' is invalid. It must validate "
-                "against the regular expression '{pattern}'.".format(
-                    name=data_type, pattern=pattern
+                "against the regular expression '{pattern}' in ASDF version "
+                "'{version}'.".format(
+                    name=data_type,
+                    pattern=pattern,
+                    version=self.asdf_format_version,
                 )
             )
 
@@ -675,17 +678,13 @@ class ASDFDataSet(object):
         tag_path = path.strip("/").split("/")
 
         for path in tag_path:
-            # Assert each path piece.
-            tag_pattern = AUXILIARY_DATA_PATH_PART_PATTERN[
-                self.asdf_format_version
-            ]
-            if re.match(tag_pattern, path) is None:
+            if re.match(pattern, path) is None:
                 raise ASDFValueError(
                     "Path part name '{name}' is invalid. It must validate "
                     "against the regular expression '{pattern}' in ASDF "
                     "version '{version}'.".format(
                         name=path,
-                        pattern=tag_pattern,
+                        pattern=pattern,
                         version=self.asdf_format_version,
                     )
                 )

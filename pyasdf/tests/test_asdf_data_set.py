@@ -1180,8 +1180,8 @@ def test_adding_auxiliary_data_with_invalid_data_type_name_raises(tmpdir):
     data_set = ASDFDataSet(asdf_filename)
 
     data = np.random.random((10, 10))
-    # The data must NOT start with a number.
-    data_type = "2DRandomArray"
+    # Cannot start with a slash.
+    data_type = "/2DRandomArray"
     path = "test_data"
     parameters = {"a": 1, "b": 2.0, "e": "hallo"}
 
@@ -1195,11 +1195,41 @@ def test_adding_auxiliary_data_with_invalid_data_type_name_raises(tmpdir):
             )
 
         assert err.value.args[0] == (
-            "Data type name '2DRandomArray' is invalid. It must validate "
-            "against the regular expression '^[A-Z][A-Za-z0-9]*$'."
+            "Data type name '/2DRandomArray' is invalid. It must validate "
+            "against the regular expression "
+            r"'^[a-zA-Z0-9-_\.!#$%&*+,:;<=>\?@\^~]+$' in ASDF version '1.0.3'."
         )
     finally:
         data_set.__del__()
+
+
+def test_more_lenient_auxiliary_data_type_names_in_1_0_3(tmpdir):
+    """
+    ASDF v1.0.3 allows more flexibility in the data types names. Check that
+    here.
+    """
+    data = np.random.random((10, 10))
+    # Dots are not valid in version <= 1.0.2
+    data_type = "2D.RandomArray"
+    path = "test_data"
+    parameters = {"a": 1, "b": 2.0, "e": "hallo"}
+
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    with ASDFDataSet(asdf_filename, format_version="1.0.2") as ds:
+        with pytest.raises(ASDFValueError) as err:
+            ds.add_auxiliary_data(
+                data=data,
+                data_type=data_type,
+                path=path,
+                parameters=parameters,
+            )
+
+        assert err.value.args[0] == (
+            "Data type name '2D.RandomArray' is invalid. It must validate "
+            "against the regular expression "
+            r"'^[a-zA-Z0-9][a-zA-Z0-9_]*[a-zA-Z0-9]$' in ASDF version "
+            "'1.0.2'."
+        )
 
 
 def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
