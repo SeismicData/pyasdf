@@ -10,38 +10,15 @@ env:
   global:
     secure: "gfu3DCSoUVi/69Dc4cCIHXVYaA6Phgggzs8YL02c6Q/zDQCgiufv2JatRO40cwAu6qqjLXuxoWv+4PbZky0+Mdhn9XLLYq/Fmv4jtWBgTtBxnYxpKqBsLWKT99gDdFbYxm91bf8kg+IaS1S5PXBA3hFkiy0hHrDPPdrNa5CmYgE="
 
-before_install:
-  # Unfortunately necessary for now (Jan 2016). It slows down the builds quite a bit.
-  # See here for more details: https://github.com/travis-ci/travis-ci/issues/5221
-  - sudo apt-get update
-  - sudo apt-get install -qq graphviz
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b -p $HOME/miniconda
-  - export PATH=$HOME/miniconda/bin:$PATH
-  - conda update --yes conda
-  - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
-  - conda install --yes -n condaenv pip
-  - source activate condaenv
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-  # NOTE: Remove nose when matplotlib/matplotlib#4188 is fixed.
-  - conda config --add channels conda-forge
-  - conda install --yes obspy python=$TRAVIS_PYTHON_VERSION nose
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION pytest flake8 colorama h5py
-  # Build docs on Python 3.7 for now.
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then conda install --yes sphinx; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install sphinx_rtd_theme==0.1.9; fi
-  - pip install coveralls prov dill
-
 install:
-  - pip install --no-deps -v -e .
+  - pip install numpy pytest coveralls
+  - pip install -v -e .
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install sphinx sphinx_rtd_theme==0.1.9; fi
 
 script:
   - coverage run --source=pyasdf -m pyasdf.tests
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
 
 after_success:
   - cd $TRAVIS_BUILD_DIR; coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.5' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
