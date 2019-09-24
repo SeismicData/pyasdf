@@ -4,7 +4,7 @@ Installation
 pyasdf and Dependencies
 -----------------------
 
-``pyasdf`` supports Python version 2.7, 3.4, 3.5, and 3.6 and it depends on the
+``pyasdf`` supports Python version 2.7, 3.4, 3.6, and 3.7 and it depends on the
 following Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``,
 ``flake8``, ``pytest``, ``prov``, ``dill``, and optionally ``mpi4py``. You can
 install ``pyasdf`` with or without parallel I/O support; the later requires
@@ -25,7 +25,8 @@ for your chosen Python version.
     I/O version. For one most machines (aside from actual HPC machines)
     don't even have the necessary hardware to do actually parallel I/O. Also
     seismological waveform data is usually not that big in volume so a single
-    reading/writing thread might be sufficient.
+    reading/writing thread might be sufficient. Furthermore modern SSDs can
+    write at very high speeds.
 
     But if your application does indeed benefit from parallel I/O follow the
     instructions below.
@@ -48,53 +49,28 @@ as recommended above).
 ``pyasdf`` with parallel I/O
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. note::
-
-    There currently might be some issues in combination of Python 3 and MPI
-    so if you want to utilize parallel I/O best stick to Python 2.7 for now.
-
-
-The version with parallel I/O support is a bit more difficult as the ``h5py``
-installable via ``conda`` has no parallel I/O support.
+You only have to make sure to have a parallel version of ``h5py`` installed. A
+simple way is to just use one on conda, e.g.:
 
 .. code-block:: bash
 
-    $ conda update conda
-    $ conda install -c conda-forge obspy colorama pytest pip flake8 dill prov
+    $ conda install -c spectraldns h5py-parallel
 
+
+Additionally you need ``mpi4py``. The one on ``conda`` might work, if not,
+read on.
 
 For all of the following steps make sure that the MPI package of your local
 supercomputer/cluster is loaded. The ``mpi4py`` potentially shipping with
-Anaconda might not work on your cluster so uninstall it and reinstall with
-``pip`` at which point it should link against your cluster's MPI
-implementation.
+Anaconda might not work on your cluster - if that is the case uninstall it
+and reinstall with ``pip`` at which point it should link against your
+cluster's MPI implementation.
 
 .. code-block:: bash
 
     $ conda uninstall mpi4py
     $ pip install mpi4py
 
-    # Also make sure that there is no hdf5 or h5py in the current conda
-    # environment!
-    $ conda uninstall h5py hdf5
-
-Keep in mind that ``h5py`` must be compiled with parallel I/O support and that
-it is linked against the same MPI as ``mpi4py`` which of course should be the
-same that is used by your computer.
-
-Install parallel ``h5py`` according to
-`these instructions <http://docs.h5py.org/en/latest/mpi.html>`_.
-
-A further thing to keep in mind is that ``mpi4py`` changed some of their
-internal API for version 2.0. This has to be accounted for when installing the
-parallel ``h5py`` version. See here for more details:
-https://github.com/SeismicData/pyasdf/issues/11
-
-Finally install ``pyasdf`` with
-
-.. code-block:: bash
-
-    $ pip install pyasdf
 
 After everything is installed, you can run the following command to print
 information about the current system.
@@ -123,15 +99,6 @@ which will print something along the following lines::
         obspy: 1.0.3
         prov: 1.4.0
         scipy: 0.18.1
-
-
-This should enable you to judge if ``pyasdf`` can run on your system.
-Especially important is the *Parallel I/O support* line. If multiprocessing
-is problematic, ``pyasdf`` will not be able to run on more than one machine
-without MPI. Please see
-`here <https://github.com/obspy/obspy/wiki/Notes-on-Parallel-Processing-with-Python-and-ObsPy>`_
-for information about why and how to fix it.
-
 
 
 Testing
