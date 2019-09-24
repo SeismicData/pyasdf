@@ -13,8 +13,8 @@ Changelog
 ---------
 
 ::
-    Version 0.4.x
-    -------------
+    Version 0.5.0 (September 24, 2019)
+    ----------------------------------
     * Implement ASDF version 1.0.3 which allows a bit more flexibility
       regarding names of auxiliary data sets as well as provenance files.
     * New .waveform_tags property for the dataset object return a set of all
@@ -110,7 +110,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.4.x",
+    version="0.5.0",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
