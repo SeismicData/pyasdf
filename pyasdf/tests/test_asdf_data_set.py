@@ -1231,6 +1231,21 @@ def test_more_lenient_auxiliary_data_type_names_in_1_0_3(tmpdir):
             "'1.0.2'."
         )
 
+    # But works fine with ASDF >= 1.0.3
+    asdf_filename_2 = os.path.join(tmpdir.strpath, "test_2.h5")
+    with ASDFDataSet(asdf_filename_2) as ds:
+        ds.add_auxiliary_data(
+            data=data, data_type=data_type, path=path, parameters=parameters
+        )
+    with ASDFDataSet(asdf_filename_2) as ds:
+        np.testing.assert_equal(
+            ds.auxiliary_data["2D.RandomArray"].test_data.data[:], data
+        )
+        assert (
+            ds.auxiliary_data["2D.RandomArray"].test_data.parameters
+            == parameters
+        )
+
 
 def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
