@@ -52,7 +52,13 @@ AUXILIARY_DATA_PATH_PART_PATTERN = {
 
 
 # Regular expression for allowed filenames within the provenance group.
-PROV_FILENAME_REGEX = re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$")
+PROV_FILENAME_REGEX = {
+    "1.0.0": re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$"),
+    "1.0.1": re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$"),
+    "1.0.2": re.compile(r"^[0-9a-z][0-9a-z_]*[0-9a-z]$"),
+    # All printable ASCII chars.
+    "1.0.3": re.compile(r"^[ -~]+$"),
+}
 
 # Regular expression for allowed tag names.
 TAG_REGEX = re.compile(r"^[a-z_0-9]+$")

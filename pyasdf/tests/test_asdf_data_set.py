@@ -1051,23 +1051,38 @@ def test_trying_to_add_provenance_record_with_invalid_name_fails(tmpdir):
     """
     The name must be valid according to a particular regular expression.
     """
-    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
-    data_set = ASDFDataSet(asdf_filename)
-
     filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
-
-    # First try adding it as a prov document.
     doc = prov.read(filename, format="xml")
-    with pytest.raises(ASDFValueError) as err:
-        data_set.add_provenance_document(doc, name="a-b-c")
+
+    # Invalid name in 1.0.2.
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+    with ASDFDataSet(asdf_filename, format_version="1.0.2") as ds:
+        with pytest.raises(ASDFValueError) as err:
+            ds.add_provenance_document(doc, name="A.b-c")
 
     assert err.value.args[0] == (
-        "Name 'a-b-c' is invalid. It must validate against the regular "
-        "expression '^[0-9a-z][0-9a-z_]*[0-9a-z]$'."
+        "Name 'A.b-c' is invalid. It must validate against the regular "
+        "expression '^[0-9a-z][0-9a-z_]*[0-9a-z]$' in ASDF version '1.0.2'."
     )
 
-    # Must sometimes be called to get around some bugs.
-    data_set.__del__()
+    # Same name is valid in >= 1.0.3
+    asdf_filename_2 = os.path.join(tmpdir.strpath, "test_2.h5")
+    with ASDFDataSet(asdf_filename_2) as ds:
+        ds.add_provenance_document(doc, name="A.b-c")
+    # Can of course also be read again.
+    with ASDFDataSet(asdf_filename_2) as ds:
+        assert ds.provenance["A.b-c"] == doc
+
+    # Non-ASCII chars are still invalid in >= 1.0.3
+    asdf_filename_3 = os.path.join(tmpdir.strpath, "test_3.h5")
+    with ASDFDataSet(asdf_filename_3) as ds:
+        with pytest.raises(ASDFValueError) as err:
+            ds.add_provenance_document(doc, name="A.b-cäöü")
+
+    assert err.value.args[0] == (
+        "Name 'A.b-cäöü' is invalid. It must validate against the regular "
+        r"expression '^[ -~]+$' in ASDF version '1.0.3'."
+    )
 
 
 def test_adding_a_provenance_record(tmpdir):

@@ -1441,12 +1441,14 @@ class ASDFDataSet(object):
         if not name:
             name = str(uuid.uuid4()).replace("-", "_")
 
+        pattern = PROV_FILENAME_REGEX[self.asdf_format_version]
+
         # Assert the name against the regex.
-        if PROV_FILENAME_REGEX.match(name) is None:
+        if pattern.match(name) is None:
             raise ASDFValueError(
                 "Name '%s' is invalid. It must validate "
-                "against the regular expression '%s'."
-                % (name, PROV_FILENAME_REGEX.pattern)
+                "against the regular expression '%s' in ASDF version '%s'."
+                % (name, pattern.pattern, self.asdf_format_version)
             )
 
         with io.BytesIO() as buf:
