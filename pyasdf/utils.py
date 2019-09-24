@@ -6,8 +6,12 @@
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import copy
 import collections
@@ -33,16 +37,21 @@ import numpy as np
 import obspy
 
 from .compat import string_types
-from .exceptions import (WaveformNotInFileException, NoStationXMLForStation,
-                         ASDFValueError, ASDFAttributeError)
+from .exceptions import (
+    WaveformNotInFileException,
+    NoStationXMLForStation,
+    ASDFValueError,
+    ASDFAttributeError,
+)
 from .header import MSG_TAGS
 from .inventory_utils import get_coordinates
 
 # Tuple holding a the body of a received message.
 ReceivedMessage = collections.namedtuple("ReceivedMessage", ["data"])
 # Tuple denoting a single worker.
-Worker = collections.namedtuple("Worker", ["active_jobs",
-                                           "completed_jobs_count"])
+Worker = collections.namedtuple(
+    "Worker", ["active_jobs", "completed_jobs_count"]
+)
 
 
 def get_multiprocessing():  # pragma: no cover
@@ -51,14 +60,17 @@ def get_multiprocessing():  # pragma: no cover
     version of it.
     """
     if is_multiprocessing_problematic():
-        msg = ("NumPy linked against 'Accelerate.framework'. Multiprocessing "
-               "will be disabled. See "
-               "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-"
-               "Processing-with-Python-and-ObsPy for more information.")
+        msg = (
+            "NumPy linked against 'Accelerate.framework'. Multiprocessing "
+            "will be disabled. See "
+            "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-"
+            "Processing-with-Python-and-ObsPy for more information."
+        )
         warnings.warn(msg)
         # Disable by replacing with dummy implementation using threads.
         import multiprocessing as mp
         from multiprocessing import dummy  # NOQA
+
         multiprocessing = dummy
         multiprocessing.cpu_count = mp.cpu_count
     else:
@@ -75,9 +87,13 @@ def is_multiprocessing_problematic():  # pragma: no cover
     cannot deal with forked processing.
     """
     # Handling numpy linked against accelerate.
-    config_info = str([value for key, value in
-                       np.__config__.__dict__.items()
-                       if key.endswith("_info")]).lower()
+    config_info = str(
+        [
+            value
+            for key, value in np.__config__.__dict__.items()
+            if key.endswith("_info")
+        ]
+    ).lower()
 
     if "accelerate" in config_info or "veclib" in config_info:
         return True
@@ -117,6 +133,7 @@ class SimpleBuffer(object):
     then that are used, it will remove the item with the oldest last access
     time.
     """
+
     def __init__(self, limit=10):
         self._limit = limit
         self._buffer = collections.OrderedDict()
@@ -149,6 +166,7 @@ class ProvenanceAccessor(object):
     """
     Accessor helper for the provenance records.
     """
+
     # Cache up to 20 documents. Uses the sha1 hash of the documents.
     _cache = SimpleBuffer(limit=20)
 
@@ -163,9 +181,9 @@ class ProvenanceAccessor(object):
         if item not in _records:
             raise AttributeError
 
-        hash = hashlib.sha1(self.__data_set()
-                            ._provenance_group[item]
-                            .value.tostring()).hexdigest()
+        hash = hashlib.sha1(
+            self.__data_set()._provenance_group[item].value.tostring()
+        ).hexdigest()
         if hash not in self._cache:
             self._cache[hash] = self.__data_set().get_provenance_document(item)
         return copy.deepcopy(self._cache[hash])
@@ -192,12 +210,18 @@ class ProvenanceAccessor(object):
             raise KeyError(str(e))
 
     def __setitem__(self, key, value):
-        self.__data_set().add_provenance_document(document=value,
-                                                  name=str(key))
+        self.__data_set().add_provenance_document(
+            document=value, name=str(key)
+        )
 
     def __dir__(self):
-        return self.list() + ["list", "keys", "values", "items",
-                              "get_provenance_document_for_id"]
+        return self.list() + [
+            "list",
+            "keys",
+            "values",
+            "items",
+            "get_provenance_document_for_id",
+        ]
 
     def list(self):
         """
@@ -223,7 +247,8 @@ class ProvenanceAccessor(object):
                 return {"name": key, "document": document}
         raise ASDFValueError(
             "Document containing id '%s' not found in the data set."
-            % provenance_id)
+            % provenance_id
+        )
 
     def __len__(self):
         return len(self.list())
@@ -247,7 +272,9 @@ class ProvenanceAccessor(object):
         if not len(self):
             return "No provenance document in file."
         ret_str = "%i Provenance Document(s):\n\t%s" % (
-            len(self), "\n\t".join(self.list()))
+            len(self),
+            "\n\t".join(self.list()),
+        )
         return ret_str
 
     def _repr_pretty_(self, p, cycle):  # pragma: no cover
@@ -277,9 +304,12 @@ class AuxiliaryDataContainer(object):
         if type(self) is not type(other):
             return False
 
-        if self.path != other.path or self.data_type != other.data_type or \
-                self.provenance_id != self.provenance_id or \
-                self.parameters != self.parameters:
+        if (
+            self.path != other.path
+            or self.data_type != other.data_type
+            or self.provenance_id != self.provenance_id
+            or self.parameters != self.parameters
+        ):
             return False
 
         try:
@@ -303,7 +333,8 @@ class AuxiliaryDataContainer(object):
         if self.data_type.lower() not in ["files", "file"]:
             raise ASDFAttributeError(
                 "The 'file' property is only available "
-                "for auxiliary data with the data type 'Files' or 'File'.")
+                "for auxiliary data with the data type 'Files' or 'File'."
+            )
         if self.__file_cache is not None:
             return self.__file_cache
 
@@ -321,14 +352,24 @@ class AuxiliaryDataContainer(object):
             "\tPath: '{path}'\n"
             "{provenance}"
             "\tData shape: '{data_shape}', dtype: '{dtype}'\n"
-            "\tParameters:\n\t\t{parameters}"
-            .format(data_type=split_dt[0], data_shape=self.data.shape,
-                    dtype=self.data.dtype, path="/".join(path),
-                    provenance="" if self.provenance_id is None else
-                    "\tProvenance ID: '%s'\n" % self.provenance_id,
-                    parameters="\n\t\t".join([
-                        "%s: %s" % (_i[0], _i[1]) for _i in
-                        sorted(self.parameters.items(), key=lambda x: x[0])])))
+            "\tParameters:\n\t\t{parameters}".format(
+                data_type=split_dt[0],
+                data_shape=self.data.shape,
+                dtype=self.data.dtype,
+                path="/".join(path),
+                provenance=""
+                if self.provenance_id is None
+                else "\tProvenance ID: '%s'\n" % self.provenance_id,
+                parameters="\n\t\t".join(
+                    [
+                        "%s: %s" % (_i[0], _i[1])
+                        for _i in sorted(
+                            self.parameters.items(), key=lambda x: x[0]
+                        )
+                    ]
+                ),
+            )
+        )
 
     def _repr_pretty_(self, p, cycle):  # pragma: no cover
         p.text(self.__str__())
@@ -338,6 +379,7 @@ class AuxiliaryDataAccessor(object):
     """
     Helper class to access auxiliary data items.
     """
+
     def __init__(self, auxiliary_data_type, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
         # file around.
@@ -372,8 +414,9 @@ class AuxiliaryDataAccessor(object):
         key = str(key)
         _l = self.list()
         if key not in _l:
-            raise KeyError("Key/Item '%s' not known or cannot be "
-                           "deleted." % key)
+            raise KeyError(
+                "Key/Item '%s' not known or cannot be " "deleted." % key
+            )
         ds = self.__data_set()
         try:
             del ds._auxiliary_data_group[self.__auxiliary_data_type][key]
@@ -390,7 +433,8 @@ class AuxiliaryDataAccessor(object):
         if item not in self:
             raise AttributeError("Key/Item '%s' not known." % item)
         return self.__data_set()._get_auxiliary_data(
-            self.__auxiliary_data_type, str(item))
+            self.__auxiliary_data_type, str(item)
+        )
 
     def __getitem__(self, item):
         try:
@@ -403,8 +447,11 @@ class AuxiliaryDataAccessor(object):
         return self.__auxiliary_data_type
 
     def list(self):
-        return sorted(self.__data_set()._auxiliary_data_group[
-            self.__auxiliary_data_type].keys())
+        return sorted(
+            self.__data_set()
+            ._auxiliary_data_group[self.__auxiliary_data_type]
+            .keys()
+        )
 
     def __dir__(self):
         return self.list() + ["list", "auxiliary_data_type"]
@@ -427,7 +474,8 @@ class AuxiliaryDataAccessor(object):
         try:
             for item in items:
                 reference = ds._auxiliary_data_group[
-                    self.__auxiliary_data_type][item]
+                    self.__auxiliary_data_type
+                ][item]
 
                 if isinstance(reference, h5py.Group):
                     groups.append(item)
@@ -444,17 +492,23 @@ class AuxiliaryDataAccessor(object):
             ret_str += (
                 "{count} auxiliary data sub group(s) of type '{type}' "
                 "available:\n"
-                "\t{items}".format(count=len(groups),
-                                   type=self.__auxiliary_data_type,
-                                   items="\n\t".join(groups)))
+                "\t{items}".format(
+                    count=len(groups),
+                    type=self.__auxiliary_data_type,
+                    items="\n\t".join(groups),
+                )
+            )
         if data_arrays:
             if ret_str:
                 ret_str += "\n"
             ret_str += (
                 "{count} auxiliary data item(s) of type '{type}' available:\n"
-                "\t{items}".format(count=len(data_arrays),
-                                   type=self.__auxiliary_data_type,
-                                   items="\n\t".join(data_arrays)))
+                "\t{items}".format(
+                    count=len(data_arrays),
+                    type=self.__auxiliary_data_type,
+                    items="\n\t".join(data_arrays),
+                )
+            )
         if not groups and not data_arrays:
             ret_str += "Empty auxiliary data group."
 
@@ -468,6 +522,7 @@ class AuxiliaryDataGroupAccessor(object):
     """
     Helper class to facilitate access to the auxiliary data types.
     """
+
     def __init__(self, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
         # file around.
@@ -526,8 +581,12 @@ class AuxiliaryDataGroupAccessor(object):
         return (
             "Data set contains the following auxiliary data types:\n"
             "\t{items}".format(
-                items="\n\t".join(["%s (%i item(s))" % (_i, len(self[_i]))
-                                   for _i in self.list()])
+                items="\n\t".join(
+                    [
+                        "%s (%i item(s))" % (_i, len(self[_i]))
+                        for _i in self.list()
+                    ]
+                )
             )
         )
 
@@ -539,6 +598,7 @@ class StationAccessor(object):
     """
     Helper class to facilitate access to the waveforms and stations.
     """
+
     def __init__(self, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
         # file around.
@@ -602,6 +662,7 @@ class WaveformAccessor(object):
     """
     Helper class facilitating access to the actual waveforms and stations.
     """
+
     def __init__(self, station_name, asdf_data_set):
         # Use weak references to not have any dangling references to the HDF5
         # file around.
@@ -637,19 +698,27 @@ class WaveformAccessor(object):
                     continue
 
             # Any of the other queries requires parsing the attribute path.
-            if queries["starttime"] or queries["endtime"] or \
-                    queries["sampling_rate"] or queries["npts"] or \
-                    queries["event"] or queries["magnitude"] or \
-                    queries["origin"] or queries["focal_mechanism"] or \
-                    queries["labels"]:
+            if (
+                queries["starttime"]
+                or queries["endtime"]
+                or queries["sampling_rate"]
+                or queries["npts"]
+                or queries["event"]
+                or queries["magnitude"]
+                or queries["origin"]
+                or queries["focal_mechanism"]
+                or queries["labels"]
+            ):
 
                 group = self.__hdf5_group
                 try:
                     attrs = group[wf].attrs
 
                     if queries["sampling_rate"]:
-                        if queries["sampling_rate"](attrs["sampling_rate"]) \
-                                is False:
+                        if (
+                            queries["sampling_rate"](attrs["sampling_rate"])
+                            is False
+                        ):
                             continue
 
                     if queries["npts"]:
@@ -658,9 +727,11 @@ class WaveformAccessor(object):
 
                     if queries["starttime"] or queries["endtime"]:
                         starttime = obspy.UTCDateTime(
-                            float(attrs["starttime"]) / 1.0E9)
-                        endtime = starttime + (len(group[wf]) - 1) * \
-                            1.0 / float(attrs["sampling_rate"])
+                            float(attrs["starttime"]) / 1.0e9
+                        )
+                        endtime = starttime + (
+                            len(group[wf]) - 1
+                        ) * 1.0 / float(attrs["sampling_rate"])
 
                         if queries["starttime"]:
                             if queries["starttime"](starttime) is False:
@@ -678,19 +749,31 @@ class WaveformAccessor(object):
                         if queries["labels"](labels) is False:
                             continue
 
-                    if queries["event"] or queries["magnitude"] or \
-                            queries["origin"] or queries["focal_mechanism"]:
+                    if (
+                        queries["event"]
+                        or queries["magnitude"]
+                        or queries["origin"]
+                        or queries["focal_mechanism"]
+                    ):
                         any_fails = False
-                        for id in ["event", "origin", "magnitude",
-                                   "focal_mechanism"]:
+                        for id in [
+                            "event",
+                            "origin",
+                            "magnitude",
+                            "focal_mechanism",
+                        ]:
                             if queries[id]:
                                 key = id + "_id"
 
                                 # Defaults to an empty id. Each can
                                 # potentially be a list of values.
                                 if key in attrs:
-                                    values = attrs[key].tostring().decode()\
+                                    values = (
+                                        attrs[key]
+                                        .tostring()
+                                        .decode()
                                         .split(",")
+                                    )
                                 else:
                                     values = [None]
 
@@ -734,8 +817,12 @@ class WaveformAccessor(object):
         origin, arrival, and focmec ids will be returned as lists as they can
         be set multiple times per data-set.
         """
-        plural_keys = ["event_id", "origin_id",
-                       "magnitude_id", "focal_mechanism_id"]
+        plural_keys = [
+            "event_id",
+            "origin_id",
+            "magnitude_id",
+            "focal_mechanism_id",
+        ]
 
         attributes = {}
         for _i in self.list():
@@ -768,8 +855,10 @@ class WaveformAccessor(object):
         # Such a file actually cannot be created with pyasdf but maybe with
         # other codes. Thus we skip the coverage here.
         if self._station_name not in coords:  # pragma: no cover
-            raise ASDFValueError("StationXML file has no coordinates for "
-                                 "station '%s'." % self._station_name)
+            raise ASDFValueError(
+                "StationXML file has no coordinates for "
+                "station '%s'." % self._station_name
+            )
         return coords[self._station_name]
 
     @property
@@ -779,12 +868,16 @@ class WaveformAccessor(object):
         """
         coords = self.__get_coordinates(level="channel")
         # Filter to only keep channels with the current station name.
-        coords = {key: value for key, value in coords.items()
-                  if key.startswith(self._station_name + ".")}
+        coords = {
+            key: value
+            for key, value in coords.items()
+            if key.startswith(self._station_name + ".")
+        }
         if not coords:
-            raise ASDFValueError("StationXML file has no coordinates at "
-                                 "the channel level for station '%s'." %
-                                 self._station_name)
+            raise ASDFValueError(
+                "StationXML file has no coordinates at "
+                "the channel level for station '%s'." % self._station_name
+            )
         return coords
 
     def __get_coordinates(self, level):
@@ -793,8 +886,9 @@ class WaveformAccessor(object):
         """
         station = self.__data_set()._waveform_group[self._station_name]
         if "StationXML" not in station:
-            raise NoStationXMLForStation("Station '%s' has no StationXML "
-                                         "file." % self._station_name)
+            raise NoStationXMLForStation(
+                "Station '%s' has no StationXML " "file." % self._station_name
+            )
         try:
             with io.BytesIO(_read_string_array(station["StationXML"])) as buf:
                 coordinates = get_coordinates(buf, level=level)
@@ -814,8 +908,9 @@ class WaveformAccessor(object):
         """
         Get all available waveform tags for this station.
         """
-        return sorted(set(_i.split("__")[-1]
-                          for _i in self.list() if _i != "StationXML"))
+        return sorted(
+            set(_i.split("__")[-1] for _i in self.list() if _i != "StationXML")
+        )
 
     def __contains__(self, item):
         contents = self.list()
@@ -863,8 +958,7 @@ class WaveformAccessor(object):
         # Tag access.
         elif "__" not in item:
             __station = self.__data_set()._waveform_group[self._station_name]
-            keys = [_i for _i in __station.keys()
-                    if _i.endswith("__" + item)]
+            keys = [_i for _i in __station.keys() if _i.endswith("__" + item)]
             # Important as __del__() for the waveform group is otherwise
             # not always called.
             del __station
@@ -875,8 +969,9 @@ class WaveformAccessor(object):
 
             if not keys:
                 raise WaveformNotInFileException(
-                    "Tag '%s' not part of the data set for station '%s'." % (
-                        item, self._station_name))
+                    "Tag '%s' not part of the data set for station '%s'."
+                    % (item, self._station_name)
+                )
             return keys
 
         raise AttributeError("Item '%s' not found." % item)
@@ -890,19 +985,27 @@ class WaveformAccessor(object):
         if items == ["StationXML"]:
             station = self.__data_set()._get_station(self._station_name)
             if station is None:
-                raise AttributeError("'%s' object has no attribute '%s'" % (
-                    self.__class__.__name__, str(item)))
+                raise AttributeError(
+                    "'%s' object has no attribute '%s'"
+                    % (self.__class__.__name__, str(item))
+                )
             return station
 
         # Get an estimate of the total require memory. But only estimate it
         # if the file is actually larger than the memory as the test is fairly
         # expensive but we don't really care for small files.
-        if (self.__data_set().filesize >
-                self.__data_set().single_item_read_limit_in_mb * 1024 ** 2):
-            total_size = sum([
-                self.__data_set()._get_idx_and_size_estimate(
-                    _i, starttime=starttime, endtime=endtime)[3]
-                for _i in items])
+        if (
+            self.__data_set().filesize
+            > self.__data_set().single_item_read_limit_in_mb * 1024 ** 2
+        ):
+            total_size = sum(
+                [
+                    self.__data_set()._get_idx_and_size_estimate(
+                        _i, starttime=starttime, endtime=endtime
+                    )[3]
+                    for _i in items
+                ]
+            )
 
             # Raise an error to not read an extreme amount of data into memory.
             if total_size > self.__data_set().single_item_read_limit_in_mb:
@@ -911,14 +1014,22 @@ class WaveformAccessor(object):
                     "require '%.2f MB of memory. The current limit is %.2f "
                     "MB. Adjust by setting "
                     "'ASDFDataSet.single_item_read_limit_in_mb' or use a "
-                    "different method to read the waveform data." % (
-                        self._station_name, item, total_size,
-                        self.__data_set().single_item_read_limit_in_mb))
+                    "different method to read the waveform data."
+                    % (
+                        self._station_name,
+                        item,
+                        total_size,
+                        self.__data_set().single_item_read_limit_in_mb,
+                    )
+                )
                 raise ASDFValueError(msg)
 
-        traces = [self.__data_set()._get_waveform(_i, starttime=starttime,
-                                                  endtime=endtime)
-                  for _i in items]
+        traces = [
+            self.__data_set()._get_waveform(
+                _i, starttime=starttime, endtime=endtime
+            )
+            for _i in items
+        ]
         return obspy.Stream(traces=traces)
 
     def list(self):
@@ -926,7 +1037,8 @@ class WaveformAccessor(object):
         Get a list of all data sets for this station.
         """
         return sorted(
-            self.__data_set()._waveform_group[self._station_name].keys())
+            self.__data_set()._waveform_group[self._station_name].keys()
+        )
 
     def __dir__(self):
         """
@@ -938,14 +1050,18 @@ class WaveformAccessor(object):
             directory = object.__dir__(self)
         # Python 2.
         else:  # pragma: no cover
-            directory = [_i for _i in self.__dict__.keys() if not
-                         _i.startswith("_" + self.__class__.__name__)]
+            directory = [
+                _i
+                for _i in self.__dict__.keys()
+                if not _i.startswith("_" + self.__class__.__name__)
+            ]
 
         directory.extend(self.get_waveform_tags())
         if "StationXML" in self.list():
             directory.append("StationXML")
-        directory.extend(["_station_name", "coordinates",
-                          "channel_coordinates"])
+        directory.extend(
+            ["_station_name", "coordinates", "channel_coordinates"]
+        )
         return sorted(set(directory))
 
     def __str__(self):
@@ -960,10 +1076,11 @@ class WaveformAccessor(object):
         )
         return ret_str.format(
             station=self._station_name,
-            station_xml="Has a StationXML file" if "StationXML" in contents
+            station_xml="Has a StationXML file"
+            if "StationXML" in contents
             else "Has no StationXML file",
             count=len(waveform_contents),
-            waveforms="\n        ".join(waveform_contents)
+            waveforms="\n        ".join(waveform_contents),
         )
 
     def _repr_pretty_(self, p, cycle):  # pragma: no cover
@@ -974,20 +1091,28 @@ class FilteredWaveformAccessor(WaveformAccessor):
     """
     A version of the waveform accessor returning a limited number of waveforms.
     """
+
     def __init__(self, station_name, asdf_data_set, filtered_items):
-        WaveformAccessor.__init__(self, station_name=station_name,
-                                  asdf_data_set=asdf_data_set)
+        WaveformAccessor.__init__(
+            self, station_name=station_name, asdf_data_set=asdf_data_set
+        )
         self._filtered_items = filtered_items
 
     def list(self):
         # Get all keys and accept only the filtered items and the station
         # information. This makes sure the filtered waveforms are somewhat
         # up-to-date.
-        items = sorted(self._WaveformAccessor__data_set()._waveform_group[
-                self._station_name].keys())
+        items = sorted(
+            self._WaveformAccessor__data_set()
+            ._waveform_group[self._station_name]
+            .keys()
+        )
 
-        return [_i for _i in items if _i in self._filtered_items or
-                _i == "StationXML"]
+        return [
+            _i
+            for _i in items
+            if _i in self._filtered_items or _i == "StationXML"
+        ]
 
     def __str__(self):
         content = WaveformAccessor.__str__(self)
@@ -1018,6 +1143,7 @@ class StreamBuffer(collections.MutableMapping):
     Very simple key value store for obspy stream object with the additional
     ability to approximate the size of all stored stream objects.
     """
+
     def __init__(self):
         self.__streams = {}
 
@@ -1070,14 +1196,17 @@ class Job(object):
         self.result = result
 
     def __repr__(self):
-        return "Job(arguments=%s, result=%s)" % (str(self.arguments),
-                                                 str(self.result))
+        return "Job(arguments=%s, result=%s)" % (
+            str(self.arguments),
+            str(self.result),
+        )
 
 
 class JobQueueHelper(object):
     """
     A simple helper class managing job distribution to workers.
     """
+
     def __init__(self, jobs, worker_names):
         """
         Init with a list of jobs and a list of workers.
@@ -1121,17 +1250,27 @@ class JobQueueHelper(object):
         :param worker_name: The name of the worker.
         """
         # Find the correct job.
-        job = [_i for _i in self._workers[worker_name].active_jobs
-               if _i.arguments == arguments]
+        job = [
+            _i
+            for _i in self._workers[worker_name].active_jobs
+            if _i.arguments == arguments
+        ]
         if len(job) == 0:
-            msg = ("MASTER: Job %s from worker %i not found. All jobs: %s\n" %
-                   (str(arguments), worker_name,
-                    str(self._workers[worker_name].active_jobs)))
+            msg = "MASTER: Job %s from worker %i not found. All jobs: %s\n" % (
+                str(arguments),
+                worker_name,
+                str(self._workers[worker_name].active_jobs),
+            )
             raise ValueError(msg)
         if len(job) > 1:
-            raise ValueError("WTF %i %s %s" % (
-                worker_name, str(arguments),
-                str(self._workers[worker_name].active_jobs)))
+            raise ValueError(
+                "WTF %i %s %s"
+                % (
+                    worker_name,
+                    str(arguments),
+                    str(self._workers[worker_name].active_jobs),
+                )
+            )
         job = job[0]
         job.result = result
 
@@ -1140,17 +1279,30 @@ class JobQueueHelper(object):
         self._finished_jobs.append(job)
 
     def __str__(self):
-        workers = "\n\t".join([
-            "Worker %s: %i active, %i completed jobs" %
-            (str(key), len(value.active_jobs), value.completed_jobs_count[0])
-            for key, value in self._workers.items()])
+        workers = "\n\t".join(
+            [
+                "Worker %s: %i active, %i completed jobs"
+                % (
+                    str(key),
+                    len(value.active_jobs),
+                    value.completed_jobs_count[0],
+                )
+                for key, value in self._workers.items()
+            ]
+        )
 
         return (
             "Jobs (running %.2f seconds): "
             "queued: %i | finished: %i | total: %i\n"
-            "\t%s\n" % (time.time() - self._starttime, len(self._in_queue),
-                        len(self._finished_jobs), len(self._all_jobs),
-                        workers))
+            "\t%s\n"
+            % (
+                time.time() - self._starttime,
+                len(self._in_queue),
+                len(self._finished_jobs),
+                len(self._all_jobs),
+                workers,
+            )
+        )
 
     @property
     def queue_empty(self):
@@ -1171,12 +1323,14 @@ class JobQueueHelper(object):
 
 def pretty_sender_log(rank, destination, tag, payload):
     import colorama
+
     prefix = colorama.Fore.RED + "sent to      " + colorama.Fore.RESET
     _pretty_log(prefix, destination, rank, tag, payload)
 
 
 def pretty_receiver_log(source, rank, tag, payload):
     import colorama
+
     prefix = colorama.Fore.GREEN + "received from" + colorama.Fore.RESET
     _pretty_log(prefix, rank, source, tag, payload)
 
@@ -1184,13 +1338,15 @@ def pretty_receiver_log(source, rank, tag, payload):
 def _pretty_log(prefix, first, second, tag, payload):
     import colorama
 
-    colors = (colorama.Back.WHITE + colorama.Fore.MAGENTA,
-              colorama.Back.WHITE + colorama.Fore.BLUE,
-              colorama.Back.WHITE + colorama.Fore.GREEN,
-              colorama.Back.WHITE + colorama.Fore.YELLOW,
-              colorama.Back.WHITE + colorama.Fore.BLACK,
-              colorama.Back.WHITE + colorama.Fore.RED,
-              colorama.Back.WHITE + colorama.Fore.CYAN)
+    colors = (
+        colorama.Back.WHITE + colorama.Fore.MAGENTA,
+        colorama.Back.WHITE + colorama.Fore.BLUE,
+        colorama.Back.WHITE + colorama.Fore.GREEN,
+        colorama.Back.WHITE + colorama.Fore.YELLOW,
+        colorama.Back.WHITE + colorama.Fore.BLACK,
+        colorama.Back.WHITE + colorama.Fore.RED,
+        colorama.Back.WHITE + colorama.Fore.CYAN,
+    )
 
     tag_colors = (
         colorama.Fore.RED,
@@ -1205,15 +1361,26 @@ def _pretty_log(prefix, first, second, tag, payload):
     tags = [i for i in msg_tag_keys if isinstance(i, (str, bytes))]
 
     tag = MSG_TAGS[tag]
-    tag = tag_colors[tags.index(tag) % len(tag_colors)] + tag + \
-        colorama.Style.RESET_ALL
+    tag = (
+        tag_colors[tags.index(tag) % len(tag_colors)]
+        + tag
+        + colorama.Style.RESET_ALL
+    )
 
-    first = colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET \
-        if first == 0 else colors[first % len(colors)] + \
-        ("WORKER %i" % first) + colorama.Style.RESET_ALL
-    second = colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET \
-        if second == 0 else colors[second % len(colors)] + \
-        ("WORKER %i" % second) + colorama.Style.RESET_ALL
+    first = (
+        colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET
+        if first == 0
+        else colors[first % len(colors)]
+        + ("WORKER %i" % first)
+        + colorama.Style.RESET_ALL
+    )
+    second = (
+        colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET
+        if second == 0
+        else colors[second % len(colors)]
+        + ("WORKER %i" % second)
+        + colorama.Style.RESET_ALL
+    )
 
     print("%s %s %s [%s] -- %s" % (first, prefix, second, tag, str(payload)))
 
@@ -1257,8 +1424,9 @@ def _get_ids_from_bundle(bundle):
         if not hasattr(record, "identifier") or not record.identifier:
             continue
         identifier = record.identifier
-        all_ids.append("{%s}%s" % (identifier.namespace.uri,
-                                   identifier.localpart))
+        all_ids.append(
+            "{%s}%s" % (identifier.namespace.uri, identifier.localpart)
+        )
     return all_ids
 
 
@@ -1293,8 +1461,9 @@ def label2string(labels):
             if "," in _i:
                 raise ValueError(
                     "The labels must not contain a comma as it is used "
-                    "as the separator for the different values.")
-        labels = u",".join([_i.strip() for _i in labels])
+                    "as the separator for the different values."
+                )
+        labels = ",".join([_i.strip() for _i in labels])
     return labels
 
 
@@ -1311,8 +1480,9 @@ def is_list(obj):
 
     :param obj: The object to test.
     """
-    return isinstance(obj, collections.Iterable) and \
-        not isinstance(obj, string_types)
+    return isinstance(obj, collections.Iterable) and not isinstance(
+        obj, string_types
+    )
 
 
 def to_list_of_resource_identifiers(obj, name, obj_type):
@@ -1320,9 +1490,14 @@ def to_list_of_resource_identifiers(obj, name, obj_type):
         return obj
 
     if is_list(obj) and not isinstance(obj, obj_type):
-        return list(itertools.chain.from_iterable([
-            to_list_of_resource_identifiers(_i, name, obj_type)
-            for _i in obj]))
+        return list(
+            itertools.chain.from_iterable(
+                [
+                    to_list_of_resource_identifiers(_i, name, obj_type)
+                    for _i in obj
+                ]
+            )
+        )
 
     if isinstance(obj, obj_type):
         obj = obj.resource_id

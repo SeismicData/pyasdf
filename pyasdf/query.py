@@ -8,8 +8,12 @@ Query helpers.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import collections
 import fnmatch
@@ -39,6 +43,7 @@ def _type_or_none(type):
             return None
         else:
             return type(value)
+
     __temp._original_type = type
     return __temp
 
@@ -112,15 +117,18 @@ keywords = {
     "event": _event_or_id,
     "magnitude": _magnitude_or_id,
     "origin": _origin_or_id,
-    "focal_mechanism": _focmec_or_id}
+    "focal_mechanism": _focmec_or_id,
+}
 
 
 def compose_and(funcs):
     def __temp(value):
         # Make a copy to turn a generator into a list to be able to persist.
         functions = list(funcs)
-        return functools.reduce(lambda x, y: x and y,
-                                [_i(value) for _i in functions])
+        return functools.reduce(
+            lambda x, y: x and y, [_i(value) for _i in functions]
+        )
+
     return __temp
 
 
@@ -130,8 +138,10 @@ def compose_or(funcs):
         functions = list(funcs)
         if not functions:
             return True
-        return functools.reduce(lambda x, y: x or y,
-                                [_i(value) for _i in functions])
+        return functools.reduce(
+            lambda x, y: x or y, [_i(value) for _i in functions]
+        )
+
     return __temp
 
 
@@ -190,20 +200,24 @@ class QueryObject(object):
                 return False
 
             return op(value, comp_value)
+
         return __temp
 
     def _numeric_type(self, other, op, none_allowed):
-        if self.type not in self.numeric_types and \
-                (self.type is _type_or_none and self.type._original_type not in
-                 self.numeric_types):
+        if self.type not in self.numeric_types and (
+            self.type is _type_or_none
+            and self.type._original_type not in self.numeric_types
+        ):
             raise TypeError("Only valid for numeric types.")
 
         if other is None and none_allowed is False:
             raise TypeError("Comparison not defined with None.")
 
         other = self.type(other)
-        return self.name, self._get_comp_fct(op, other,
-                                             none_allowed=none_allowed)
+        return (
+            self.name,
+            self._get_comp_fct(op, other, none_allowed=none_allowed),
+        )
 
     def __lt__(self, other):
         return self._numeric_type(other, operator.lt, none_allowed=False)
@@ -230,6 +244,7 @@ class QueryObject(object):
             def get_is_none_fct():
                 def is_none(v):
                     return v is None
+
                 return is_none
 
             # Deal with being compared to None.
@@ -242,6 +257,7 @@ class QueryObject(object):
 
             # And actual values.
             else:
+
                 def get_match_fct(_i):
                     def match(value):
                         if value is None:
@@ -254,18 +270,25 @@ class QueryObject(object):
                         def get_inner_match_fct(_j):
                             def inner_match(_v):
                                 return fnmatch.fnmatch(_j, _v)
+
                             return inner_match
 
-                        return compose_or([get_inner_match_fct(_j) for _j in
-                                           value])(_i)
+                        return compose_or(
+                            [get_inner_match_fct(_j) for _j in value]
+                        )(_i)
+
                     return match
 
-                return self.name, \
-                    compose_or([get_match_fct(_i) for _i in other])
+                return (
+                    self.name,
+                    compose_or([get_match_fct(_i) for _i in other]),
+                )
 
         # Anything thats not a wildcarded list is much, much simpler.
-        return self.name, self._get_comp_fct(operator.eq, other,
-                                             none_allowed=True)
+        return (
+            self.name,
+            self._get_comp_fct(operator.eq, other, none_allowed=True),
+        )
 
     def __ne__(self, other):
         _, fct = self.__eq__(other)
@@ -273,6 +296,7 @@ class QueryObject(object):
         def negate_fct(fct):
             def __temp(value):
                 return not fct(value)
+
             return __temp
 
         return self.name, negate_fct(fct)

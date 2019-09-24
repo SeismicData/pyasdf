@@ -84,8 +84,12 @@ def get_package_data():
     """
     filenames = []
     # The lasif root dir.
-    root_dir = os.path.join(os.path.dirname(os.path.abspath(
-        inspect.getfile(inspect.currentframe()))), "pyasdf")
+    root_dir = os.path.join(
+        os.path.dirname(
+            os.path.abspath(inspect.getfile(inspect.currentframe()))
+        ),
+        "pyasdf",
+    )
     # Recursively include all files in these folders:
     folders = [os.path.join(root_dir, "tests", "data")]
     for folder in folders:
@@ -94,9 +98,11 @@ def get_package_data():
                 # Exclude hidden files.
                 if filename.startswith("."):
                     continue
-                filenames.append(os.path.relpath(
-                    os.path.join(directory, filename),
-                    root_dir))
+                filenames.append(
+                    os.path.relpath(
+                        os.path.join(directory, filename), root_dir
+                    )
+                )
     return filenames
 
 
@@ -111,26 +117,35 @@ setup_config = dict(
     packages=find_packages(),
     license="BSD",
     platforms="OS Independent",
-    install_requires=["numpy", "obspy>=1.1.0", "h5py", "colorama", "pytest",
-                      "flake8", "prov", "dill"],
+    install_requires=[
+        "numpy",
+        "obspy>=1.1.0",
+        "h5py",
+        "colorama",
+        "pytest",
+        "flake8",
+        "prov",
+        "dill",
+    ],
     extras_require={"mpi": ["mpi4py"]},
-    package_data={
-        "pyasdf": get_package_data()},
+    package_data={"pyasdf": get_package_data()},
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Science/Research',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Scientific/Engineering',
-        'Topic :: Scientific/Engineering :: Physics'],
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Physics",
+    ],
 )
 
 

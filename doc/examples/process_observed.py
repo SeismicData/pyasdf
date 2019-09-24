@@ -33,20 +33,26 @@ for min_period, max_period in [(27.0, 60.0)]:
         st.taper(max_percentage=0.05, type="hann")
 
         st.attach_response(inv)
-        st.remove_response(output="DISP", pre_filt=pre_filt, zero_mean=False,
-                           taper=False)
+        st.remove_response(
+            output="DISP", pre_filt=pre_filt, zero_mean=False, taper=False
+        )
 
         st.detrend("linear")
         st.detrend("demean")
         st.taper(max_percentage=0.05, type="hann")
 
-        st.interpolate(sampling_rate=sampling_rate, starttime=starttime,
-                       npts=npts)
+        st.interpolate(
+            sampling_rate=sampling_rate, starttime=starttime, npts=npts
+        )
 
         station_latitude = inv[0][0].latitude
         station_longitude = inv[0][0].longitude
-        _, baz, _ = gps2DistAzimuth(station_latitude, station_longitude,
-                                    event_latitude, event_longitude)
+        _, baz, _ = gps2DistAzimuth(
+            station_latitude,
+            station_longitude,
+            event_latitude,
+            event_longitude,
+        )
 
         components = [tr.stats.channel[-1] for tr in st]
         if "N" in components and "E" in components:
@@ -60,9 +66,7 @@ for min_period, max_period in [(27.0, 60.0)]:
 
     tag_name = "preprocessed_%is_to_%is" % (int(min_period), int(max_period))
 
-    tag_map = {
-        "raw_recording": tag_name
-    }
+    tag_map = {"raw_recording": tag_name}
 
     ds.process(process_function, tag_name + ".h5", tag_map=tag_map)
 

@@ -8,8 +8,12 @@ Test cases for the inventory utils.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import copy
 import inspect
@@ -18,12 +22,17 @@ import os
 import obspy
 from obspy import UTCDateTime
 
-from ..inventory_utils import (isolate_and_merge_station, merge_inventories,
-                               get_coordinates)
+from ..inventory_utils import (
+    isolate_and_merge_station,
+    merge_inventories,
+    get_coordinates,
+)
 
 
-data_dir = os.path.join(os.path.dirname(os.path.abspath(
-    inspect.getfile(inspect.currentframe()))), "data")
+data_dir = os.path.join(
+    os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))),
+    "data",
+)
 
 
 def test_merging_stations():
@@ -31,15 +40,17 @@ def test_merging_stations():
     Tests reading a StationXML file with a couple of networks and duplicate
     stations and merging it.
     """
-    inv = obspy.read_inventory(os.path.join(data_dir, "big_station.xml"),
-                               format="stationxml")
+    inv = obspy.read_inventory(
+        os.path.join(data_dir, "big_station.xml"), format="stationxml"
+    )
     original_inv = copy.deepcopy(inv)
 
     assert len(inv.networks) == 2
     assert len(inv.select(network="BW")[0].stations) == 3
 
-    new_inv = isolate_and_merge_station(inv, network_id="BW",
-                                        station_id="RJOB")
+    new_inv = isolate_and_merge_station(
+        inv, network_id="BW", station_id="RJOB"
+    )
 
     # The inventory object should also not be touched.
     assert inv == original_inv
@@ -50,8 +61,9 @@ def test_merging_stations():
     assert new_inv[0][0].code == "RJOB"
 
     # Make sure the station dates have been set correctly.
-    assert new_inv[0][0].start_date == \
-        obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
+    assert new_inv[0][0].start_date == obspy.UTCDateTime(
+        "2001-05-15T00:00:00.000000Z"
+    )
     assert new_inv[0][0].end_date is None
 
     # The 9 channels should remain.
@@ -63,11 +75,13 @@ def test_merge_inventories():
     Silly test, merging the same inventory twice should result in the same
     as the test_merging_stations() test.
     """
-    inv = obspy.read_inventory(os.path.join(data_dir, "big_station.xml"),
-                               format="stationxml")
+    inv = obspy.read_inventory(
+        os.path.join(data_dir, "big_station.xml"), format="stationxml"
+    )
     original_inv = copy.deepcopy(inv)
-    inv_2 = obspy.read_inventory(os.path.join(data_dir, "big_station.xml"),
-                                 format="stationxml")
+    inv_2 = obspy.read_inventory(
+        os.path.join(data_dir, "big_station.xml"), format="stationxml"
+    )
 
     assert len(inv.networks) == 2
     assert len(inv.select(network="BW")[0].stations) == 3
@@ -83,8 +97,9 @@ def test_merge_inventories():
     assert new_inv[0][0].code == "RJOB"
 
     # Make sure the station dates have been set correctly.
-    assert new_inv[0][0].start_date == \
-        obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
+    assert new_inv[0][0].start_date == obspy.UTCDateTime(
+        "2001-05-15T00:00:00.000000Z"
+    )
     assert new_inv[0][0].end_date is None
 
     # The 9 channels should remain.
@@ -102,49 +117,84 @@ def test_quick_coordinate_extraction():
         coords = get_coordinates(fh, level="station")
 
     assert coords == {
-        'BW.RJOB': {'elevation_in_m': 860.0,
-                    'latitude': 47.737167,
-                    'longitude': 12.795714},
-        'GR.FUR': {'elevation_in_m': 565.0,
-                   'latitude': 48.162899,
-                   'longitude': 11.2752},
-        'GR.WET': {'elevation_in_m': 613.0,
-                   'latitude': 49.144001,
-                   'longitude': 12.8782}}
+        "BW.RJOB": {
+            "elevation_in_m": 860.0,
+            "latitude": 47.737167,
+            "longitude": 12.795714,
+        },
+        "GR.FUR": {
+            "elevation_in_m": 565.0,
+            "latitude": 48.162899,
+            "longitude": 11.2752,
+        },
+        "GR.WET": {
+            "elevation_in_m": 613.0,
+            "latitude": 49.144001,
+            "longitude": 12.8782,
+        },
+    }
 
     # Test at the channel level. These are then time dependent.
     with open(filename, "rb") as fh:
         coords = get_coordinates(fh, level="channel")
 
     # Assert everything has been found.
-    assert sorted(coords.keys()) == sorted([
-        'BW.RJOB..EHZ', 'GR.WET..LHZ', 'GR.FUR..HHN', 'GR.FUR..BHZ',
-        'GR.WET..BHE', 'GR.FUR..HHE', 'GR.FUR..VHZ', 'GR.WET..HHE',
-        'GR.FUR..VHE', 'GR.FUR..HHZ', 'BW.RJOB..EHN', 'GR.FUR..BHE',
-        'GR.WET..LHE', 'GR.FUR..VHN', 'GR.WET..LHN', 'GR.FUR..BHN',
-        'BW.RJOB..EHE', 'GR.FUR..LHN', 'GR.WET..HHN', 'GR.FUR..LHE',
-        'GR.WET..HHZ', 'GR.WET..BHZ', 'GR.FUR..LHZ', 'GR.WET..BHN'])
+    assert sorted(coords.keys()) == sorted(
+        [
+            "BW.RJOB..EHZ",
+            "GR.WET..LHZ",
+            "GR.FUR..HHN",
+            "GR.FUR..BHZ",
+            "GR.WET..BHE",
+            "GR.FUR..HHE",
+            "GR.FUR..VHZ",
+            "GR.WET..HHE",
+            "GR.FUR..VHE",
+            "GR.FUR..HHZ",
+            "BW.RJOB..EHN",
+            "GR.FUR..BHE",
+            "GR.WET..LHE",
+            "GR.FUR..VHN",
+            "GR.WET..LHN",
+            "GR.FUR..BHN",
+            "BW.RJOB..EHE",
+            "GR.FUR..LHN",
+            "GR.WET..HHN",
+            "GR.FUR..LHE",
+            "GR.WET..HHZ",
+            "GR.WET..BHZ",
+            "GR.FUR..LHZ",
+            "GR.WET..BHN",
+        ]
+    )
 
     # Check one in detail.
     assert coords["BW.RJOB..EHE"] == [
-        {'elevation_in_m': 860.0,
-         'endtime': UTCDateTime(2006, 12, 12, 0, 0),
-         'latitude': 47.737167,
-         'local_depth_in_m': 0.0,
-         'longitude': 12.795714,
-         'starttime': UTCDateTime(2001, 5, 15, 0, 0)},
-        {'elevation_in_m': 860.0,
-         'endtime': UTCDateTime(2007, 12, 17, 0, 0),
-         'latitude': 47.737167,
-         'local_depth_in_m': 0.0,
-         'longitude': 12.795714,
-         'starttime': UTCDateTime(2006, 12, 13, 0, 0)},
-        {'elevation_in_m': 860.0,
-         'endtime': None,
-         'latitude': 47.737167,
-         'local_depth_in_m': 0.0,
-         'longitude': 12.795714,
-         'starttime': UTCDateTime(2007, 12, 17, 0, 0)}]
+        {
+            "elevation_in_m": 860.0,
+            "endtime": UTCDateTime(2006, 12, 12, 0, 0),
+            "latitude": 47.737167,
+            "local_depth_in_m": 0.0,
+            "longitude": 12.795714,
+            "starttime": UTCDateTime(2001, 5, 15, 0, 0),
+        },
+        {
+            "elevation_in_m": 860.0,
+            "endtime": UTCDateTime(2007, 12, 17, 0, 0),
+            "latitude": 47.737167,
+            "local_depth_in_m": 0.0,
+            "longitude": 12.795714,
+            "starttime": UTCDateTime(2006, 12, 13, 0, 0),
+        },
+        {
+            "elevation_in_m": 860.0,
+            "endtime": None,
+            "latitude": 47.737167,
+            "local_depth_in_m": 0.0,
+            "longitude": 12.795714,
+            "starttime": UTCDateTime(2007, 12, 17, 0, 0),
+        },
+    ]
 
 
 def test_isolate_and_merge_with_station_level_information():

@@ -6,7 +6,7 @@
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
 
 import re
 
@@ -29,7 +29,7 @@ COMPRESSIONS = {
     "szip-ec-8": ("szip", ("ec", 8)),
     "szip-ec-10": ("szip", ("ec", 10)),
     "szip-nn-8": ("szip", ("nn", 8)),
-    "szip-nn-10": ("szip", ("nn", 10))
+    "szip-nn-10": ("szip", ("nn", 10)),
 }
 
 
@@ -50,20 +50,40 @@ TAG_REGEX = re.compile(r"^[a-z_0-9]+$")
 
 # Valid seismogram dtypes, per file format version.
 VALID_SEISMOGRAM_DTYPES = {
-    "1.0.0": (np.dtype("<i4"), np.dtype(">i4"),
-              np.dtype("<i8"), np.dtype(">i8"),
-              np.dtype("<f4"), np.dtype(">f4"),
-              np.dtype("<f8"), np.dtype(">f8")),
-    "1.0.1": (np.dtype("<i2"), np.dtype(">i2"),
-              np.dtype("<i4"), np.dtype(">i4"),
-              np.dtype("<i8"), np.dtype(">i8"),
-              np.dtype("<f4"), np.dtype(">f4"),
-              np.dtype("<f8"), np.dtype(">f8")),
-    "1.0.2": (np.dtype("<i2"), np.dtype(">i2"),
-              np.dtype("<i4"), np.dtype(">i4"),
-              np.dtype("<i8"), np.dtype(">i8"),
-              np.dtype("<f4"), np.dtype(">f4"),
-              np.dtype("<f8"), np.dtype(">f8"))
+    "1.0.0": (
+        np.dtype("<i4"),
+        np.dtype(">i4"),
+        np.dtype("<i8"),
+        np.dtype(">i8"),
+        np.dtype("<f4"),
+        np.dtype(">f4"),
+        np.dtype("<f8"),
+        np.dtype(">f8"),
+    ),
+    "1.0.1": (
+        np.dtype("<i2"),
+        np.dtype(">i2"),
+        np.dtype("<i4"),
+        np.dtype(">i4"),
+        np.dtype("<i8"),
+        np.dtype(">i8"),
+        np.dtype("<f4"),
+        np.dtype(">f4"),
+        np.dtype("<f8"),
+        np.dtype(">f8"),
+    ),
+    "1.0.2": (
+        np.dtype("<i2"),
+        np.dtype(">i2"),
+        np.dtype("<i4"),
+        np.dtype(">i4"),
+        np.dtype("<i8"),
+        np.dtype(">i8"),
+        np.dtype("<f4"),
+        np.dtype(">f4"),
+        np.dtype("<f8"),
+        np.dtype(">f8"),
+    ),
 }
 
 # A small internal safety check.
@@ -92,7 +112,7 @@ MSG_TAGS = [
     # Otherwise all workers will keep looping to be able to synchronize
     # metadata.
     "ALL_DONE",
-    ]
+]
 
 # Convert to two-way dict as MPI only knows integer tags.
 MSG_TAGS = {msg: i for i, msg in enumerate(MSG_TAGS)}
