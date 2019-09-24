@@ -556,7 +556,7 @@ class StationAccessor(object):
         # strictly valid ASDF but it helps to be flexible.
         try:
             return self.__getattr__(item, replace=False)
-        except AttributeError as e:
+        except AttributeError:
             try:
                 return self.__getattr__(item, replace=True)
             except AttributeError as e:

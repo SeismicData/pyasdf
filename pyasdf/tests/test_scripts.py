@@ -142,7 +142,7 @@ def test_sac2asdf_script(tmpdir, capsys):
         # 2 Stations.
         assert len(ds.waveforms) == 2
 
-        events = ds.events  # flake8: noqa
+        events = ds.events  # NOQA
 
         # Data should actually be fully identical
         np.testing.assert_equal(
