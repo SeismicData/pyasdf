@@ -2131,7 +2131,7 @@ class ASDFDataSet(object):
                 output_data_set,
                 station_tags,
                 tag_map,
-                traceback_limit=traceback_limit,
+                traceback_limit=traceback_limit
             )
         else:
             self._dispatch_processing_multiprocessing(
@@ -2140,7 +2140,7 @@ class ASDFDataSet(object):
                 station_tags,
                 tag_map,
                 traceback_limit=traceback_limit,
-                **kwargs,
+                **kwargs
             )
 
     def _dispatch_processing_mpi(

@@ -20,6 +20,7 @@ import json
 import shutil
 import os
 import random
+import sys
 import warnings
 
 import h5py
@@ -3527,6 +3528,7 @@ def test_get_waveforms_method(tmpdir):
     np.testing.assert_allclose(st[0].data, [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
 
 
+@pytest.mark.skipif(sys.version_info.major == 2, reason="Only run on Python 3")
 def test_warning_that_data_exists_shows_up_every_time(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     ds = ASDFDataSet(asdf_filename)
