@@ -64,7 +64,7 @@ Licensing Information
 ---------------------
 
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2017
+    Lion Krischer (lion.krischer@gmail.com), 2013-2019
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """

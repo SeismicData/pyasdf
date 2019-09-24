@@ -4,7 +4,7 @@
 Test cases for the inventory utils.
 
 :copyright:
-    Lion Krischer (krischer@geophysik.uni-muenchen.de), 2015-2018
+    Lion Krischer (lion.krischer@gmail.com), 2013-2019
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
