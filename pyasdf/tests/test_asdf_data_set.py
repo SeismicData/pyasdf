@@ -1711,7 +1711,7 @@ def test_empty_asdf_file_has_no_quakeml_dataset(tmpdir):
     data_set = ASDFDataSet(asdf_filename)
     data_set.__del__()
 
-    f = h5py.File(asdf_filename)
+    f = h5py.File(asdf_filename, mode="a")
     assert "QuakeML" not in f
 
     # It should still return an empty catalog object if the events are
