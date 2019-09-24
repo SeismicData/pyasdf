@@ -22,4 +22,4 @@ if __name__ == "__main__":
         )
     )
 
-    sys.exit(pytest.main(PATH))
+    sys.exit(pytest.main([PATH]))
