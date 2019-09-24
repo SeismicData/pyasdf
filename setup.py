@@ -15,6 +15,8 @@ Changelog
 ::
     Version 0.4.x
     -------------
+    * Implement ASDF version 1.0.3 which allows a bit more flexibility
+      regarding names of auxiliary data sets as well as provenance files.
     * New .waveform_tags property for the dataset object return a set of all
       available waveform tags (see #46, #47)
 
