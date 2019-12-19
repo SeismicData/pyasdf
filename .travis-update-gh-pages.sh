@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # based on: http://sleepycoders.blogspot.se/2013/03/sharing-travis-ci-generated-files.html
 
 # Only do it if not acting on a pull request.
