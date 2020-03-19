@@ -419,7 +419,7 @@ def test_event_association_is_persistent_through_processing(example_data_set):
 
 
 def test_detailed_event_association_is_persistent_through_processing(
-    example_data_set
+    example_data_set,
 ):
     """
     Processing a file with an associated event and storing it again should

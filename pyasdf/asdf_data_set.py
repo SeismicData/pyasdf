@@ -915,7 +915,12 @@ class ASDFDataSet(object):
             or starttime is not None
             or endtime is not None
         ):
-            idx_start, idx_end, data_starttime, array_size_in_mb = self._get_idx_and_size_estimate(  # NOQA
+            (
+                idx_start,
+                idx_end,
+                data_starttime,
+                array_size_in_mb,
+            ) = self._get_idx_and_size_estimate(  # NOQA
                 waveform_name, starttime, endtime
             )
 
@@ -2131,7 +2136,7 @@ class ASDFDataSet(object):
                 output_data_set,
                 station_tags,
                 tag_map,
-                traceback_limit=traceback_limit
+                traceback_limit=traceback_limit,
             )
         else:
             self._dispatch_processing_multiprocessing(
@@ -2140,7 +2145,7 @@ class ASDFDataSet(object):
                 station_tags,
                 tag_map,
                 traceback_limit=traceback_limit,
-                **kwargs
+                **kwargs,
             )
 
     def _dispatch_processing_mpi(
