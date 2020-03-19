@@ -130,11 +130,10 @@ setup_config = dict(
         "h5py",
         "colorama",
         "pytest",
-        "flake8",
         "prov",
         "dill",
     ],
-    extras_require={"mpi": ["mpi4py"]},
+    extras_require={"mpi": ["mpi4py"], "tests": ["pytest"]},
     package_data={"pyasdf": get_package_data()},
     classifiers=[
         "Development Status :: 5 - Production/Stable",

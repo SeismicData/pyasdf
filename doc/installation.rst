@@ -6,7 +6,7 @@ pyasdf and Dependencies
 
 ``pyasdf`` supports Python version 2.7, 3.4, 3.6, and 3.7 and it depends on the
 following Python modules: ``NumPy``, ``ObsPy``, ``h5py``, ``colorama``,
-``flake8``, ``pytest``, ``prov``, ``dill``, and optionally ``mpi4py``. You can
+``pytest``, ``prov``, ``dill``, and optionally ``mpi4py``. You can
 install ``pyasdf`` with or without parallel I/O support; the later requires
 ``mpi4py`` and parallel versions of ``hdf5`` and ``h5py``.
 

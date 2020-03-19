@@ -51,7 +51,7 @@ install:
   - cmd: conda config --add channels conda-forge
   - cmd: conda update --yes --quiet conda
   - cmd: conda install --yes --quiet obvious-ci
-  - cmd: conda install --yes --quiet obspy pytest flake8 colorama h5py nose dill prov
+  - cmd: conda install --yes --quiet obspy pytest colorama h5py nose dill prov
   - cmd: conda list
 
 # Skip .NET project specific build phase.
