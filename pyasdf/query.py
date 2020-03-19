@@ -28,7 +28,7 @@ from .compat import string_types, unicode_type
 def _wildcarded_list(value):
     if isinstance(value, string_types):
         value = [_i.strip() for _i in unicode_type(value).split(",")]
-    if not isinstance(value, collections.Iterable):
+    if not isinstance(value, collections.abc.Iterable):
         raise TypeError
 
     if None in value:

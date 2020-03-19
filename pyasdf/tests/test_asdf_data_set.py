@@ -515,6 +515,7 @@ def test_processing_multiprocessing(example_data_set):
     )
 
     del data_set
+
     data_set = ASDFDataSet(example_data_set.filename)
     out_data_set = ASDFDataSet(output_filename)
 

@@ -140,7 +140,7 @@ setup_config = dict(
     ],
     extras_require={"mpi": ["mpi4py"], "tests": ["pytest"]},
     package_data={"pyasdf": get_package_data()},
-    python_requires='>=3.7',
+    python_requires=">=3.7",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",

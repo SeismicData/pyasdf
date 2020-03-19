@@ -91,7 +91,6 @@ from .utils import (
     StreamBuffer,
     AuxiliaryDataGroupAccessor,
     AuxiliaryDataContainer,
-    get_multiprocessing,
     ProvenanceAccessor,
     split_qualified_name,
     _read_string_array,
@@ -2022,7 +2021,7 @@ class ASDFDataSet(object):
         output_filename,
         tag_map,
         traceback_limit=3,
-        **kwargs
+        **kwargs,
     ):
         """
         Process the contents of an ``ASDF`` file in parallel.
@@ -2484,7 +2483,7 @@ class ASDFDataSet(object):
         traceback_limit,
         cpu_count=-1,
     ):
-        multiprocessing = get_multiprocessing()
+        ctx = multiprocessing.get_context("forkserver")
 
         input_filename = self.filename
         output_filename = output_data_set.filename
@@ -2500,21 +2499,21 @@ class ASDFDataSet(object):
 
         # Lock for input and output files. Probably not needed for the input
         # files but better be safe.
-        input_file_lock = multiprocessing.Lock()
-        output_file_lock = multiprocessing.Lock()
+        input_file_lock = ctx.Lock()
+        output_file_lock = ctx.Lock()
 
         # Also lock the printing on screen to not mangle the output.
-        print_lock = multiprocessing.Lock()
+        print_lock = ctx.Lock()
 
         # Use either the given number of cores or the maximum number of cores.
         if cpu_count == -1:
-            cpu_count = multiprocessing.cpu_count()
+            cpu_count = ctx.cpu_count()
 
         # Don't use more cores than jobs.
         cpu_count = min(cpu_count, len(station_tags))
 
         # Create the input queue containing the jobs.
-        input_queue = multiprocessing.JoinableQueue(
+        input_queue = ctx.JoinableQueue(
             maxsize=int(math.ceil(1.1 * (len(station_tags) + cpu_count)))
         )
 
@@ -2529,7 +2528,7 @@ class ASDFDataSet(object):
         time.sleep(0.1)
 
         # The output queue will collect the reports from the jobs.
-        output_queue = multiprocessing.Queue()
+        output_queue = ctx.Queue()
 
         # Create n processes, with n being the number of available CPUs.
         processes = []
@@ -2745,11 +2744,15 @@ class _Process(multiprocessing.Process):
 
             station, tag = stationtag
 
+            x = self.__process_name
             with self.input_file_lock:
-                input_data_set = ASDFDataSet(self.input_filename)
+                print(x, "TRYING TO OPEN FILE.")
+                input_data_set = ASDFDataSet(self.input_filename, mode="r")
+                print(x, "OPENED FILE")
                 stream, inv = input_data_set.get_data_for_tag(station, tag)
                 input_data_set.flush()
                 del input_data_set
+                print(x, "DELETE FILE")
 
             # Using dill as it works on more systems.
             func = dill.loads(self.processing_function)

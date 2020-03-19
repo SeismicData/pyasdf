@@ -22,7 +22,6 @@ import os
 import re
 import sys
 import time
-import warnings
 import weakref
 
 # Py2k/3k compat.
@@ -52,30 +51,6 @@ ReceivedMessage = collections.namedtuple("ReceivedMessage", ["data"])
 Worker = collections.namedtuple(
     "Worker", ["active_jobs", "completed_jobs_count"]
 )
-
-
-def get_multiprocessing():  # pragma: no cover
-    """
-    Helper function returning the multiprocessing module or the threading
-    version of it.
-    """
-    if is_multiprocessing_problematic():
-        msg = (
-            "NumPy linked against 'Accelerate.framework'. Multiprocessing "
-            "will be disabled. See "
-            "https://github.com/obspy/obspy/wiki/Notes-on-Parallel-"
-            "Processing-with-Python-and-ObsPy for more information."
-        )
-        warnings.warn(msg)
-        # Disable by replacing with dummy implementation using threads.
-        import multiprocessing as mp
-        from multiprocessing import dummy  # NOQA
-
-        multiprocessing = dummy
-        multiprocessing.cpu_count = mp.cpu_count
-    else:
-        import multiprocessing  # NOQA
-    return multiprocessing
 
 
 def is_multiprocessing_problematic():  # pragma: no cover
@@ -1138,7 +1113,7 @@ def is_mpi_env():
     return True
 
 
-class StreamBuffer(collections.MutableMapping):
+class StreamBuffer(collections.abc.MutableMapping):
     """
     Very simple key value store for obspy stream object with the additional
     ability to approximate the size of all stored stream objects.
@@ -1480,7 +1455,7 @@ def is_list(obj):
 
     :param obj: The object to test.
     """
-    return isinstance(obj, collections.Iterable) and not isinstance(
+    return isinstance(obj, collections.abc.Iterable) and not isinstance(
         obj, string_types
     )
 
