@@ -126,7 +126,7 @@ setup_config = dict(
     platforms="OS Independent",
     install_requires=[
         "numpy",
-        "obspy>=1.1.0",
+        "obspy>=1.2.1",
         "h5py",
         "colorama",
         "pytest",
