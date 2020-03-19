@@ -2464,7 +2464,11 @@ class ASDFDataSet(object):
         traceback_limit,
         cpu_count=-1,
     ):
-        ctx = multiprocessing.get_context("forkserver")
+        if sys.platform.lower() == "win32":
+            ctx = multiprocessing.get_context()
+        else:
+            # Needed for python 3.8 on unix for some reason.
+            ctx = multiprocessing.get_context("forkserver")
 
         input_filename = self.filename
         output_filename = output_data_set.filename
