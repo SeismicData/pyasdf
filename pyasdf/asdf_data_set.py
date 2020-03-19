@@ -42,25 +42,6 @@ import prov
 import prov.model
 
 
-# Minimum compatibility wrapper between Python 2 and 3.
-try:
-    filter = itertools.ifilter
-except AttributeError:
-    # Python 3 is a bit more aggressive when buffering warnings but here it
-    # is fairly important that they are shown, thus we monkey-patch it to
-    # flush stderr afterwards.
-    def get_warning_fct():
-        closure_warn = warnings.warn
-
-        def __warn(self, *args, **kwargs):
-            closure_warn(self, *args, **kwargs)
-            sys.stderr.flush()
-
-        return __warn
-
-    warnings.warn = get_warning_fct()
-
-
 from .exceptions import (
     ASDFException,
     ASDFWarning,
