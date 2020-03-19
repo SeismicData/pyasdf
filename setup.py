@@ -14,6 +14,11 @@ Changelog
 
 ::
 
+    Version 0.6.0 (March 19, 2020)
+    ----------------------------------
+    * Drop support for Python <= 3.6.
+    * `flake8` and `pytest` no longer are runtime dependencies.
+
     Version 0.5.1 (September 24, 2019)
     ----------------------------------
     * Restore the ability to run tests with `python -m pyasdf.tests`.
@@ -71,7 +76,7 @@ Licensing Information
 ---------------------
 
 :copyright:
-    Lion Krischer (lion.krischer@gmail.com), 2013-2019
+    Lion Krischer (lion.krischer@gmail.com), 2013-2020
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -115,7 +120,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.5.1",
+    version="0.5.x",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
@@ -135,6 +140,7 @@ setup_config = dict(
     ],
     extras_require={"mpi": ["mpi4py"], "tests": ["pytest"]},
     package_data={"pyasdf": get_package_data()},
+    python_requires='>=3.7',
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
@@ -143,12 +149,9 @@ setup_config = dict(
         "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
     ],

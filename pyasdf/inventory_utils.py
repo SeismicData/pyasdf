@@ -4,7 +4,7 @@
 Utilities for dealing with inventory objects.
 
 :copyright:
-    Lion Krischer (lion.krischer@gmail.com), 2013-2019
+    Lion Krischer (lion.krischer@gmail.com), 2013-2020
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """

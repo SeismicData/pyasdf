@@ -61,7 +61,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "pyasdf"
-copyright = "2014-2019, Lion Krischer"
+copyright = "2014-2020, Lion Krischer"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
