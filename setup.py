@@ -17,7 +17,10 @@ Changelog
     Version 0.6.0 (March 19, 2020)
     ----------------------------------
     * Drop support for Python <= 3.6.
+    * Fix a few deprecations warnings in Python >= 3.7.
     * `flake8` and `pytest` no longer are runtime dependencies.
+    * Get rid of the special warnings handler as it intefers with other
+      packages.
 
     Version 0.5.1 (September 24, 2019)
     ----------------------------------
@@ -120,7 +123,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.5.x",
+    version="0.6.0",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
