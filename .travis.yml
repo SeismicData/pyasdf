@@ -8,6 +8,10 @@ env:
   global:
     secure: "gfu3DCSoUVi/69Dc4cCIHXVYaA6Phgggzs8YL02c6Q/zDQCgiufv2JatRO40cwAu6qqjLXuxoWv+4PbZky0+Mdhn9XLLYq/Fmv4jtWBgTtBxnYxpKqBsLWKT99gDdFbYxm91bf8kg+IaS1S5PXBA3hFkiy0hHrDPPdrNa5CmYgE="
 
+before_install:
+  # Needed for the graphs in the documentation.
+  - "sudo apt-get install graphviz"
+
 install:
   - pip install numpy pytest python-coveralls pytest-cov
   - pip install -v .
