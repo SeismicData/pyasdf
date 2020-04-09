@@ -14,6 +14,10 @@ Changelog
 
 ::
 
+    Version 0.6.1 (Apri 9, 2020)
+    ----------------------------------
+    * `pytest` is no longer a runtime dependency.
+
     Version 0.6.0 (March 19, 2020)
     ----------------------------------
     * Drop support for Python <= 3.6.
@@ -123,7 +127,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.6.0",
+    version="0.6.1",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
@@ -137,7 +141,6 @@ setup_config = dict(
         "obspy>=1.2.1",
         "h5py",
         "colorama",
-        "pytest",
         "prov",
         "dill",
     ],
