@@ -14,7 +14,7 @@ Changelog
 
 ::
 
-    Version 0.6.1 (Apri 9, 2020)
+    Version 0.6.1 (April 9, 2020)
     ----------------------------------
     * `pytest` is no longer a runtime dependency.
 
