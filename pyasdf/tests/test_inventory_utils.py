@@ -199,7 +199,7 @@ def test_quick_coordinate_extraction():
 
 def test_isolate_and_merge_with_station_level_information():
     """
-    Tests isolte and merge with a station level station files which used to
+    Tests isolate and merge with a station level station files which used to
     cause an error.
     """
     inv = obspy.read_inventory()
@@ -213,3 +213,44 @@ def test_isolate_and_merge_with_station_level_information():
 
     assert inv[0].code == "GR"
     assert inv[0][0].code == "FUR"
+
+
+def test_information_from_other_namespaces_is_retained():
+    """
+    """
+    extra = obspy.core.AttribDict(
+        {
+            "my_tag": {
+                "value": True,
+                "namespace": "http://some-page.de/xmlns/1.0",
+                "attrib": {
+                    "{http://some-page.de/xmlns/1.0}my_attrib1": "123.4",
+                    "{http://some-page.de/xmlns/1.0}my_attrib2": "567",
+                },
+            },
+            "my_tag_2": {
+                "value": "True",
+                "namespace": "http://some-page.de/xmlns/1.0",
+            },
+        }
+    )
+
+    inv = obspy.Inventory(
+        [
+            obspy.core.inventory.Network(
+                "XX",
+                stations=[
+                    obspy.core.inventory.Station(
+                        code="YY", latitude=1.0, longitude=2.0, elevation=3.0
+                    )
+                ],
+            )
+        ],
+        "XX",
+    )
+    inv[0].extra = extra
+
+    # Should survive the round trip.
+    assert inv[0].extra == extra
+    inv2 = isolate_and_merge_station(inv, network_id="XX", station_id="YY")
+    assert inv2[0].extra == extra
