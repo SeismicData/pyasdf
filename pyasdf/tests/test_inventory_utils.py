@@ -56,6 +56,7 @@ def test_merging_stations():
     assert inv == original_inv
 
     assert len(new_inv.networks) == 1
+    # Single station because the three identical stations have been merged.
     assert len(new_inv[0].stations) == 1
     assert new_inv[0].code == "BW"
     assert new_inv[0][0].code == "RJOB"
@@ -104,6 +105,42 @@ def test_merge_inventories():
 
     # The 9 channels should remain.
     assert len(new_inv[0][0].channels) == 9
+
+
+def test_merge_inventories_multiple_times():
+    """
+    Just merge it a bunch.
+    """
+    inv = obspy.read_inventory(
+        os.path.join(data_dir, "big_station.xml"), format="stationxml"
+    )
+
+    assert len(inv.networks) == 2
+    assert len(inv.select(network="BW")[0].stations) == 3
+
+    merged_inv = merge_inventories(
+        inv.copy(), inv.copy(), network_id="BW", station_id="RJOB"
+    )
+
+    for _ in range(5):
+        merged_inv = merge_inventories(
+            merged_inv, inv.copy(), network_id="BW", station_id="RJOB"
+        )
+
+    # Same assertions as in the previous test.
+    assert len(merged_inv.networks) == 1
+    assert len(merged_inv[0].stations) == 1
+    assert merged_inv[0].code == "BW"
+    assert merged_inv[0][0].code == "RJOB"
+
+    # Make sure the station dates have been set correctly.
+    assert merged_inv[0][0].start_date == obspy.UTCDateTime(
+        "2001-05-15T00:00:00.000000Z"
+    )
+    assert merged_inv[0][0].end_date is None
+
+    # The 9 channels should remain.
+    assert len(merged_inv[0][0].channels) == 9
 
 
 def test_quick_coordinate_extraction():
@@ -267,7 +304,7 @@ def test_dont_merge_station_epochs():
     assert len(inv.get_contents()["channels"]) == 9
     # Also contains some information from another namespace.
     assert inv[0][0].extra == {
-        "something": {"namespace": "https://example.com", "value": "test",}
+        "something": {"namespace": "https://example.com", "value": "test"}
     }
 
     # All of this should survive the merge and isolate operation.
@@ -276,6 +313,8 @@ def test_dont_merge_station_epochs():
     assert len(inv2.get_contents()["channels"]) == 9
     # Also contains some information from another namespace.
     assert inv2[0][0].extra == {
-        "namespace": "https://example.com",
-        "value": "test",
+        "something": {"namespace": "https://example.com", "value": "test"}
     }
+
+    # In this case nothing actually changed.
+    assert inv == inv2

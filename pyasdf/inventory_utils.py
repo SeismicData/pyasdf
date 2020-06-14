@@ -66,7 +66,8 @@ def isolate_and_merge_station(inv, network_id, station_id):
         inv.select(network=network_id, station=station_id, keep_empty=True)
     )
 
-    # Merge networks if necessary.
+    # Merge networks if necessary. It should be safe to always merge networks
+    # with the same code.
     if len(inv.networks) != 1:
         network = inv.networks[0]
         for other_network in inv.networks[1:]:
@@ -117,80 +118,85 @@ def isolate_and_merge_station(inv, network_id, station_id):
             )
         inv.networks = [network]
 
-    # Merge stations if necessary.
+    def _check_stations_meta_equal(station_a, station_b):
+        # Shallow copies.
+        content_a = copy.copy(station_a.__dict__)
+        content_b = copy.copy(station_b.__dict__)
+        for c in [content_a, content_b]:
+            # Get rid of keys we don't want to test.
+            for key in ["channels", "start_date", "end_date"]:
+                if key in c:
+                    del c[key]
+        return content_a == content_b
+
+    # Merge stations if possible.
+    # Stations will only be merged if all station attributes except start_date,
+    # end_date and channels are identical. Otherwise this would be considered a
+    # station epoch here. There is probably no correct way to do this but this
+    # is what we are doing here.
     if len(inv.networks[0].stations) != 1:
-        station = inv.networks[0].stations[0]
-        for other_station in inv.networks[0].stations[1:]:
-            # Merge the channels.
-            station.channels.extend(other_station.channels)
-            # Update the times if necessary.
-            if other_station.start_date is not None:
-                if (
-                    station.start_date is None
-                    or station.start_date > other_station.start_date
-                ):
-                    station.start_date = other_station.start_date
-            # None is the "biggest" end_date.
-            if (
-                station.end_date is not None
-                and other_station.end_date is not None
-            ):
-                if other_station.end_date > station.end_date:
-                    station.end_date = other_station.end_date
-            elif other_station.end_date is None:
-                station.end_date = None
-            # Update comments.
-            station.comments = list(
-                set(station.comments).union(set(other_station.comments))
-            )
-            # Update the number of channels.
-            if other_station.total_number_of_channels:
-                if (
-                    station.total_number_of_channels
-                    or station.total_number_of_channels
-                    < other_station.total_number_of_channels
-                ):
-                    station.total_number_of_channels = (
-                        other_station.total_number_of_channels
-                    )
-            # Update the other elements
-            station.alternate_code = (
-                station.alternate_code or other_station.alternate_code
-            ) or None
-            station.description = (
-                station.description or other_station.description
-            ) or None
-            station.historical_code = (
-                station.historical_code or other_station.historical_code
-            ) or None
-            station.restricted_status = (
-                station.restricted_status or other_station.restricted_status
-            )
-        inv.networks[0].stations = [station]
+        # Always keep the first one.
+        stations = [inv.networks[0].stations[0]]
+        # Now loop over others, see if they match an existing one and add the
+        # channels while adjusting start and end times.
+        for new_station in inv.networks[0].stations[1:]:
+            for s in stations:
+                if not _check_stations_meta_equal(s, new_station):
+                    continue
+                # Here we have a station where everything except the channels
+                # and start and end date are identical. Merge both.
 
-    # Last but not least, remove duplicate channels. This is done on the
-    # location and channel id, and the times, nothing else.
-    unique_channels = []
-    available_channel_hashes = []
-    for channel in inv[0][0]:
-        c_hash = hash(
-            (
-                str(channel.start_date),
-                str(channel.end_date),
-                channel.code,
-                channel.location_code,
-            )
-        )
-        if c_hash in available_channel_hashes:
-            continue
-        else:
-            unique_channels.append(channel)
-            available_channel_hashes.append(c_hash)
-    inv[0][0].channels = unique_channels
+                # Update the times if necessary. Update the start date if the
+                # start date from the new station is earlier than the existing
+                # start date or if there is no existing start date.
+                if new_station.start_date is not None:
+                    if (
+                        s.start_date is None
+                        or s.start_date > new_station.start_date
+                    ):
+                        s.start_date = new_station.start_date
+                # None is the "biggest" end_date.
+                if s.end_date is not None and new_station.end_date is not None:
+                    if new_station.end_date > s.end_date:
+                        s.end_date = new_station.end_date
+                elif new_station.end_date is None:
+                    s.end_date = None
 
-    # Update the selected number of stations and channels.
-    inv[0].selected_number_of_stations = 1
-    inv[0][0].selected_number_of_channels = len(inv[0][0].channels)
+                # Merge the channels.
+                s.channels.extend(new_station.channels)
+
+                # Finally break the loop because the station has been dealt
+                # with.
+                break
+            else:
+                stations.append(new_station)
+
+        inv.networks[0].stations = stations
+
+    # Last but not least, remove duplicate channels for each station. This is
+    # done on the location and channel id, and the times, nothing else.
+    for station in inv.networks[0].stations:
+        unique_channels = []
+        available_channel_hashes = []
+        for channel in station.channels:
+            c_hash = hash(
+                (
+                    str(channel.start_date),
+                    str(channel.end_date),
+                    channel.code,
+                    channel.location_code,
+                )
+            )
+            if c_hash in available_channel_hashes:
+                continue
+            else:
+                unique_channels.append(channel)
+                available_channel_hashes.append(c_hash)
+        station.channels = unique_channels
+
+    # # Update the selected number of stations and channels.
+    # inv[0].selected_number_of_stations = 1
+    # inv[0][0].selected_number_of_channels = len(inv[0][0].channels)
 
     return inv
 

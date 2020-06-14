@@ -2527,7 +2527,7 @@
       <Site>
         <Name>Jochberg, Bavaria, BW-Net</Name>
       </Site>
-      <CreationDate>2006-12-13T00:00:00+00:00</CreationDate>
+      <CreationDate>2001-05-15T00:00:00+00:00</CreationDate>
       <Channel code="EHZ" endDate="2007-12-17T00:00:00+00:00" locationCode="" startDate="2006-12-13T00:00:00+00:00">
         <Latitude unit="DEGREES">47.737167</Latitude>
         <Longitude unit="DEGREES">12.795714</Longitude>
@@ -3979,7 +3979,7 @@
       <Site>
         <Name>Jochberg, Bavaria, BW-Net</Name>
       </Site>
-      <CreationDate>2007-12-17T00:00:00+00:00</CreationDate>
+      <CreationDate>2001-05-15T00:00:00+00:00</CreationDate>
       <Channel code="EHZ" locationCode="" startDate="2007-12-17T00:00:00+00:00">
         <Latitude unit="DEGREES">47.737167</Latitude>
         <Longitude unit="DEGREES">12.795714</Longitude>
