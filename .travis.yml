@@ -13,7 +13,7 @@ before_install:
   - "sudo apt-get install graphviz"
 
 install:
-  - pip install numpy pytest python-coveralls pytest-cov
+  - pip install -U numpy pytest python-coveralls pytest-cov
   - pip install -v .
   - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install sphinx sphinx_rtd_theme==0.1.9; fi
 
