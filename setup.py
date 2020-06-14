@@ -14,6 +14,15 @@ Changelog
 
 ::
 
+    Version 0.7.0 (June 14, 2020)
+    ----------------------------------
+    * More conservative merging of stations. Stations are now only merged if
+      everything except start and end date and the channels are the same.
+      Otherwise they are not merged and will be retained. See #61. This might
+      result in some slightly larger StationXML files in the ASDF files but
+      should make no difference for downstream tools so it should affect
+      users.
+
     Version 0.6.1 (April 9, 2020)
     ----------------------------------
     * `pytest` is no longer a runtime dependency.
@@ -23,7 +32,7 @@ Changelog
     * Drop support for Python <= 3.6.
     * Fix a few deprecations warnings in Python >= 3.7.
     * `flake8` and `pytest` no longer are runtime dependencies.
-    * Get rid of the special warnings handler as it intefers with other
+    * Get rid of the special warnings handler as it interferes with other
       packages.
 
     Version 0.5.1 (September 24, 2019)
@@ -127,7 +136,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.6.x",
+    version="0.7.0",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
