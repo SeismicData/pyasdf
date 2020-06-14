@@ -1,0 +1,133 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<FDSNStationXML xmlns:OtherNamespace="https://example.com" xmlns="http://www.fdsn.org/xml/station/1" schemaVersion="1.0">
+  <Source>Test Data</Source>
+  <Module>ObsPy 1.0.2</Module>
+  <ModuleURI>https://www.obspy.org</ModuleURI>
+  <Created>2020-06-14T12:42:45.000000Z</Created>
+  <Network code="XX" endDate="2018-11-28T23:06:20.000000Z" startDate="2017-09-11T00:00:36.000000Z">
+    <Station code="YYY" endDate="2018-06-06T01:02:24.000000Z" startDate="2017-11-04T03:16:35.000000Z">
+      <OtherNamespace:something>test</OtherNamespace:something>
+      <Latitude unit="DEGREES">-18.49507</Latitude>
+      <Longitude unit="DEGREES">139.002731</Longitude>
+      <Elevation unit="METERS">62.7</Elevation>
+      <Site>
+        <Name>YYY</Name>
+      </Site>
+      <Vault>Test</Vault>
+      <CreationDate>2017-11-04T03:16:35.000000Z</CreationDate>
+      <TerminationDate>2018-06-06T01:02:24.000000Z</TerminationDate>
+      <Channel code="HHZ" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">90.0</Dip>
+        <SampleRate unit="SAMPLES/S">200.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+      <Channel code="HHE" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">200.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+      <Channel code="HHN" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">200.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+    </Station>
+    <Station code="YYY" endDate="2018-08-12T22:55:45.000000Z" startDate="2018-06-06T01:17:01.000000Z">
+      <Latitude unit="DEGREES">-18.49507</Latitude>
+      <Longitude unit="DEGREES">139.002731</Longitude>
+      <Elevation unit="METERS">62.7</Elevation>
+      <Site>
+        <Name>YYY</Name>
+      </Site>
+      <Vault>Test</Vault>
+      <CreationDate>2018-06-06T01:17:01.000000Z</CreationDate>
+      <TerminationDate>2018-08-12T22:55:45.000000Z</TerminationDate>
+      <Channel code="HHZ" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">90.0</Dip>
+        <SampleRate unit="SAMPLES/S">125.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+      <Channel code="HHE" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">125.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+      <Channel code="HHN" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">125.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+    </Station>
+    <Station code="YYY" endDate="2018-11-18T20:23:20.000000Z" startDate="2018-08-12T23:02:10.000000Z">
+      <Latitude unit="DEGREES">-18.49507</Latitude>
+      <Longitude unit="DEGREES">139.002731</Longitude>
+      <Elevation unit="METERS">62.7</Elevation>
+      <Site>
+        <Name>YYY</Name>
+      </Site>
+      <Vault>Test</Vault>
+      <CreationDate>2018-08-12T23:02:10.000000Z</CreationDate>
+      <TerminationDate>2018-11-18T20:23:20.000000Z</TerminationDate>
+      <Channel code="HHZ" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">90.0</Dip>
+        <SampleRate unit="SAMPLES/S">125.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+      <Channel code="HHE" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">90.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">125.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+      <Channel code="HHN" locationCode="DD">
+        <Latitude unit="DEGREES">-18.49507</Latitude>
+        <Longitude unit="DEGREES">139.002731</Longitude>
+        <Elevation unit="METERS">62.7</Elevation>
+        <Depth unit="METERS">0.0</Depth>
+        <Azimuth unit="DEGREES">0.0</Azimuth>
+        <Dip unit="DEGREES">0.0</Dip>
+        <SampleRate unit="SAMPLES/S">125.0</SampleRate>
+        <ClockDrift unit="SECONDS/SAMPLE">0.0</ClockDrift>
+      </Channel>
+    </Station>
+  </Network>
+</FDSNStationXML>

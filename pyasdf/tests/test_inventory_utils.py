@@ -254,3 +254,28 @@ def test_information_from_other_namespaces_is_retained():
     assert inv[0].extra == extra
     inv2 = isolate_and_merge_station(inv, network_id="XX", station_id="YY")
     assert inv2[0].extra == extra
+
+
+def test_dont_merge_station_epochs():
+    """
+    Stations might have epochs with different information - don't merge these
+    then.
+    """
+    filename = os.path.join(data_dir, "multi_station_epoch.xml")
+    inv = obspy.read_inventory(filename)
+    assert len(inv.get_contents()["stations"]) == 3
+    assert len(inv.get_contents()["channels"]) == 9
+    # Also contains some information from another namespace.
+    assert inv[0][0].extra == {
+        "something": {"namespace": "https://example.com", "value": "test",}
+    }
+
+    # All of this should survive the merge and isolate operation.
+    inv2 = isolate_and_merge_station(inv, network_id="XX", station_id="YYY")
+    assert len(inv2.get_contents()["stations"]) == 3
+    assert len(inv2.get_contents()["channels"]) == 9
+    # Also contains some information from another namespace.
+    assert inv2[0][0].extra == {
+        "namespace": "https://example.com",
+        "value": "test",
+    }
