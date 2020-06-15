@@ -13,6 +13,7 @@ Changelog
 ---------
 
 ::
+
     Version 0.7.1 (June 15, 2020)
     ----------------------------------
     * Write namespace abbreviations so that ObsPy can read the written
