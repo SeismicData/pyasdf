@@ -13,6 +13,10 @@ Changelog
 ---------
 
 ::
+    Version 0.7.1 (June 15, 2020)
+    ----------------------------------
+    * Write namespace abbreviations so that ObsPy can read the written
+      StationXML files again with the other namespaces.
 
     Version 0.7.0 (June 14, 2020)
     ----------------------------------
@@ -136,7 +140,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.7.0",
+    version="0.7.1",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",

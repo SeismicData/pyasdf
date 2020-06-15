@@ -3646,3 +3646,29 @@ def test_datesets_with_less_then_1_second_length(tmpdir):
         "AA.BB..000__1970-01-01T00:00:00.000000000__"
         "1970-01-01T00:00:00.000001635__test"
     )
+
+
+def test_information_in_other_namespaces_stationxml_is_retained(tmpdir):
+    filename = os.path.join(data_dir, "multi_station_epoch.xml")
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    inv = obspy.read_inventory(filename)
+    # We want to retain this.
+    assert inv[0][0].extra == {
+        "something": {"namespace": "https://example.com", "value": "test"}
+    }
+    assert inv[0][1].extra == {}
+    assert inv[0][2].extra == {}
+
+    # Write and close.
+    with ASDFDataSet(asdf_filename) as ds:
+        ds.add_stationxml(filename)
+
+    # Open again and test.
+    with ASDFDataSet(asdf_filename) as ds:
+        inv2 = ds.waveforms.XX_YYY.StationXML
+    assert inv2[0][0].extra == {
+        "something": {"namespace": "https://example.com", "value": "test"}
+    }
+    assert inv2[0][1].extra == {}
+    assert inv2[0][2].extra == {}

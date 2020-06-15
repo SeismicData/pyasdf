@@ -1673,13 +1673,32 @@ class ASDFDataSet(object):
 
         return inv
 
+    def _get_namespace_map_stationxml(self, inv):
+        nsmap = {}
+        for k, v in getattr(inv, "extra", {}).items():
+            nsmap[k] = v["namespace"]
+        for net in inv:
+            for k, v in getattr(net, "extra", {}).items():
+                nsmap[k] = v["namespace"]
+            for sta in net:
+                for k, v in getattr(sta, "extra", {}).items():
+                    nsmap[k] = v["namespace"]
+                for cha in sta:
+                    for k, v in getattr(cha, "extra", {}).items():
+                        nsmap[k] = v["namespace"]
+        return nsmap
+
     def _add_inventory_object(self, inv, network_id, station_id):
         station_name = "%s.%s" % (network_id, station_id)
 
         # Write the station information to a numpy array that will then be
         # written to the HDF5 file.
         with io.BytesIO() as buf:
-            inv.write(buf, format="stationxml")
+            inv.write(
+                buf,
+                format="stationxml",
+                nsmap=self._get_namespace_map_stationxml(inv),
+            )
             buf.seek(0, 0)
             data = np.frombuffer(buf.read(), dtype=np.dtype("byte"))
 
