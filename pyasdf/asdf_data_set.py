@@ -946,12 +946,12 @@ class ASDFDataSet(object):
                     name + "s",
                     [
                         obspy.core.event.ResourceIdentifier(_i)
-                        for _i in attrs[name].tostring().decode().split(",")
+                        for _i in attrs[name].tobytes().decode().split(",")
                     ],
                 )
 
         if "provenance_id" in attrs:
-            details.provenance_id = attrs["provenance_id"].tostring().decode()
+            details.provenance_id = attrs["provenance_id"].tobytes().decode()
 
         if "labels" in attrs:
             details.labels = labelstring2list(attrs["labels"])

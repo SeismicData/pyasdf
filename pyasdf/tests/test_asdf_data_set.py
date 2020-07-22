@@ -3546,11 +3546,8 @@ def test_warning_that_data_exists_shows_up_every_time(tmpdir):
     # Warning for all subsequent times.
     for _i in range(10):
         _i += 1
-        with warnings.catch_warnings(record=True) as w:
+        with pytest.warns(ASDFWarning, match="already exists in file"):
             ds.add_waveforms(tr, tag="a")
-        assert len(w) == 1, "Run %i" % _i
-        assert w[0].category is ASDFWarning, "Run %i" % _i
-        assert "already exists in file" in str(w[0].message), "Run %i" % _i
 
 
 def test_get_waveform_attributes(example_data_set):

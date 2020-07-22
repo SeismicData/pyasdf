@@ -97,7 +97,7 @@ def _read_string_array(data):
     Helper function taking a string data set and preparing it so it can be
     read to a BytesIO object.
     """
-    return data[()].tostring().strip(b"\x00 ").strip()
+    return data[()].tobytes().strip()
 
 
 class SimpleBuffer(object):
@@ -157,7 +157,7 @@ class ProvenanceAccessor(object):
             raise AttributeError
 
         hash = hashlib.sha1(
-            self.__data_set()._provenance_group[item][()].tostring()
+            self.__data_set()._provenance_group[item][()].tobytes()
         ).hexdigest()
         if hash not in self._cache:
             self._cache[hash] = self.__data_set().get_provenance_document(item)
@@ -745,7 +745,7 @@ class WaveformAccessor(object):
                                 if key in attrs:
                                     values = (
                                         attrs[key]
-                                        .tostring()
+                                        .tobytes()
                                         .decode()
                                         .split(",")
                                     )

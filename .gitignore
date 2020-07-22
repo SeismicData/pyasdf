@@ -3,3 +3,4 @@ doc/_build/
 .cache
 pip-wheel-metadata/
 .tox
+/dist
