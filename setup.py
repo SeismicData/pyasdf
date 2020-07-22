@@ -14,6 +14,12 @@ Changelog
 
 ::
 
+    Version 0.7.2 (July 22, 2020)
+    ----------------------------------
+    * Replaced some numpy functionality that will be deprecated in future numpy
+      versions.
+    * Warnings will now raise when running the tests.
+
     Version 0.7.1 (June 15, 2020)
     ----------------------------------
     * Write namespace abbreviations so that ObsPy can read the written
@@ -141,7 +147,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.7.x",
+    version="0.7.2",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
