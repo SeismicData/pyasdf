@@ -27,7 +27,7 @@ __all__ = [
     "get_sys_info",
 ]
 
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 
 def print_sys_info():

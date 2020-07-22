@@ -2108,9 +2108,7 @@ class ASDFDataSet(object):
                         )
                     else:
                         group = output_data_set._waveform_group[station_name]
-                    station_group.copy(
-                        source=data, dest=group, name="StationXML"
-                    )
+                    group["StationXML"] = data[:]
 
             # Copy the events.
             if self.events:

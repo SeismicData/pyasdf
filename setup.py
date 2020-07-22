@@ -14,6 +14,11 @@ Changelog
 
 ::
 
+    Version 0.7.3 (July 22, 2020)
+    ----------------------------------
+    * Use a different to copy the StationXML data in the process() function so
+      it no longer gets stuck for large runs with MPI. See #62.
+
     Version 0.7.2 (July 22, 2020)
     ----------------------------------
     * Replaced some numpy functionality that will be deprecated in future numpy
@@ -147,7 +152,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.7.2",
+    version="0.7.3",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
