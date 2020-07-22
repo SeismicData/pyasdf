@@ -16,8 +16,8 @@ Changelog
 
     Version 0.7.3 (July 22, 2020)
     ----------------------------------
-    * Use a different to copy the StationXML data in the process() function so
-      it no longer gets stuck for large runs with MPI. See #62.
+    * Use a different way to copy the StationXML data in the process() function
+      so it no longer gets stuck for large runs with MPI. See #62.
 
     Version 0.7.2 (July 22, 2020)
     ----------------------------------
