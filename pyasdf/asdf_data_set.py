@@ -760,6 +760,9 @@ class ASDFDataSet(object):
             self._auxiliary_data_group.create_group(data_type)
         group = self._auxiliary_data_group[data_type]
 
+        # workaround for a bug in hdf5 1.10 and PPC64
+        info["dataset_creation_params"]["name"] in group
+
         ds = group.create_dataset(**info["dataset_creation_params"])
         for key, value in info["dataset_attrs"].items():
             ds.attrs[key] = value
@@ -1478,6 +1481,9 @@ class ASDFDataSet(object):
         if station_name not in self._waveform_group:
             self._waveform_group.create_group(station_name)
         group = self._waveform_group[station_name]
+
+        # workaround for a bug in hdf5 1.10 and PPC64
+        info["dataset_creation_params"]["name"] in group
 
         ds = group.create_dataset(**info["dataset_creation_params"])
         for key, value in info["dataset_attrs"].items():
