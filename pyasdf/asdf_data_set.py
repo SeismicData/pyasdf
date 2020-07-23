@@ -760,7 +760,7 @@ class ASDFDataSet(object):
             self._auxiliary_data_group.create_group(data_type)
         group = self._auxiliary_data_group[data_type]
 
-        ds = group.create_dataset(**info["dataset_creation_params"])
+        ds = group.require_dataset(**info["dataset_creation_params"], exact=True)
         for key, value in info["dataset_attrs"].items():
             ds.attrs[key] = value
 
@@ -1479,7 +1479,7 @@ class ASDFDataSet(object):
             self._waveform_group.create_group(station_name)
         group = self._waveform_group[station_name]
 
-        ds = group.create_dataset(**info["dataset_creation_params"])
+        ds = group.require_dataset(**info["dataset_creation_params"], exact=True)
         for key, value in info["dataset_attrs"].items():
             ds.attrs[key] = value
 
