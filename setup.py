@@ -14,6 +14,10 @@ Changelog
 
 ::
 
+    Version 0.7.4 (August 21, 2020)
+    ----------------------------------
+    * Workaround for an issue with HDF5 on PPC64.
+
     Version 0.7.3 (July 22, 2020)
     ----------------------------------
     * Use a different way to copy the StationXML data in the process() function
@@ -152,7 +156,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.7.3",
+    version="0.7.4",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
