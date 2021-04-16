@@ -1,3 +1,5 @@
+import time
+
 import pyflex
 from pyasdf import ASDFDataSet
 
@@ -73,8 +75,6 @@ def process(this_station_group, other_station_group):
         all_windows.append(windows)
     return all_windows
 
-
-import time
 
 a = time.time()
 results = ds.process_two_files_without_parallel_output(other_ds, process)

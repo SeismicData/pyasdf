@@ -3472,8 +3472,8 @@ def test_waveform_appending_less_than_one_second_of_waveforms(tmpdir):
 
     assert sorted(ds.waveforms.XX_YY.list()) == [
         "XX.YY..EHZ__1970-01-01T00:00:00__1970-01-01T00:00:01__random",
-        "XX.YY..EHZ__1970-01-01T00:00:01.190000000__1970-01-01T00:00:01.380000000__random",
-        "XX.YY..EHZ__1970-01-01T00:00:01.390000000__1970-01-01T00:00:01.480000000__random",
+        "XX.YY..EHZ__1970-01-01T00:00:01.190000000__1970-01-01T00:00:01.380000000__random",  # NOQA
+        "XX.YY..EHZ__1970-01-01T00:00:01.390000000__1970-01-01T00:00:01.480000000__random",  # NOQA
     ]
 
     st = ds.waveforms.XX_YY.random
