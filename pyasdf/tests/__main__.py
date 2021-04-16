@@ -6,7 +6,7 @@ The only purpose of this file is to be able to run the pyasdf test suite with
 python -m pyasdf.tests
 
 :copyright:
-    Lion Krischer (lion.krischer@gmail.com), 2013-2020
+    Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 :copyright:
-    Lion Krischer (lion.krischer@gmail.com), 2013-2020
+    Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -27,7 +27,7 @@ __all__ = [
     "get_sys_info",
 ]
 
-__version__ = "0.7.4"
+__version__ = "0.7.5"
 
 
 def print_sys_info():

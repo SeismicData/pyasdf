@@ -14,6 +14,10 @@ Changelog
 
 ::
 
+    Version 0.7.5 (April 16, 2021)
+    ----------------------------------
+    * Fix an issue when appending waveforms of less than one second in length.
+
     Version 0.7.4 (August 21, 2020)
     ----------------------------------
     * Workaround for an issue with HDF5 on PPC64.
@@ -112,7 +116,7 @@ Licensing Information
 ---------------------
 
 :copyright:
-    Lion Krischer (lion.krischer@gmail.com), 2013-2020
+    Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
@@ -156,7 +160,7 @@ def get_package_data():
 
 setup_config = dict(
     name="pyasdf",
-    version="0.7.4",
+    version="0.7.5",
     description=DOCSTRING[0],
     long_description="\n".join(DOCSTRING),
     author="Lion Krischer",
@@ -187,6 +191,7 @@ setup_config = dict(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Physics",
     ],
