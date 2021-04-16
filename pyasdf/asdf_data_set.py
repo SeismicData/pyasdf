@@ -1184,8 +1184,9 @@ class ASDFDataSet(object):
                     del ds
 
                     # This does not copy data but just changes the name.
-                    sta_group[new_data_name] = sta_group[ds_name]
-                    del sta_group[ds_name]
+                    if new_data_name != ds_name:
+                        sta_group[new_data_name] = sta_group[ds_name]
+                        del sta_group[ds_name]
 
                     del sta_group
                     continue

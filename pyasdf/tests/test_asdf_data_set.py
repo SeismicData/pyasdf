@@ -1932,14 +1932,17 @@ def test_more_queries(example_data_set):
         return collection
 
     # Get a single trace.
-    assert collect_ids(
-        ds.ifilter(
-            ds.q.network == "TA",
-            ds.q.station == "POKR",
-            ds.q.location == "",
-            ds.q.channel == "BHZ",
+    assert (
+        collect_ids(
+            ds.ifilter(
+                ds.q.network == "TA",
+                ds.q.station == "POKR",
+                ds.q.location == "",
+                ds.q.channel == "BHZ",
+            )
         )
-    ) == {"TA.POKR..BHZ"}
+        == {"TA.POKR..BHZ"}
+    )
 
     # Get nothing with a not existing location code.
     assert not collect_ids(ds.ifilter(ds.q.location == "99"))
@@ -3392,6 +3395,111 @@ def test_waveform_appending(tmpdir):
         "XX.YY..EHZ__1970-01-01T00:00:20__1970-01-01T00:00:39__random",
         "XX.YY..EHZ__1970-01-01T00:00:40__1970-01-01T00:00:49__random",
     ]
+
+
+def test_waveform_appending_less_than_one_second_of_waveforms(tmpdir):
+    """
+    Tests the appending of waveforms.
+    """
+    asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
+
+    traces = [
+        obspy.Trace(
+            data=np.ones(10), header={"starttime": obspy.UTCDateTime(0.99)}
+        ),
+        obspy.Trace(
+            data=np.ones(10) * 2, header={"starttime": obspy.UTCDateTime(1.09)}
+        ),
+        obspy.Trace(
+            data=np.ones(10) * 3, header={"starttime": obspy.UTCDateTime(1.19)}
+        ),
+        obspy.Trace(
+            data=np.ones(10) * 4, header={"starttime": obspy.UTCDateTime(1.29)}
+        ),
+        obspy.Trace(
+            data=np.ones(10) * 5, header={"starttime": obspy.UTCDateTime(1.39)}
+        ),
+    ]
+
+    for tr in traces:
+        tr.stats.update(
+            {
+                "network": "XX",
+                "station": "YY",
+                "channel": "EHZ",
+                "sampling_rate": 100.0,
+            }
+        )
+
+    # These can all be seamlessly merged.
+    ds = ASDFDataSet(asdf_filename)
+    for tr in traces:
+        ds.append_waveforms(tr, tag="random")
+
+    assert ds.waveforms.XX_YY.list() == [
+        "XX.YY..EHZ__1970-01-01T00:00:00__1970-01-01T00:00:01__random"
+    ]
+
+    st = ds.waveforms.XX_YY.random
+    assert len(st) == 1
+    tr = st[0]
+    assert tr.stats.starttime == traces[0].stats.starttime
+    assert tr.stats.endtime == traces[-1].stats.endtime
+    assert tr.stats.npts == 50
+    np.testing.assert_allclose(
+        tr.data,
+        np.concatenate(
+            [
+                np.ones(10),
+                np.ones(10) * 2,
+                np.ones(10) * 3,
+                np.ones(10) * 4,
+                np.ones(10) * 5,
+            ]
+        ),
+    )
+
+    del ds
+    os.remove(asdf_filename)
+
+    # Slightly more complicated merging - it will only append to the back.
+    ds = ASDFDataSet(asdf_filename)
+    ds.append_waveforms(traces[0], tag="random")
+    ds.append_waveforms(traces[2], tag="random")
+    ds.append_waveforms(traces[4], tag="random")
+    ds.append_waveforms(traces[1], tag="random")
+    ds.append_waveforms(traces[3], tag="random")
+
+    assert sorted(ds.waveforms.XX_YY.list()) == [
+        "XX.YY..EHZ__1970-01-01T00:00:00__1970-01-01T00:00:01__random",
+        "XX.YY..EHZ__1970-01-01T00:00:01.190000000__1970-01-01T00:00:01.380000000__random",
+        "XX.YY..EHZ__1970-01-01T00:00:01.390000000__1970-01-01T00:00:01.480000000__random",
+    ]
+
+    st = ds.waveforms.XX_YY.random
+    assert len(st) == 3
+    assert st[0].stats.starttime == traces[0].stats.starttime
+    assert st[0].stats.endtime == traces[1].stats.endtime
+
+    assert st[1].stats.starttime == traces[2].stats.starttime
+    assert st[1].stats.endtime == traces[3].stats.endtime
+
+    assert st[2].stats.starttime == traces[4].stats.starttime
+    assert st[2].stats.endtime == traces[4].stats.endtime
+
+    assert st[0].stats.npts == 20
+    assert st[1].stats.npts == 20
+    assert st[2].stats.npts == 10
+
+    np.testing.assert_allclose(
+        st[0].data, np.concatenate([np.ones(10), np.ones(10) * 2])
+    )
+
+    np.testing.assert_allclose(
+        st[1].data, np.concatenate([np.ones(10) * 3, np.ones(10) * 4])
+    )
+
+    np.testing.assert_allclose(st[2].data, np.ones(10) * 5)
 
 
 def test_dataset_accessing_limit(tmpdir):

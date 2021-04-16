@@ -253,8 +253,7 @@ def test_isolate_and_merge_with_station_level_information():
 
 
 def test_information_from_other_namespaces_is_retained():
-    """
-    """
+    """"""
     extra = obspy.core.AttribDict(
         {
             "my_tag": {
