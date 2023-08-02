@@ -4,3 +4,4 @@ doc/_build/
 pip-wheel-metadata/
 .tox
 /dist
+_doc_build/
