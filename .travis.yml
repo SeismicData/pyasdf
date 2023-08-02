@@ -1,9 +1,9 @@
 language: python
 
 python:
-  - "3.7"
-  - "3.8"
   - "3.9"
+  - "3.10"
+  - "3.11"
 
 env:
   global:
@@ -16,12 +16,12 @@ before_install:
 install:
   - pip install -U numpy pytest python-coveralls pytest-cov
   - pip install .
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then pip install sphinx sphinx_rtd_theme==0.1.9; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.11' ]]; then pip install sphinx sphinx_rtd_theme==0.1.9; fi
 
 script:
   - py.test --cov pyasdf --cov-report term-missing
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.11' ]]; then cd $TRAVIS_BUILD_DIR/doc; make html ; fi
 
 after_success:
   - coveralls
-  - if [[ $TRAVIS_PYTHON_VERSION == '3.7' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == '3.11' ]]; then bash $TRAVIS_BUILD_DIR/.travis-update-gh-pages.sh ; fi

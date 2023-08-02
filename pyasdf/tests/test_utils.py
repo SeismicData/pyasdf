@@ -101,6 +101,6 @@ def test_simple_cache_dictionary():
 
 def test_sizeof_fmt_function():
     assert sizeof_fmt(1024) == "1.0 KB"
-    assert sizeof_fmt(1024 ** 2) == "1.0 MB"
-    assert sizeof_fmt(1024 ** 3) == "1.0 GB"
-    assert sizeof_fmt(1024 ** 4) == "1.0 TB"
+    assert sizeof_fmt(1024**2) == "1.0 MB"
+    assert sizeof_fmt(1024**3) == "1.0 GB"
+    assert sizeof_fmt(1024**4) == "1.0 TB"

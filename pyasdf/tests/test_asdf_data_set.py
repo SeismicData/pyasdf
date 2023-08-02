@@ -1932,17 +1932,14 @@ def test_more_queries(example_data_set):
         return collection
 
     # Get a single trace.
-    assert (
-        collect_ids(
-            ds.ifilter(
-                ds.q.network == "TA",
-                ds.q.station == "POKR",
-                ds.q.location == "",
-                ds.q.channel == "BHZ",
-            )
+    assert collect_ids(
+        ds.ifilter(
+            ds.q.network == "TA",
+            ds.q.station == "POKR",
+            ds.q.location == "",
+            ds.q.channel == "BHZ",
         )
-        == {"TA.POKR..BHZ"}
-    )
+    ) == {"TA.POKR..BHZ"}
 
     # Get nothing with a not existing location code.
     assert not collect_ids(ds.ifilter(ds.q.location == "99"))
@@ -3335,12 +3332,12 @@ def test_only_some_dtypes_are_allowed(tmpdir):
     random.seed(12345)
     for dtype in valid_dtypes:
         tr = obspy.Trace(data=np.zeros(10, dtype=dtype))
-        data_set.add_waveforms(tr, tag=str(random.randint(0, 1e6)))
+        data_set.add_waveforms(tr, tag=str(random.randint(0, 1_000_000)))
 
     for dtype in invalid_dtypes:
         tr = obspy.Trace(data=np.zeros(10, dtype=dtype))
         with pytest.raises(TypeError):
-            data_set.add_waveforms(tr, tag=str(random.randint(0, 1e6)))
+            data_set.add_waveforms(tr, tag=str(random.randint(0, 1_000_000)))
 
 
 def test_waveform_appending(tmpdir):

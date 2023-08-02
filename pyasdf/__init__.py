@@ -13,6 +13,9 @@ from __future__ import (
     unicode_literals,
 )
 
+from importlib.metadata import version, PackageNotFoundError
+
+
 from .exceptions import ASDFException, ASDFWarning, WaveformNotInFileException
 from .asdf_data_set import ASDFDataSet
 
@@ -27,7 +30,10 @@ __all__ = [
     "get_sys_info",
 ]
 
-__version__ = "0.7.5"
+try:
+    __version__ = version("pyasdf")
+except PackageNotFoundError:
+    pass
 
 
 def print_sys_info():

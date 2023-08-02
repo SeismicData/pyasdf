@@ -362,7 +362,7 @@ class AuxiliaryDataAccessor(object):
         self.__data_set = weakref.ref(asdf_data_set)
 
     def __eq__(self, other):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
 
         if self.__auxiliary_data_type != other.__auxiliary_data_type:
@@ -684,7 +684,6 @@ class WaveformAccessor(object):
                 or queries["focal_mechanism"]
                 or queries["labels"]
             ):
-
                 group = self.__hdf5_group
                 try:
                     attrs = group[wf].attrs
@@ -765,7 +764,7 @@ class WaveformAccessor(object):
         return wfs
 
     def __eq__(self, other):
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
         if self._station_name != other._station_name:
             return False
@@ -971,7 +970,7 @@ class WaveformAccessor(object):
         # expensive but we don't really care for small files.
         if (
             self.__data_set().filesize
-            > self.__data_set().single_item_read_limit_in_mb * 1024 ** 2
+            > self.__data_set().single_item_read_limit_in_mb * 1024**2
         ):
             total_size = sum(
                 [

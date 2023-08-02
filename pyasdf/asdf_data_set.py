@@ -21,7 +21,6 @@ import obspy
 
 import collections
 import copy
-from distutils.version import LooseVersion
 import io
 import itertools
 import math
@@ -38,6 +37,7 @@ import dill
 import h5py
 import lxml.etree
 import numpy as np
+import packaging.version
 import prov
 import prov.model
 
@@ -279,7 +279,7 @@ class ASDFDataSet(object):
         assert self.asdf_format_version in SUPPORTED_FORMAT_VERSIONS
 
         # Useful for programmatic checks.
-        self._loose_asdf_format_version = LooseVersion(
+        self._loose_asdf_format_version = packaging.version.parse(
             self.asdf_format_version
         )
 
@@ -309,8 +309,11 @@ class ASDFDataSet(object):
         try:
             self.flush()
             self._close()
-        except (ValueError, TypeError, AttributeError):
-            pass
+        # We never want the __del__ method to raise but at least a warning
+        # should be printed.
+        except Exception as e:
+            msg = f"Failed to flush and close the file due to: {e}"
+            warnings.warn(msg, ASDFWarning)
 
     def __eq__(self, other):
         """
@@ -319,7 +322,7 @@ class ASDFDataSet(object):
 
         :type other:`~pyasdf.asdf_data_set.ASDFDDataSet`
         """
-        if type(self) != type(other):
+        if type(self) is not type(other):
             return False
         if self._waveform_group.keys() != other._waveform_group.keys():
             return False
@@ -375,6 +378,13 @@ class ASDFDataSet(object):
         """
         Flush the underlying HDF5 file.
         """
+        # A boolean check return False if the file has already been closed
+        # and thus cannot be flushed.
+        # There is also a strange interaction with capturing stdout/stderr
+        # where the __file attribute no longer exists. But it should
+        # be pretty safe to assume that we then also don't have to flush.
+        if not getattr(self, "_ASDFDataSet__file", False):
+            return
         self.__file.flush()
 
     def _close(self):
@@ -443,7 +453,6 @@ class ASDFDataSet(object):
         # If it actually is an mpi environment, set the communicator and the
         # rank.
         if self.__is_mpi:
-
             # Check if HDF5 has been complied with parallel I/O.
             c = h5py.get_config()
             if not hasattr(c, "mpi") or not c.mpi:
@@ -894,7 +903,7 @@ class ASDFDataSet(object):
         # Only do the checks if the filesize actually allows for it as its
         # fairly expensive or if start or endtime are given.
         if (
-            (self.filesize > self.single_item_read_limit_in_mb * 1024 ** 2)
+            (self.filesize > self.single_item_read_limit_in_mb * 1024**2)
             or starttime is not None
             or endtime is not None
         ):
@@ -1497,7 +1506,11 @@ class ASDFDataSet(object):
 
         # Add nanoseconds if two waveforms start in the same second. Only do
         # so for recent ASDF versions.
-        if s == e and self._loose_asdf_format_version >= LooseVersion("1.0.2"):
+        if (
+            s == e
+            and self._loose_asdf_format_version
+            >= packaging.version.parse("1.0.2")
+        ):
             s += "." + "%09i" % (start._ns % int(1e9))
             e += "." + "%09i" % (end._ns % int(1e9))
 
@@ -1955,7 +1968,6 @@ class ASDFDataSet(object):
         results = {}
 
         for _i, station in enumerate(jobs):
-
             if self.mpi.rank == 0:
                 print(
                     " -> Processing approximately task %i of %i ..."
@@ -2420,7 +2432,7 @@ class ASDFDataSet(object):
             # the current execution.
             if (
                 self.stream_buffer.get_size()
-                >= MAX_MEMORY_PER_WORKER_IN_MB * 1024 ** 2
+                >= MAX_MEMORY_PER_WORKER_IN_MB * 1024**2
             ):
                 self._send_mpi(
                     None, 0, "WORKER_REQUESTS_WRITE", blocking=False

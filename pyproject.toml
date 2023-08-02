@@ -1,3 +1,45 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyasdf"
+authors = [
+    {name = "Lion Krischer", email = "lion.krischer@gmail.com"},
+]
+description = "Python module for the Adaptable Seismic Data Format (ASDF)."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "BSD-3-Clause"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "colorama",
+    "dill",
+    "h5py",
+    "numpy",
+    "obspy>=1.2.1",
+    "packaging",
+    "prov",
+]
+dynamic = ["version"]
+
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
+
+
 [tool.black]
 line-length = 79
 target_version = ['py37']
