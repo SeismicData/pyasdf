@@ -1,18 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 :copyright:
     Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 import glob
 import inspect
 import io
@@ -46,7 +38,7 @@ data_dir = os.path.join(
 )
 
 
-class Namespace(object):
+class Namespace:
     """
     Simple helper class offering a namespace.
     """
@@ -1432,7 +1424,7 @@ def test_adding_arbitrary_files(tmpdir):
     """
     test_filename = os.path.join(tmpdir.strpath, "temp.json")
     test_dict = {"a": 1, "b": 2}
-    with open(test_filename, "wt") as fh:
+    with open(test_filename, "w") as fh:
         json.dump(test_dict, fh, sort_keys=True)
 
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")

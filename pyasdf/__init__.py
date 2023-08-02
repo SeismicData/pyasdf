@@ -1,18 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 :copyright:
     Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 from importlib.metadata import version, PackageNotFoundError
 
 
@@ -83,7 +75,7 @@ def print_sys_info():
             is_parallel=wm["parallel_h5py"],
             problematic_mp=wm["problematic_multiprocessing"],
             other_modules="\n\t".join(
-                "%s: %s" % (key, value)
+                f"{key}: {value}"
                 for key, value in sorted(
                     wm["module_versions"].items(), key=lambda x: x[0]
                 )

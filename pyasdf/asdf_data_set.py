@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Python implementation of the Adaptable Seismic Data Format (ASDF).
 
@@ -8,13 +7,6 @@ Python implementation of the Adaptable Seismic Data Format (ASDF).
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 # Import ObsPy first as import h5py on some machines will some reset paths
 # and lxml cannot be loaded anymore afterwards...
 import obspy
@@ -89,7 +81,7 @@ from .inventory_utils import isolate_and_merge_station, merge_inventories
 warnings.simplefilter("always", ASDFWarning)
 
 
-class ASDFDataSet(object):
+class ASDFDataSet:
     """
     Object dealing with Adaptable Seismic Data Format (ASDF).
 
@@ -589,7 +581,7 @@ class ASDFDataSet(object):
                 filename_or_object.read(), dtype=np.dtype("byte")
             )
         else:
-            with io.open(filename_or_object, "rb") as fh:
+            with open(filename_or_object, "rb") as fh:
                 data = np.frombuffer(fh.read(), dtype=np.dtype("byte"))
 
         if parameters is None:
@@ -1514,9 +1506,7 @@ class ASDFDataSet(object):
             s += "." + "%09i" % (start._ns % int(1e9))
             e += "." + "%09i" % (end._ns % int(1e9))
 
-        return "{net}.{sta}.{loc}.{cha}__{start}__{end}__{tag}".format(
-            net=net, sta=sta, loc=loc, cha=cha, start=s, end=e, tag=tag
-        )
+        return f"{net}.{sta}.{loc}.{cha}__{s}__{e}__{tag}"
 
     def _add_trace_get_collective_information(
         self,
@@ -2724,7 +2714,7 @@ class _Process(multiprocessing.Process):
         traceback_limit,
         tag_map,
     ):
-        super(_Process, self).__init__()
+        super().__init__()
         self.input_queue = in_queue
         self.output_queue = out_queue
         self.input_filename = in_filename

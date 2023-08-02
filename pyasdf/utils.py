@@ -1,18 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 :copyright:
     Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 import copy
 import collections
 import hashlib
@@ -87,9 +79,9 @@ def sizeof_fmt(num):
     """
     for x in ["bytes", "KB", "MB", "GB"]:
         if num < 1024.0 and num > -1024.0:
-            return "%3.1f %s" % (num, x)
+            return f"{num:3.1f} {x}"
         num /= 1024.0
-    return "%3.1f %s" % (num, "TB")
+    return f"{num:3.1f} TB"
 
 
 def _read_string_array(data):
@@ -100,7 +92,7 @@ def _read_string_array(data):
     return data[()].tobytes().strip()
 
 
-class SimpleBuffer(object):
+class SimpleBuffer:
     """
     Object that can be used as a cache.
 
@@ -137,7 +129,7 @@ class SimpleBuffer(object):
             self._buffer.popitem(last=False)
 
 
-class ProvenanceAccessor(object):
+class ProvenanceAccessor:
     """
     Accessor helper for the provenance records.
     """
@@ -202,7 +194,7 @@ class ProvenanceAccessor(object):
         """
         Return a list of available provenance documents.
         """
-        return sorted((self.__data_set()._provenance_group.keys()))
+        return sorted(self.__data_set()._provenance_group.keys())
 
     def get_provenance_document_for_id(self, provenance_id):
         """
@@ -214,7 +206,7 @@ class ProvenanceAccessor(object):
         """
         # Will raise if not a proper qualified name.
         url, localname = split_qualified_name(provenance_id)
-        name = "{%s}%s" % (url, localname)
+        name = f"{{{url}}}{localname}"
 
         for key, document in self.items():
             all_ids = get_all_ids_for_prov_document(document)
@@ -256,7 +248,7 @@ class ProvenanceAccessor(object):
         p.text(self.__str__())
 
 
-class AuxiliaryDataContainer(object):
+class AuxiliaryDataContainer:
     def __init__(self, data, data_type, tag, parameters):
         self.data = data
         self.data_type = data_type
@@ -337,7 +329,7 @@ class AuxiliaryDataContainer(object):
                 else "\tProvenance ID: '%s'\n" % self.provenance_id,
                 parameters="\n\t\t".join(
                     [
-                        "%s: %s" % (_i[0], _i[1])
+                        f"{_i[0]}: {_i[1]}"
                         for _i in sorted(
                             self.parameters.items(), key=lambda x: x[0]
                         )
@@ -350,7 +342,7 @@ class AuxiliaryDataContainer(object):
         p.text(self.__str__())
 
 
-class AuxiliaryDataAccessor(object):
+class AuxiliaryDataAccessor:
     """
     Helper class to access auxiliary data items.
     """
@@ -493,7 +485,7 @@ class AuxiliaryDataAccessor(object):
         p.text(self.__str__())
 
 
-class AuxiliaryDataGroupAccessor(object):
+class AuxiliaryDataGroupAccessor:
     """
     Helper class to facilitate access to the auxiliary data types.
     """
@@ -569,7 +561,7 @@ class AuxiliaryDataGroupAccessor(object):
         p.text(self.__str__())
 
 
-class StationAccessor(object):
+class StationAccessor:
     """
     Helper class to facilitate access to the waveforms and stations.
     """
@@ -633,7 +625,7 @@ class StationAccessor(object):
             yield self[_i]
 
 
-class WaveformAccessor(object):
+class WaveformAccessor:
     """
     Helper class facilitating access to the actual waveforms and stations.
     """
@@ -943,8 +935,8 @@ class WaveformAccessor(object):
 
             if not keys:
                 raise WaveformNotInFileException(
-                    "Tag '%s' not part of the data set for station '%s'."
-                    % (item, self._station_name)
+                    f"Tag '{item}' not part of the data set for station "
+                    f"'{self._station_name}'."
                 )
             return keys
 
@@ -960,8 +952,8 @@ class WaveformAccessor(object):
             station = self.__data_set()._get_station(self._station_name)
             if station is None:
                 raise AttributeError(
-                    "'%s' object has no attribute '%s'"
-                    % (self.__class__.__name__, str(item))
+                    f"'{self.__class__.__name__}' object has no attribute "
+                    f"'{str(item)}'"
                 )
             return station
 
@@ -1162,7 +1154,7 @@ class StreamBuffer(collections.abc.MutableMapping):
 
 
 # Two objects describing a job and a worker.
-class Job(object):
+class Job:
     __slots__ = "arguments", "result"
 
     def __init__(self, arguments, result=None):
@@ -1176,7 +1168,7 @@ class Job(object):
         )
 
 
-class JobQueueHelper(object):
+class JobQueueHelper:
     """
     A simple helper class managing job distribution to workers.
     """

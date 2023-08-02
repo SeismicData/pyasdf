@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 The only purpose of this file is to be able to run the pyasdf test suite with
 

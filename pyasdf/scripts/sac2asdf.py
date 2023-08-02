@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import argparse
 import collections
 import os
@@ -12,7 +10,7 @@ from obspy.io.sac.util import get_sac_reftime
 import pyasdf
 
 
-class _EventContainer(object):
+class _EventContainer:
     """
     Helper class to correctly add the event and related associations.
     """

@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 :copyright:
     Lion Krischer (lion.krischer@gmail.com), 2013-2021
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import absolute_import, division, print_function
 
 import re
 

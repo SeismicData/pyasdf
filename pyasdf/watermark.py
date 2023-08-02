@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Watermark of the current system to increase reproducibility and provenance
 and ease debugging.
@@ -9,12 +8,6 @@ and ease debugging.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
 
 from multiprocessing import cpu_count
 from pkg_resources import get_distribution

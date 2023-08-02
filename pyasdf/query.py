@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Query helpers.
 
@@ -8,12 +7,6 @@ Query helpers.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
 
 import collections
 import fnmatch
@@ -145,7 +138,7 @@ def compose_or(funcs):
     return __temp
 
 
-class Query(object):
+class Query:
     def __init__(self):
         pass
 
@@ -179,7 +172,7 @@ def merge_query_functions(functions):
     return query
 
 
-class QueryObject(object):
+class QueryObject:
     __slots__ = ["name", "type"]
     numeric_types = (float, obspy.UTCDateTime)
 

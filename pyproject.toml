@@ -43,3 +43,14 @@ local_scheme = "node-and-date"
 [tool.black]
 line-length = 79
 target_version = ['py37']
+
+[tool.ruff]
+select = ["E", "F", "W", "UP"]
+ignore = [
+    # is/is not instead of ==/!=
+    "E711",
+    # Yield from.
+    "UP028",
+    # f-strings instead of percent format.
+    "UP031"
+    ]
