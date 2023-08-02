@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # pyasdf documentation build configuration file, created by
 # sphinx-quickstart on Sun Sep  7 23:52:26 2014.
