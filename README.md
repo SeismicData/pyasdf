@@ -2,16 +2,11 @@
 
 Python module for the Adaptable Seismic Data Format (ASDF).
 
-[![Supported Python versions](https://img.shields.io/pypi/pyversions/pyasdf.svg)](https://pypi.python.org/pypi/pyasdf/) |
 [![PyPI Version](https://img.shields.io/pypi/v/pyasdf.svg)](https://pypi.python.org/pypi/pyasdf) |
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyasdf.svg)](https://anaconda.org/conda-forge/pyasdf) |
 [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/pyasdf.svg)](https://anaconda.org/conda-forge/pyasdf) |
 [![License](https://img.shields.io/pypi/l/pyasdf.svg)](https://pypi.python.org/pypi/pyasdf/) |
-
-[![Build Status](https://travis-ci.org/SeismicData/pyasdf.svg?branch=main)](https://travis-ci.org/SeismicData/pyasdf) |
-[![Build status](https://ci.appveyor.com/api/projects/status/1iditbggou59at6q/branch/main?svg=true)](https://ci.appveyor.com/project/krischer/pyasdf/branch/main) |
-[![Coverage Status](https://img.shields.io/coveralls/SeismicData/pyasdf.svg)](https://coveralls.io/r/SeismicData/pyasdf)
-
+![Build Status](https://github.com/SeismicData/pyasdf/actions/workflows/pyasdf.yml/badge.svg)
 
 ----
 
@@ -28,6 +23,11 @@ Landing page for all things **ASDF**: https://seismic-data.org
 ![Logo](/doc/logo/pyasdf_logo.png)
 
 ### Changelog
+
+#### Version 0.8.0 (August 3, 2023)
+* Drop support for Python <= 3.8.
+* Support for the latest versions of all dependencies including Python 3.11.
+* Internal code modernization.
 
 #### Version 0.7.5 (April 16, 2021)
 * Fix an issue when appending waveforms of less than one second in length.
