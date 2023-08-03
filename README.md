@@ -24,6 +24,9 @@ Landing page for all things **ASDF**: https://seismic-data.org
 
 ### Changelog
 
+#### Version 0.8.1 (August 3, 2023)
+* Fix a bug with the conda package.
+
 #### Version 0.8.0 (August 3, 2023)
 * Drop support for Python <= 3.8.
 * Support for the latest versions of all dependencies including Python 3.11.

@@ -9,7 +9,7 @@ authors = [
 ]
 description = "Python module for the Adaptable Seismic Data Format (ASDF)."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.7"
 license = {text = "BSD-3-Clause"}
 classifiers = [
     "Development Status :: 5 - Production/Stable",

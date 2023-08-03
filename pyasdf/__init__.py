@@ -5,7 +5,7 @@
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-from importlib.metadata import version, PackageNotFoundError
+import sys
 
 
 from .exceptions import ASDFException, ASDFWarning, WaveformNotInFileException
@@ -22,10 +22,21 @@ __all__ = [
     "get_sys_info",
 ]
 
-try:
-    __version__ = version("pyasdf")
-except PackageNotFoundError:
-    pass
+
+if sys.version_info.minor >= 9:
+    from importlib.metadata import version, PackageNotFoundError
+
+    try:
+        __version__ = version("pyasdf")
+    except PackageNotFoundError:
+        pass
+else:
+    import pkg_resources
+
+    try:
+        __version__ = pkg_resources.get_distribution("pyasdf").version
+    except pkg_resources.DistributionNotFound:
+        pass
 
 
 def print_sys_info():
