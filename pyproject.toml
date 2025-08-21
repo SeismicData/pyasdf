@@ -44,7 +44,7 @@ local_scheme = "node-and-date"
 line-length = 79
 target_version = ['py37']
 
-[tool.ruff]
+[tool.ruff.lint]
 select = ["E", "F", "W", "UP"]
 ignore = [
     # is/is not instead of ==/!=

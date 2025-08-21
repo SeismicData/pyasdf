@@ -60,9 +60,7 @@ def get_watermark():
         "hdf5_version": h5py.version.hdf5_version,
         "parallel_h5py": is_parallel,
         "mpi_vendor": vendor[0] if vendor else None,
-        "mpi_vendor_version": (
-            ".".join(map(str, vendor[1])) if vendor else None
-        ),
+        "mpi_vendor_version": (".".join(map(str, vendor[1])) if vendor else None),
         "problematic_multiprocessing": is_multiprocessing_problematic(),
     }
 

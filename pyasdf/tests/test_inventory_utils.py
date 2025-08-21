@@ -41,9 +41,7 @@ def test_merging_stations():
     assert len(inv.networks) == 2
     assert len(inv.select(network="BW")[0].stations) == 3
 
-    new_inv = isolate_and_merge_station(
-        inv, network_id="BW", station_id="RJOB"
-    )
+    new_inv = isolate_and_merge_station(inv, network_id="BW", station_id="RJOB")
 
     # The inventory object should also not be touched.
     assert inv == original_inv
@@ -55,9 +53,7 @@ def test_merging_stations():
     assert new_inv[0][0].code == "RJOB"
 
     # Make sure the station dates have been set correctly.
-    assert new_inv[0][0].start_date == obspy.UTCDateTime(
-        "2001-05-15T00:00:00.000000Z"
-    )
+    assert new_inv[0][0].start_date == obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
     assert new_inv[0][0].end_date is None
 
     # The 9 channels should remain.
@@ -91,9 +87,7 @@ def test_merge_inventories():
     assert new_inv[0][0].code == "RJOB"
 
     # Make sure the station dates have been set correctly.
-    assert new_inv[0][0].start_date == obspy.UTCDateTime(
-        "2001-05-15T00:00:00.000000Z"
-    )
+    assert new_inv[0][0].start_date == obspy.UTCDateTime("2001-05-15T00:00:00.000000Z")
     assert new_inv[0][0].end_date is None
 
     # The 9 channels should remain.

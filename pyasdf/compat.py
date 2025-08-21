@@ -7,11 +7,6 @@ Compatibility between Python version.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
-import sys
 
-if sys.version_info.major == 3:  # pragma: no cover
-    string_types = (bytes, str)
-    unicode_type = str
-else:  # pragma: no cover
-    string_types = (bytes, str, unicode)  # NOQA
-    unicode_type = unicode  # NOQA
+string_types = (bytes, str)
+unicode_type = str

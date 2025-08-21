@@ -118,9 +118,7 @@ def compose_and(funcs):
     def __temp(value):
         # Make a copy to turn a generator into a list to be able to persist.
         functions = list(funcs)
-        return functools.reduce(
-            lambda x, y: x and y, [_i(value) for _i in functions]
-        )
+        return functools.reduce(lambda x, y: x and y, [_i(value) for _i in functions])
 
     return __temp
 
@@ -131,9 +129,7 @@ def compose_or(funcs):
         functions = list(funcs)
         if not functions:
             return True
-        return functools.reduce(
-            lambda x, y: x or y, [_i(value) for _i in functions]
-        )
+        return functools.reduce(lambda x, y: x or y, [_i(value) for _i in functions])
 
     return __temp
 
@@ -266,9 +262,7 @@ class QueryObject:
 
                             return inner_match
 
-                        return compose_or(
-                            [get_inner_match_fct(_j) for _j in value]
-                        )(_i)
+                        return compose_or([get_inner_match_fct(_j) for _j in value])(_i)
 
                     return match
 

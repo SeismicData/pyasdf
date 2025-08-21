@@ -7,6 +7,7 @@ Python implementation of the Adaptable Seismic Data Format (ASDF).
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
+
 # Import ObsPy first as import h5py on some machines will some reset paths
 # and lxml cannot be loaded anymore afterwards...
 import obspy
@@ -168,12 +169,9 @@ class ASDFDataSet:
 
         # Deal with compression settings.
         if compression not in COMPRESSIONS:
-            msg = (
-                "Unknown compressions '%s'. Available compressions: \n\t%s"
-                % (
-                    compression,
-                    "\n\t".join(sorted([str(i) for i in COMPRESSIONS.keys()])),
-                )
+            msg = "Unknown compressions '%s'. Available compressions: \n\t%s" % (
+                compression,
+                "\n\t".join(sorted([str(i) for i in COMPRESSIONS.keys()])),
             )
             raise Exception(msg)
 
@@ -214,14 +212,11 @@ class ASDFDataSet:
             if "file_format_version" not in self.__file.attrs:
                 msg = (
                     "No file format version given in file '%s'. The "
-                    "program will continue but the result is undefined."
-                    % self.filename
+                    "program will continue but the result is undefined." % self.filename
                 )
                 warnings.warn(msg, ASDFWarning)
         else:
-            self.__file.attrs["file_format"] = self._zeropad_ascii_string(
-                FORMAT_NAME
-            )
+            self.__file.attrs["file_format"] = self._zeropad_ascii_string(FORMAT_NAME)
 
         # Deal with the file format version. `format_version` is either None
         # or valid (this is checked above).
@@ -231,9 +226,7 @@ class ASDFDataSet:
             version_in_file = self.__file.attrs["file_format_version"].decode()
 
             if version_in_file not in SUPPORTED_FORMAT_VERSIONS:
-                self.asdf_format_version = (
-                    format_version or __most_recent_version
-                )
+                self.asdf_format_version = format_version or __most_recent_version
                 msg = (
                     "The file claims an ASDF version of %s. This "
                     "version of pyasdf only supports versions: %s. All "
@@ -263,8 +256,8 @@ class ASDFDataSet:
         else:
             # If not given, use the most recent one.
             self.asdf_format_version = format_version or __most_recent_version
-            self.__file.attrs["file_format_version"] = (
-                self._zeropad_ascii_string(self.asdf_format_version)
+            self.__file.attrs["file_format_version"] = self._zeropad_ascii_string(
+                self.asdf_format_version
             )
 
         # Just a final safety check - should not be able to fail!
@@ -328,13 +321,9 @@ class ASDFDataSet:
                 other_data_set = other_group[tag]
                 try:
                     if tag == "StationXML":
-                        np.testing.assert_array_equal(
-                            data_set[()], other_data_set[()]
-                        )
+                        np.testing.assert_array_equal(data_set[()], other_data_set[()])
                     else:
-                        np.testing.assert_allclose(
-                            data_set[()], other_data_set[()]
-                        )
+                        np.testing.assert_allclose(data_set[()], other_data_set[()])
                 except AssertionError:
                     return False
         return True
@@ -466,9 +455,7 @@ class ASDFDataSet:
                 mpi4py.MPI.Init()
 
             # Set mpi tuple to easy class wide access.
-            mpi_ns = collections.namedtuple(
-                "mpi_ns", ["comm", "rank", "size", "MPI"]
-            )
+            mpi_ns = collections.namedtuple("mpi_ns", ["comm", "rank", "size", "MPI"])
             comm = mpi4py.MPI.COMM_WORLD
             self.__is_mpi = mpi_ns(
                 comm=comm, rank=comm.rank, size=comm.size, MPI=mpi4py.MPI
@@ -553,9 +540,7 @@ class ASDFDataSet:
         Returns a set with all tags in the dataset.
         """
         return set(
-            itertools.chain.from_iterable(
-                i.get_waveform_tags() for i in self.waveforms
-            )
+            itertools.chain.from_iterable(i.get_waveform_tags() for i in self.waveforms)
         )
 
     def add_auxiliary_data_file(
@@ -577,9 +562,7 @@ class ASDFDataSet:
             given as a qualified name, e.g. ``'{namespace_uri}id'``.
         """
         if hasattr(filename_or_object, "read"):
-            data = np.frombuffer(
-                filename_or_object.read(), dtype=np.dtype("byte")
-            )
+            data = np.frombuffer(filename_or_object.read(), dtype=np.dtype("byte"))
         else:
             with open(filename_or_object, "rb") as fh:
                 data = np.frombuffer(fh.read(), dtype=np.dtype("byte"))
@@ -595,9 +578,7 @@ class ASDFDataSet:
             provenance_id=provenance_id,
         )
 
-    def add_auxiliary_data(
-        self, data, data_type, path, parameters, provenance_id=None
-    ):
+    def add_auxiliary_data(self, data, data_type, path, parameters, provenance_id=None):
         """
         Adds auxiliary data to the file.
 
@@ -646,13 +627,9 @@ class ASDFDataSet:
         pattern = AUXILIARY_DATA_PATH_PART_PATTERN[self.asdf_format_version]
         if re.match(pattern, data_type) is None:
             raise ASDFValueError(
-                "Data type name '{name}' is invalid. It must validate "
-                "against the regular expression '{pattern}' in ASDF version "
-                "'{version}'.".format(
-                    name=data_type,
-                    pattern=pattern,
-                    version=self.asdf_format_version,
-                )
+                f"Data type name '{data_type}' is invalid. It must validate "
+                f"against the regular expression '{pattern}' in ASDF version "
+                f"'{self.asdf_format_version}'."
             )
 
         # Split the path.
@@ -661,13 +638,9 @@ class ASDFDataSet:
         for path in tag_path:
             if re.match(pattern, path) is None:
                 raise ASDFValueError(
-                    "Path part name '{name}' is invalid. It must validate "
-                    "against the regular expression '{pattern}' in ASDF "
-                    "version '{version}'.".format(
-                        name=path,
-                        pattern=pattern,
-                        version=self.asdf_format_version,
-                    )
+                    f"Path part name '{path}' is invalid. It must validate "
+                    f"against the regular expression '{pattern}' in ASDF "
+                    f"version '{self.asdf_format_version}'."
                 )
 
         if provenance_id is not None:
@@ -685,9 +658,7 @@ class ASDFDataSet:
         if info is None:
             return
         self._add_auxiliary_data_write_collective_information(info=info)
-        self._add_auxiliary_data_write_independent_information(
-            info=info, data=data
-        )
+        self._add_auxiliary_data_write_independent_information(info=info, data=data)
 
     def _add_auxiliary_data_get_collective_information(
         self, data, data_type, tag_path, parameters, provenance_id=None
@@ -715,10 +686,7 @@ class ASDFDataSet:
 
         group_name = "%s/%s" % (data_type, "/".join(tag_path))
         if group_name in self._auxiliary_data_group:
-            msg = (
-                "Data '%s' already exists in file. Will not be added!"
-                % group_name
-            )
+            msg = "Data '%s' already exists in file. Will not be added!" % group_name
             warnings.warn(msg, ASDFWarning)
             return
 
@@ -811,10 +779,7 @@ class ASDFDataSet:
         new_resource_ids = set([_i.resource_id.id for _i in cat])
         intersection = existing_resource_ids.intersection(new_resource_ids)
         if intersection:
-            msg = (
-                "Event id(s) %s already present in ASDF file. Adding "
-                "events cancelled"
-            )
+            msg = "Event id(s) %s already present in ASDF file. Adding events cancelled"
             raise ValueError(msg % ", ".join(intersection))
         old_cat.extend(cat)
 
@@ -837,16 +802,12 @@ class ASDFDataSet:
         station_name = station_name.replace(".", "_")
         station = getattr(self.waveforms, station_name)
         st = getattr(station, tag)
-        inv = (
-            getattr(station, "StationXML") if "StationXML" in station else None
-        )
+        inv = getattr(station, "StationXML") if "StationXML" in station else None
         return st, inv
 
     def _get_idx_and_size_estimate(self, waveform_name, starttime, endtime):
         network, station = waveform_name.split(".")[:2]
-        data = self.__file["Waveforms"]["%s.%s" % (network, station)][
-            waveform_name
-        ]
+        data = self.__file["Waveforms"]["%s.%s" % (network, station)][waveform_name]
 
         idx_start = 0
         idx_end = data.shape[0]
@@ -854,9 +815,7 @@ class ASDFDataSet:
 
         # Starttime is a timestamp in nanoseconds.
         # Get time of first and time of last sample.
-        data_starttime = obspy.UTCDateTime(
-            float(data.attrs["starttime"]) / 1.0e9
-        )
+        data_starttime = obspy.UTCDateTime(float(data.attrs["starttime"]) / 1.0e9)
         data_endtime = data_starttime + float((idx_end - 1) * dt)
 
         # Modify the data indices to restrict the data if necessary.
@@ -871,9 +830,7 @@ class ASDFDataSet:
             idx_end -= offset
 
         # Check the size against the limit.
-        array_size_in_mb = (
-            (idx_end - idx_start) * data.dtype.itemsize / 1024.0 / 1024.0
-        )
+        array_size_in_mb = (idx_end - idx_start) * data.dtype.itemsize / 1024.0 / 1024.0
 
         del data
 
@@ -886,9 +843,7 @@ class ASDFDataSet:
         """
         network, station, location, channel = waveform_name.split(".")[:4]
         channel = channel[: channel.find("__")]
-        data = self.__file["Waveforms"]["%s.%s" % (network, station)][
-            waveform_name
-        ]
+        data = self.__file["Waveforms"]["%s.%s" % (network, station)][waveform_name]
         # Read once upfront to optmize a bit.
         attrs = dict(data.attrs)
 
@@ -924,9 +879,7 @@ class ASDFDataSet:
         else:
             idx_start = 0
             idx_end = data.shape[0]
-            data_starttime = obspy.UTCDateTime(
-                float(attrs["starttime"]) / 1.0e9
-            )
+            data_starttime = obspy.UTCDateTime(float(attrs["starttime"]) / 1.0e9)
 
         tr = obspy.Trace(data=data[idx_start:idx_end])
         tr.stats.starttime = data_starttime
@@ -970,9 +923,7 @@ class ASDFDataSet:
 
         if isinstance(group, h5py.Group):
             return AuxiliaryDataAccessor(
-                auxiliary_data_type=re.sub(
-                    r"^/AuxiliaryData/", "", group.name
-                ),
+                auxiliary_data_type=re.sub(r"^/AuxiliaryData/", "", group.name),
                 asdf_data_set=self,
             )
         return AuxiliaryDataContainer(
@@ -1001,13 +952,9 @@ class ASDFDataSet:
         Pretty string formatting.
         """
         ret = (
-            "{format} file [format version: {version}]: '{filename}' ({"
-            "size})".format(
-                format=FORMAT_NAME,
-                version=self.asdf_format_version_in_file,
-                filename=os.path.relpath(self.filename),
-                size=self.pretty_filesize,
-            )
+            f"{FORMAT_NAME} file [format version: "
+            f"{self.asdf_format_version_in_file}]: "
+            f"'{os.path.relpath(self.filename)}' ({self.pretty_filesize})"
         )
         ret += "\n\tContains %i event(s)" % len(self.events)
         ret += "\n\tContains waveform data from {len} station(s).".format(
@@ -1113,9 +1060,7 @@ class ASDFDataSet:
         :type tag: str
         """
         if self.mpi:
-            raise ASDFException(
-                "This function cannot work with parallel " "MPI I/O."
-            )
+            raise ASDFException("This function cannot work with parallel MPI I/O.")
 
         tag = self.__parse_and_validate_tag(tag)
         waveform = self.__parse_waveform_input_and_validate(waveform)
@@ -1351,10 +1296,7 @@ class ASDFDataSet:
             waveform = obspy.read(waveform)
 
         for trace in waveform:
-            if (
-                trace.data.dtype
-                in VALID_SEISMOGRAM_DTYPES[self.asdf_format_version]
-            ):
+            if trace.data.dtype in VALID_SEISMOGRAM_DTYPES[self.asdf_format_version]:
                 continue
             else:
                 if self.asdf_format_version == "1.0.0":
@@ -1362,8 +1304,7 @@ class ASDFDataSet:
                         "The trace's dtype ('%s') is not allowed "
                         "inside ASDF 1.0.0. Allowed are little "
                         "and big endian 4 and 8 byte signed "
-                        "integers and floating point numbers."
-                        % trace.data.dtype.name
+                        "integers and floating point numbers." % trace.data.dtype.name
                     )
                 elif self.asdf_format_version == "1.0.1":
                     raise TypeError(
@@ -1498,10 +1439,8 @@ class ASDFDataSet:
 
         # Add nanoseconds if two waveforms start in the same second. Only do
         # so for recent ASDF versions.
-        if (
-            s == e
-            and self._loose_asdf_format_version
-            >= packaging.version.parse("1.0.2")
+        if s == e and self._loose_asdf_format_version >= packaging.version.parse(
+            "1.0.2"
         ):
             s += "." + "%09i" % (start._ns % int(1e9))
             e += "." + "%09i" % (end._ns % int(1e9))
@@ -1549,10 +1488,7 @@ class ASDFDataSet:
 
         group_name = "%s/%s" % (station_name, data_name)
         if group_name in self._waveform_group:
-            msg = (
-                "Data '%s' already exists in file. Will not be added!"
-                % group_name
-            )
+            msg = "Data '%s' already exists in file. Will not be added!" % group_name
             warnings.warn(msg, ASDFWarning)
             return
 
@@ -1577,9 +1513,7 @@ class ASDFDataSet:
             },
             "dataset_attrs": {
                 # Starttime is the epoch time in nanoseconds.
-                "starttime": int(
-                    round(trace.stats.starttime.timestamp * 1.0e9)
-                ),
+                "starttime": int(round(trace.stats.starttime.timestamp * 1.0e9)),
                 "sampling_rate": trace.stats.sampling_rate,
             },
         }
@@ -1647,8 +1581,8 @@ class ASDFDataSet:
         ):
             provenance_id = trace.stats.asdf["provenance_id"]
         if provenance_id:
-            info["dataset_attrs"]["provenance_id"] = (
-                self._zeropad_ascii_string(str(provenance_id))
+            info["dataset_attrs"]["provenance_id"] = self._zeropad_ascii_string(
+                str(provenance_id)
             )
 
         return info
@@ -1749,9 +1683,7 @@ class ASDFDataSet:
         """
         # If not already an inventory object, delegate to ObsPy and see if
         # it can read it.
-        if not isinstance(
-            stationxml, obspy.core.inventory.inventory.Inventory
-        ):
+        if not isinstance(stationxml, obspy.core.inventory.inventory.Inventory):
             stationxml = obspy.read_inventory(stationxml, format="stationxml")
 
         # Now we essentially walk the whole inventory, see what parts are
@@ -1819,9 +1751,7 @@ class ASDFDataSet:
                 summary["no_station_information"] += 1
                 continue
             elif has_waveforms is False:
-                print(
-                    "Station with no waveforms: '%s'" % station._station_name
-                )
+                print("Station with no waveforms: '%s'" % station._station_name)
                 summary["no_waveforms"] += 1
                 continue
             summary["good_stations"] += 1
@@ -1861,11 +1791,7 @@ class ASDFDataSet:
 
             # Check if the coordinates have to be parsed. Only station level
             # coordinates are used.
-            if (
-                queries["latitude"]
-                or queries["longitude"]
-                or queries["elevation_in_m"]
-            ):
+            if queries["latitude"] or queries["longitude"] or queries["elevation_in_m"]:
                 # This will parse the StationXML files in a very fast manner
                 # (but this is still an I/O heavy process!)
                 try:
@@ -1972,9 +1898,9 @@ class ASDFDataSet:
             except Exception:
                 # If an exception is raised print a good error message
                 # and traceback to help diagnose the issue.
-                msg = (
-                    "\nError during the processing of station '%s' "
-                    "on rank %i:" % (station, self.mpi.rank)
+                msg = "\nError during the processing of station '%s' on rank %i:" % (
+                    station,
+                    self.mpi.rank,
                 )
 
                 # Extract traceback from the exception.
@@ -2193,10 +2119,7 @@ class ASDFDataSet:
 
         __last_print = time.time()
 
-        print(
-            "Launching processing using MPI on %i processors."
-            % self.mpi.comm.size
-        )
+        print("Launching processing using MPI on %i processors." % self.mpi.comm.size)
 
         # Barrier to indicate we are ready for looping. Must be repeated in
         # each worker node!
@@ -2212,8 +2135,7 @@ class ASDFDataSet:
                 __last_print = time.time()
 
             if (len(workers_requesting_write) >= 0.5 * self.mpi.comm.size) or (
-                len(workers_requesting_write)
-                and jobs.all_poison_pills_received
+                len(workers_requesting_write) and jobs.all_poison_pills_received
             ):
                 if self.debug:
                     print("MASTER: initializing metadata synchronization.")
@@ -2224,9 +2146,7 @@ class ASDFDataSet:
                 # The message will ready each worker for a collective
                 # operation once its current operation is ready.
                 requests = [
-                    self._send_mpi(
-                        None, rank, "MASTER_FORCES_WRITE", blocking=False
-                    )
+                    self._send_mpi(None, rank, "MASTER_FORCES_WRITE", blocking=False)
                     for rank in worker_nodes
                 ]
                 self.mpi.MPI.Request.waitall(requests)
@@ -2360,9 +2280,7 @@ class ASDFDataSet:
             # stuff still might require to be written.
             if station_tag == POISON_PILL:
                 if self.stream_buffer:
-                    self._send_mpi(
-                        None, 0, "WORKER_REQUESTS_WRITE", blocking=False
-                    )
+                    self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE", blocking=False)
                     worker_state["waiting_for_write"] = True
                 worker_state["poison_pill_received"] = True
                 self._send_mpi(None, 0, "POISON_PILL_RECEIVED", blocking=False)
@@ -2420,13 +2338,8 @@ class ASDFDataSet:
 
             # If the buffer is too large, request from the master to stop
             # the current execution.
-            if (
-                self.stream_buffer.get_size()
-                >= MAX_MEMORY_PER_WORKER_IN_MB * 1024**2
-            ):
-                self._send_mpi(
-                    None, 0, "WORKER_REQUESTS_WRITE", blocking=False
-                )
+            if self.stream_buffer.get_size() >= MAX_MEMORY_PER_WORKER_IN_MB * 1024**2:
+                self._send_mpi(None, 0, "WORKER_REQUESTS_WRITE", blocking=False)
                 worker_state["waiting_for_write"] = True
 
         print("Worker %i shutting down..." % self.mpi.rank)
@@ -2562,10 +2475,7 @@ class ASDFDataSet:
                 )
             )
 
-        print(
-            "Launching processing using multiprocessing on %i cores ..."
-            % cpu_count
-        )
+        print("Launching processing using multiprocessing on %i cores ..." % cpu_count)
         _start = time.time()
 
         for process in processes:

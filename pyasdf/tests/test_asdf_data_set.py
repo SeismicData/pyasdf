@@ -5,6 +5,7 @@
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
+
 import glob
 import inspect
 import io
@@ -122,12 +123,8 @@ def test_data_set_creation(tmpdir):
     # ObsPy is tested enough to make this comparison meaningful.
     for station in (("AE", "113A"), ("TA", "POKR")):
         # Test the waveforms
-        stream_asdf = getattr(
-            data_set.waveforms, "%s_%s" % station
-        ).raw_recording
-        stream_file = obspy.read(
-            os.path.join(data_path, "%s.%s.*.mseed" % station)
-        )
+        stream_asdf = getattr(data_set.waveforms, "%s_%s" % station).raw_recording
+        stream_file = obspy.read(os.path.join(data_path, "%s.%s.*.mseed" % station))
         # Delete the file format specific stats attributes. These are
         # meaningless inside ASDF data sets.
         for trace in stream_file:
@@ -384,9 +381,7 @@ def test_saving_event_id(tmpdir):
     data_set = ASDFDataSet(filename)
     data_set.add_quakeml(event)
     waveform = obspy.read(os.path.join(data_path, "TA.*.mseed")).sort()
-    data_set.add_waveforms(
-        waveform, "raw_recording", event_id=event.resource_id
-    )
+    data_set.add_waveforms(waveform, "raw_recording", event_id=event.resource_id)
     st = data_set.waveforms.TA_POKR.raw_recording
     for tr in st:
         assert tr.stats.asdf.event_ids[0].get_referred_object() == event
@@ -445,9 +440,7 @@ def test_detailed_event_association_is_persistent_through_processing(
     assert event.resource_id == processed_st[0].stats.asdf.event_ids[0]
     assert origin.resource_id == processed_st[0].stats.asdf.origin_ids[0]
     assert magnitude.resource_id == processed_st[0].stats.asdf.magnitude_ids[0]
-    assert (
-        focmec.resource_id == processed_st[0].stats.asdf.focal_mechanism_ids[0]
-    )
+    assert focmec.resource_id == processed_st[0].stats.asdf.focal_mechanism_ids[0]
 
 
 def test_tag_iterator(example_data_set):
@@ -622,8 +615,8 @@ def test_format_version_handling(tmpdir):
     os.remove(filename)
     # Both can also differ.
     with ASDFDataSet(filename) as ds:
-        ds._ASDFDataSet__file.attrs["file_format_version"] = (
-            ds._zeropad_ascii_string("x.x.x")
+        ds._ASDFDataSet__file.attrs["file_format_version"] = ds._zeropad_ascii_string(
+            "x.x.x"
         )
         assert ds.asdf_format_version_in_file == "x.x.x"
         assert ds.asdf_format_version == "1.0.3"
@@ -642,8 +635,8 @@ def test_format_version_handling(tmpdir):
     os.remove(filename)
     # Both can also differ.
     with ASDFDataSet(filename) as ds:
-        ds._ASDFDataSet__file.attrs["file_format_version"] = (
-            ds._zeropad_ascii_string("x.x.x")
+        ds._ASDFDataSet__file.attrs["file_format_version"] = ds._zeropad_ascii_string(
+            "x.x.x"
         )
         assert ds.asdf_format_version_in_file == "x.x.x"
     with warnings.catch_warnings(record=True) as w:
@@ -772,9 +765,7 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     new_data_set = ASDFDataSet(asdf_filename)
 
     assert len(new_data_set.auxiliary_data) == 1
-    assert sorted(dir(new_data_set.auxiliary_data)), sorted(
-        ["list", "RandomArrays"]
-    )
+    assert sorted(dir(new_data_set.auxiliary_data)), sorted(["list", "RandomArrays"])
 
     aux_data = new_data_set.auxiliary_data.RandomArrays.test_data
     np.testing.assert_equal(data, aux_data.data)
@@ -794,9 +785,7 @@ def test_reading_and_writing_auxiliary_data(tmpdir):
     del new_data_set
 
     newer_data_set = ASDFDataSet(asdf_filename)
-    aux_data = (
-        newer_data_set.auxiliary_data.RandomArrays.some.nested.path.test_data
-    )
+    aux_data = newer_data_set.auxiliary_data.RandomArrays.some.nested.path.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
     aux_data.path == path
@@ -869,7 +858,7 @@ def test_accessing_non_existent_tag_raises(example_data_set):
             data_set.waveforms.AE_113A.asdfasdf
 
         assert excinfo.value.args[0] == (
-            "Tag 'asdfasdf' not part of the data " "set for station 'AE.113A'."
+            "Tag 'asdfasdf' not part of the data set for station 'AE.113A'."
         )
     finally:
         data_set.__del__()
@@ -996,9 +985,7 @@ def test_coordinate_extraction_channel_level(example_data_set):
         ],
     }
 
-    assert sorted(
-        data_set.waveforms.TA_POKR.channel_coordinates.keys()
-    ) == sorted(
+    assert sorted(data_set.waveforms.TA_POKR.channel_coordinates.keys()) == sorted(
         [
             "TA.POKR.01.BHZ",
             "TA.POKR..BHE",
@@ -1105,9 +1092,7 @@ def test_str_method_provenance_documents(tmpdir):
     filename = os.path.join(data_dir, "example_schematic_processing_chain.xml")
     data_set.add_provenance_document(filename, name="test_provenance")
 
-    assert str(data_set.provenance) == (
-        "1 Provenance Document(s):\n\ttest_provenance"
-    )
+    assert str(data_set.provenance) == ("1 Provenance Document(s):\n\ttest_provenance")
 
 
 def test_reading_and_writing_n_dimensional_auxiliary_data(tmpdir):
@@ -1250,10 +1235,7 @@ def test_more_lenient_auxiliary_data_type_names_in_1_0_3(tmpdir):
         np.testing.assert_equal(
             ds.auxiliary_data["2D.RandomArray"].test_data.data[:], data
         )
-        assert (
-            ds.auxiliary_data["2D.RandomArray"].test_data.parameters
-            == parameters
-        )
+        assert ds.auxiliary_data["2D.RandomArray"].test_data.parameters == parameters
 
 
 def test_reading_and_writing_auxiliary_data_with_provenance_id(tmpdir):
@@ -1342,9 +1324,7 @@ def test_str_method_of_aux_data(tmpdir):
         parameters=parameters,
     )
 
-    assert str(
-        data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data
-    ) == (
+    assert str(data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data) == (
         "Auxiliary Data of Type 'RandomArrays'\n"
         "\tPath: 'some/deeper/path/test_data'\n"
         "\tData shape: '(10, 10)', dtype: 'float64'\n"
@@ -1498,9 +1478,7 @@ def test_str_of_auxiliary_data_accessor(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     data_set = ASDFDataSet(asdf_filename)
 
-    assert str(data_set.auxiliary_data) == (
-        "Data set contains no auxiliary data."
-    )
+    assert str(data_set.auxiliary_data) == ("Data set contains no auxiliary data.")
 
     data = np.random.random((10, 10))
     data_type = "RandomArrays"
@@ -1557,15 +1535,11 @@ def test_str_of_auxiliary_data_accessor(tmpdir):
     )
 
     assert str(data_set.auxiliary_data.SomethingElse.some) == (
-        "1 auxiliary data sub group(s) of type 'SomethingElse/some' "
-        "available:\n"
-        "\tdeep"
+        "1 auxiliary data sub group(s) of type 'SomethingElse/some' available:\n\tdeep"
     )
 
     assert str(data_set.auxiliary_data.SomethingElse.some.deep) == (
-        "1 auxiliary data item(s) of type 'SomethingElse/some/deep' "
-        "available:\n"
-        "\tpath"
+        "1 auxiliary data item(s) of type 'SomethingElse/some/deep' available:\n\tpath"
     )
 
 
@@ -1577,9 +1551,7 @@ def test_item_access_of_auxiliary_data(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     data_set = ASDFDataSet(asdf_filename)
 
-    assert str(data_set.auxiliary_data) == (
-        "Data set contains no auxiliary data."
-    )
+    assert str(data_set.auxiliary_data) == ("Data set contains no auxiliary data.")
 
     data = np.random.random((10, 10))
     data_type = "RandomArrays"
@@ -1641,20 +1613,14 @@ def test_detailed_waveform_access(example_data_set):
 
     assert st.get_waveform_tags() == ["raw_recording"]
     assert st.list() == [
-        "AE.113A..BHE__2013-05-24T05:40:00__2013-05-24T06:50:00"
-        "__raw_recording",
-        "AE.113A..BHN__2013-05-24T05:40:00__2013-05-24T06:50:00"
-        "__raw_recording",
-        "AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00"
-        "__raw_recording",
+        "AE.113A..BHE__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording",
+        "AE.113A..BHN__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording",
+        "AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording",
         "StationXML",
     ]
 
     assert (
-        st[
-            "AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00"
-            "__raw_recording"
-        ][0]
+        st["AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording"][0]
         == st.raw_recording.select(channel="BHZ")[0]
     )
 
@@ -1782,9 +1748,7 @@ def test_event_iteration(example_data_set):
     # None.
     result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_id)]
     assert result == ["AA.AA", "BB.BB"]
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.event == str(event_id))
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == str(event_id))]
     assert result == ["AA.AA", "BB.BB"]
     result = [
         _i._station_name
@@ -1800,9 +1764,7 @@ def test_event_iteration(example_data_set):
     # None.
     result = [_i._station_name for _i in ds.ifilter(ds.q.origin == origin_id)]
     assert result == ["AA.AA", "CC.CC"]
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.origin == str(origin_id))
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.origin == str(origin_id))]
     assert result == ["AA.AA", "CC.CC"]
     result = [
         _i._station_name
@@ -1812,33 +1774,24 @@ def test_event_iteration(example_data_set):
 
     # Magnitude as a resource identifier and as a string, and with others equal
     # to None.
+    result = [_i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_id)]
+    assert result == ["AA.AA", "DD.DD"]
     result = [
-        _i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_id)
+        _i._station_name for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id))
     ]
     assert result == ["AA.AA", "DD.DD"]
     result = [
         _i._station_name
-        for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id))
-    ]
-    assert result == ["AA.AA", "DD.DD"]
-    result = [
-        _i._station_name
-        for _i in ds.ifilter(
-            ds.q.magnitude == str(magnitude_id), ds.q.origin == None
-        )
+        for _i in ds.ifilter(ds.q.magnitude == str(magnitude_id), ds.q.origin == None)
     ]  # NOQA
     assert result == ["DD.DD"]
 
     # focmec as a resource identifier and as a string, and with others equal to
     # None.
-    result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.focal_mechanism == focmec_id)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.focal_mechanism == focmec_id)]
     assert result == ["AA.AA", "EE.EE"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id))
+        _i._station_name for _i in ds.ifilter(ds.q.focal_mechanism == str(focmec_id))
     ]
     assert result == ["AA.AA", "EE.EE"]
     result = [
@@ -1962,9 +1915,11 @@ def test_more_queries(example_data_set):
 
     # Geographic constraints. Will never return the BW channels as they have
     # no coordinate information.
-    assert collect_ids(
-        ds.ifilter(ds.q.latitude >= 30.0, ds.q.latitude <= 40.0)
-    ) == {"AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
+    assert collect_ids(ds.ifilter(ds.q.latitude >= 30.0, ds.q.latitude <= 40.0)) == {
+        "AE.113A..BHE",
+        "AE.113A..BHN",
+        "AE.113A..BHZ",
+    }
     assert collect_ids(
         ds.ifilter(ds.q.longitude >= -120.0, ds.q.longitude <= -110.0)
     ) == {"AE.113A..BHE", "AE.113A..BHN", "AE.113A..BHZ"}
@@ -1999,24 +1954,19 @@ def test_more_queries(example_data_set):
 
     # Exact endtime
     assert collect_ids(
-        ds.ifilter(
-            ds.q.endtime <= obspy.UTCDateTime("2009-08-24T00:20:32.990000Z")
-        )
+        ds.ifilter(ds.q.endtime <= obspy.UTCDateTime("2009-08-24T00:20:32.990000Z"))
     ) == {"BW.RJOB..EHE", "BW.RJOB..EHN", "BW.RJOB..EHZ"}
     assert (
         collect_ids(
             ds.ifilter(
-                ds.q.endtime
-                <= obspy.UTCDateTime("2009-08-24T00:20:32.990000Z") - 1
+                ds.q.endtime <= obspy.UTCDateTime("2009-08-24T00:20:32.990000Z") - 1
             )
         )
         == set()
     )
     assert (
         collect_ids(
-            ds.ifilter(
-                ds.q.endtime < obspy.UTCDateTime("2009-08-24T00:20:32.990000Z")
-            )
+            ds.ifilter(ds.q.endtime < obspy.UTCDateTime("2009-08-24T00:20:32.990000Z"))
         )
         == set()
     )
@@ -2200,15 +2150,11 @@ def test_queries_for_labels(tmpdir):
     assert result == ["BB.BB", "CC.CC", "DD.DD"]
 
     # No labels.
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.labels == None)
-    ]  # NOQA
+    result = [_i._station_name for _i in ds.ifilter(ds.q.labels == None)]  # NOQA
     assert result == ["AA.AA"]
 
     # Any label.
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.labels != None)
-    ]  # NOQA
+    result = [_i._station_name for _i in ds.ifilter(ds.q.labels != None)]  # NOQA
     assert result == ["BB.BB", "CC.CC", "DD.DD"]
 
     # Unicode wildcard.
@@ -2216,9 +2162,7 @@ def test_queries_for_labels(tmpdir):
     assert result == ["CC.CC"]
 
     # BB and DD.
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.labels == ["wha?", "sin*"])
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.labels == ["wha?", "sin*"])]
     assert result == ["BB.BB", "DD.DD"]
 
     # CC
@@ -2245,17 +2189,11 @@ def test_waveform_accessor_attribute_access_error_handling(example_data_set):
 
     with pytest.raises(AttributeError) as e:
         ds.waveforms.BW_RJOB.StationXML
-    assert (
-        e.value.args[0]
-        == "'WaveformAccessor' object has no attribute 'StationXML'"
-    )
+    assert e.value.args[0] == "'WaveformAccessor' object has no attribute 'StationXML'"
 
     with pytest.raises(KeyError) as e:
         ds.waveforms.BW_RJOB["StationXML"]
-    assert (
-        e.value.args[0]
-        == "'WaveformAccessor' object has no attribute 'StationXML'"
-    )
+    assert e.value.args[0] == "'WaveformAccessor' object has no attribute 'StationXML'"
 
     del ds
 
@@ -2282,9 +2220,7 @@ def test_reading_and_writing_auxiliary_nested_auxiliary_data(tmpdir):
 
     new_data_set = ASDFDataSet(asdf_filename)
 
-    aux_data = (
-        new_data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data
-    )
+    aux_data = new_data_set.auxiliary_data.RandomArrays.some.deeper.path.test_data
     np.testing.assert_equal(data, aux_data.data)
     aux_data.data_type == data_type
     aux_data.path == path
@@ -2398,17 +2334,13 @@ def test_deletions_of_dataset_object(tmpdir):
     with pytest.raises(AttributeError) as excinfo:
         del ds.random
 
-    assert excinfo.value.args[0] == (
-        "'ASDFDataSet' object has no attribute 'random'"
-    )
+    assert excinfo.value.args[0] == ("'ASDFDataSet' object has no attribute 'random'")
     del excinfo
 
     # Existing but other attributes cannot be deleted.
     with pytest.raises(AttributeError) as excinfo:
         del ds.waveforms
-    assert excinfo.value.args[0] == (
-        "Attribute 'waveforms' cannot be " "deleted."
-    )
+    assert excinfo.value.args[0] == ("Attribute 'waveforms' cannot be deleted.")
     del excinfo
 
 
@@ -2442,9 +2374,7 @@ def test_deletion_of_whole_waveform_groups(tmpdir):
     # Existing but other attributes cannot be deleted.
     with pytest.raises(AttributeError) as excinfo:
         del ds.waveforms.__init__
-    assert excinfo.value.args[0] == (
-        "Attribute '__init__' cannot be " "deleted."
-    )
+    assert excinfo.value.args[0] == ("Attribute '__init__' cannot be deleted.")
     del excinfo
 
     # Same thing, but this time with item access.
@@ -2668,7 +2598,7 @@ def test_using_invalid_tag_names(tmpdir):
         data_set.add_waveforms(st, tag="_$$$Hello")
 
     assert e.value.args[0] == (
-        "Invalid tag: '_$$$Hello' - Must satisfy the " "regex '^[a-z_0-9]+$'."
+        "Invalid tag: '_$$$Hello' - Must satisfy the regex '^[a-z_0-9]+$'."
     )
 
     del e
@@ -2905,16 +2835,12 @@ def test_event_iteration_with_multiple_events(tmpdir):
     # Only the magnitude.
     tr.stats.network = "DD"
     tr.stats.station = "DD"
-    ds.add_waveforms(
-        tr, tag="random_d", magnitude_id=[magnitude_1, magnitude_2]
-    )
+    ds.add_waveforms(tr, tag="random_d", magnitude_id=[magnitude_1, magnitude_2])
 
     # Only the focal mechanisms.
     tr.stats.network = "EE"
     tr.stats.station = "EE"
-    ds.add_waveforms(
-        tr, tag="random_e", focal_mechanism_id=[focmec_1, focmec_2]
-    )
+    ds.add_waveforms(tr, tag="random_e", focal_mechanism_id=[focmec_1, focmec_2])
 
     # Nothing.
     tr.stats.network = "FF"
@@ -2938,14 +2864,10 @@ def test_event_iteration_with_multiple_events(tmpdir):
     # Both events in various realizations.
     result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_1)]
     assert result == ["AA.AA", "BB.BB"]
-    result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.event == event_1.resource_id)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_1.resource_id)]
     assert result == ["AA.AA", "BB.BB"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.event == str(event_1.resource_id))
+        _i._station_name for _i in ds.ifilter(ds.q.event == str(event_1.resource_id))
     ]
     assert result == ["AA.AA", "BB.BB"]
     result = [
@@ -2959,14 +2881,10 @@ def test_event_iteration_with_multiple_events(tmpdir):
     assert result == ["BB.BB"]
     result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_2)]
     assert result == ["AA.AA", "BB.BB"]
-    result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.event == event_2.resource_id)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.event == event_2.resource_id)]
     assert result == ["AA.AA", "BB.BB"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.event == str(event_2.resource_id))
+        _i._station_name for _i in ds.ifilter(ds.q.event == str(event_2.resource_id))
     ]
     assert result == ["AA.AA", "BB.BB"]
     result = [
@@ -2984,13 +2902,11 @@ def test_event_iteration_with_multiple_events(tmpdir):
     result = [_i._station_name for _i in ds.ifilter(ds.q.origin == origin_1)]
     assert result == ["AA.AA", "CC.CC"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.origin == origin_1.resource_id)
+        _i._station_name for _i in ds.ifilter(ds.q.origin == origin_1.resource_id)
     ]
     assert result == ["AA.AA", "CC.CC"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.origin == str(origin_1.resource_id))
+        _i._station_name for _i in ds.ifilter(ds.q.origin == str(origin_1.resource_id))
     ]
     assert result == ["AA.AA", "CC.CC"]
     result = [
@@ -3001,13 +2917,11 @@ def test_event_iteration_with_multiple_events(tmpdir):
     result = [_i._station_name for _i in ds.ifilter(ds.q.origin == origin_2)]
     assert result == ["AA.AA", "CC.CC"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.origin == origin_2.resource_id)
+        _i._station_name for _i in ds.ifilter(ds.q.origin == origin_2.resource_id)
     ]
     assert result == ["AA.AA", "CC.CC"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.origin == str(origin_2.resource_id))
+        _i._station_name for _i in ds.ifilter(ds.q.origin == str(origin_2.resource_id))
     ]
     assert result == ["AA.AA", "CC.CC"]
     result = [
@@ -3018,13 +2932,10 @@ def test_event_iteration_with_multiple_events(tmpdir):
 
     # Magnitude as a resource identifier and as a string, and with others
     # equal to None.
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_1)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_1)]
     assert result == ["AA.AA", "DD.DD"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.magnitude == magnitude_1.resource_id)
+        _i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_1.resource_id)
     ]
     assert result == ["AA.AA", "DD.DD"]
     result = [
@@ -3037,13 +2948,10 @@ def test_event_iteration_with_multiple_events(tmpdir):
         for _i in ds.ifilter(ds.q.magnitude == magnitude_1, ds.q.event == None)
     ]  # NOQA
     assert result == ["DD.DD"]
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_2)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_2)]
     assert result == ["AA.AA", "DD.DD"]
     result = [
-        _i._station_name
-        for _i in ds.ifilter(ds.q.magnitude == magnitude_2.resource_id)
+        _i._station_name for _i in ds.ifilter(ds.q.magnitude == magnitude_2.resource_id)
     ]
     assert result == ["AA.AA", "DD.DD"]
     result = [
@@ -3059,9 +2967,7 @@ def test_event_iteration_with_multiple_events(tmpdir):
 
     # Focal mechanisms as a resource identifier and as a string, and with
     # others equal to None.
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.focal_mechanism == focmec_1)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.focal_mechanism == focmec_1)]
     assert result == ["AA.AA", "EE.EE"]
     result = [
         _i._station_name
@@ -3075,14 +2981,10 @@ def test_event_iteration_with_multiple_events(tmpdir):
     assert result == ["AA.AA", "EE.EE"]
     result = [
         _i._station_name
-        for _i in ds.ifilter(
-            ds.q.focal_mechanism == focmec_1, ds.q.event == None
-        )
+        for _i in ds.ifilter(ds.q.focal_mechanism == focmec_1, ds.q.event == None)
     ]  # NOQA
     assert result == ["EE.EE"]
-    result = [
-        _i._station_name for _i in ds.ifilter(ds.q.focal_mechanism == focmec_2)
-    ]
+    result = [_i._station_name for _i in ds.ifilter(ds.q.focal_mechanism == focmec_2)]
     assert result == ["AA.AA", "EE.EE"]
     result = [
         _i._station_name
@@ -3096,9 +2998,7 @@ def test_event_iteration_with_multiple_events(tmpdir):
     assert result == ["AA.AA", "EE.EE"]
     result = [
         _i._station_name
-        for _i in ds.ifilter(
-            ds.q.focal_mechanism == focmec_2, ds.q.event == None
-        )
+        for _i in ds.ifilter(ds.q.focal_mechanism == focmec_2, ds.q.event == None)
     ]  # NOQA
     assert result == ["EE.EE"]
 
@@ -3230,9 +3130,7 @@ def test_auxiliary_data_accessor_missing_lines(tmpdir):
     assert accessor_1.auxiliary_data_type == "AA"
     assert accessor_2.auxiliary_data_type == "BB"
 
-    assert sorted(dir(accessor_1)) == sorted(
-        ["random", "auxiliary_data_type", "list"]
-    )
+    assert sorted(dir(accessor_1)) == sorted(["random", "auxiliary_data_type", "list"])
 
     # Test comparision methods.
     assert accessor_1 == data_set.auxiliary_data.AA
@@ -3339,21 +3237,11 @@ def test_waveform_appending(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
 
     traces = [
-        obspy.Trace(
-            data=np.ones(10), header={"starttime": obspy.UTCDateTime(0)}
-        ),
-        obspy.Trace(
-            data=np.ones(10), header={"starttime": obspy.UTCDateTime(10)}
-        ),
-        obspy.Trace(
-            data=np.ones(10), header={"starttime": obspy.UTCDateTime(20)}
-        ),
-        obspy.Trace(
-            data=np.ones(10), header={"starttime": obspy.UTCDateTime(30)}
-        ),
-        obspy.Trace(
-            data=np.ones(10), header={"starttime": obspy.UTCDateTime(40)}
-        ),
+        obspy.Trace(data=np.ones(10), header={"starttime": obspy.UTCDateTime(0)}),
+        obspy.Trace(data=np.ones(10), header={"starttime": obspy.UTCDateTime(10)}),
+        obspy.Trace(data=np.ones(10), header={"starttime": obspy.UTCDateTime(20)}),
+        obspy.Trace(data=np.ones(10), header={"starttime": obspy.UTCDateTime(30)}),
+        obspy.Trace(data=np.ones(10), header={"starttime": obspy.UTCDateTime(40)}),
     ]
 
     for tr in traces:
@@ -3393,9 +3281,7 @@ def test_waveform_appending_less_than_one_second_of_waveforms(tmpdir):
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
 
     traces = [
-        obspy.Trace(
-            data=np.ones(10), header={"starttime": obspy.UTCDateTime(0.99)}
-        ),
+        obspy.Trace(data=np.ones(10), header={"starttime": obspy.UTCDateTime(0.99)}),
         obspy.Trace(
             data=np.ones(10) * 2, header={"starttime": obspy.UTCDateTime(1.09)}
         ),
@@ -3536,9 +3422,7 @@ def test_dataset_accessing_limit(tmpdir):
 
     # Slightly different error message for direct access.
     with pytest.raises(ASDFValueError) as e:
-        ds._get_waveform(
-            "XX.YY..BHZ__1970-01-01T00:00:00__1970-01-02T12:24:31__random"
-        )
+        ds._get_waveform("XX.YY..BHZ__1970-01-01T00:00:00__1970-01-02T12:24:31__random")
     assert e.value.args[0] == (
         "The current selection would read 0.50 MB into memory from "
         "'XX.YY..BHZ__1970-01-01T00:00:00__"
@@ -3558,9 +3442,7 @@ def test_get_waveforms_method(tmpdir):
     # Create some data that can be tested with.
     asdf_filename = os.path.join(tmpdir.strpath, "test.h5")
     traces = [
-        obspy.Trace(
-            data=np.ones(10) * 0.0, header={"starttime": obspy.UTCDateTime(0)}
-        ),
+        obspy.Trace(data=np.ones(10) * 0.0, header={"starttime": obspy.UTCDateTime(0)}),
         obspy.Trace(
             data=np.ones(10) * 1.0, header={"starttime": obspy.UTCDateTime(10)}
         ),
@@ -3650,29 +3532,23 @@ def test_warning_that_data_exists_shows_up_every_time(tmpdir):
 def test_get_waveform_attributes(example_data_set):
     with ASDFDataSet(example_data_set.filename) as ds:
         assert ds.waveforms.AE_113A.get_waveform_attributes() == {
-            "AE.113A..BHE__2013-05-24T05:40:00__"
-            "2013-05-24T06:50:00__raw_recording": {
+            "AE.113A..BHE__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording": {
                 "event_ids": [
-                    "smi:service.iris.edu/fdsnws/event/1/query?"
-                    "eventid=4218658"
+                    "smi:service.iris.edu/fdsnws/event/1/query?eventid=4218658"
                 ],
                 "sampling_rate": 40.0,
                 "starttime": 1369374000000000000,
             },
-            "AE.113A..BHN__2013-05-24T05:40:00__"
-            "2013-05-24T06:50:00__raw_recording": {
+            "AE.113A..BHN__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording": {
                 "event_ids": [
-                    "smi:service.iris.edu/fdsnws/event/1/query?"
-                    "eventid=4218658"
+                    "smi:service.iris.edu/fdsnws/event/1/query?eventid=4218658"
                 ],
                 "sampling_rate": 40.0,
                 "starttime": 1369374000000000000,
             },
-            "AE.113A..BHZ__2013-05-24T05:40:00__"
-            "2013-05-24T06:50:00__raw_recording": {
+            "AE.113A..BHZ__2013-05-24T05:40:00__2013-05-24T06:50:00__raw_recording": {
                 "event_ids": [
-                    "smi:service.iris.edu/fdsnws/event/1/query?"
-                    "eventid=4218658"
+                    "smi:service.iris.edu/fdsnws/event/1/query?eventid=4218658"
                 ],
                 "sampling_rate": 40.0,
                 "starttime": 1369374000000000000,
@@ -3701,10 +3577,7 @@ def test_datesets_with_less_then_1_second_length(tmpdir):
         dataset_name = ds.waveforms["AA.BB"].list()[0]
     os.remove(asdf_filename)
 
-    assert (
-        dataset_name
-        == "AA.BB..000__1971-03-28T03:19:05__1971-03-28T03:32:01__test"
-    )
+    assert dataset_name == "AA.BB..000__1971-03-28T03:19:05__1971-03-28T03:32:01__test"
 
     # Do, if shorter than one second.
     with ASDFDataSet(asdf_filename) as ds:
@@ -3714,8 +3587,7 @@ def test_datesets_with_less_then_1_second_length(tmpdir):
     os.remove(asdf_filename)
 
     assert dataset_name == (
-        "AA.BB..000__1971-03-28T03:19:05.344584304__"
-        "1971-03-28T03:19:05.344585939__test"
+        "AA.BB..000__1971-03-28T03:19:05.344584304__1971-03-28T03:19:05.344585939__test"
     )
 
     # Don't do it for older versions to not write invalid files.
@@ -3737,8 +3609,7 @@ def test_datesets_with_less_then_1_second_length(tmpdir):
     os.remove(asdf_filename)
 
     assert dataset_name == (
-        "AA.BB..000__1970-01-01T00:00:00.000000000__"
-        "1970-01-01T00:00:00.000001635__test"
+        "AA.BB..000__1970-01-01T00:00:00.000000000__1970-01-01T00:00:00.000001635__test"
     )
 
 

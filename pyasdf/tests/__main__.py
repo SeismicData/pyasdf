@@ -9,6 +9,7 @@ python -m pyasdf.tests
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
+
 if __name__ == "__main__":
     import inspect
     import os
@@ -16,9 +17,7 @@ if __name__ == "__main__":
     import sys
 
     PATH = os.path.dirname(
-        os.path.dirname(
-            os.path.abspath(inspect.getfile(inspect.currentframe()))
-        )
+        os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     )
 
     sys.exit(pytest.main([PATH]))

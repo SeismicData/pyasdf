@@ -7,6 +7,7 @@ Test the internal logic of the query helper module.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
+
 import obspy
 import pytest
 
@@ -90,9 +91,7 @@ def test_query_object_utcdatetime():
     assert (q.QueryObject(name="_r", type=utc) < str(ref))[1](a) is True
 
     assert (q.QueryObject(name="_r", type=utc) < ref.timestamp)[1](c) is False
-    assert (q.QueryObject(name="_r", type=utc) < ref.timestamp)[1](
-        ref
-    ) is False
+    assert (q.QueryObject(name="_r", type=utc) < ref.timestamp)[1](ref) is False
     assert (q.QueryObject(name="_r", type=utc) < ref.timestamp)[1](a) is True
 
 
@@ -216,16 +215,10 @@ def test_event_id():
 
     # Test queries with None.
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
 
-    assert (q.QueryObject(name="_r", type=_t) == None)[1](
-        "random"
-    ) is False  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        "random"
-    ) is True  # noqa
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True  # noqa
 
     assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
     assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
@@ -288,16 +281,10 @@ def test_origin_id():
 
     # Test queries with None.
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
 
-    assert (q.QueryObject(name="_r", type=_t) == None)[1](
-        "random"
-    ) is False  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        "random"
-    ) is True  # noqa
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True  # noqa
 
     assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
     assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
@@ -360,16 +347,10 @@ def test_magnitude_id():
 
     # Test queries with None.
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
 
-    assert (q.QueryObject(name="_r", type=_t) == None)[1](
-        "random"
-    ) is False  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        "random"
-    ) is True  # noqa
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True  # noqa
 
     assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
     assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
@@ -429,16 +410,10 @@ def test_focmec_id():
 
     # Test queries with None.
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
 
-    assert (q.QueryObject(name="_r", type=_t) == None)[1](
-        "random"
-    ) is False  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        "random"
-    ) is True  # noqa
+    assert (q.QueryObject(name="_r", type=_t) == None)[1]("random") is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1]("random") is True  # noqa
 
     assert (q.QueryObject(name="_r", type=_t) == "random")[1](None) is False
     assert (q.QueryObject(name="_r", type=_t) != "random")[1](None) is True
@@ -457,9 +432,7 @@ def test_none_float():
 
     # Identity for None.
     assert (q.QueryObject(name="_f", type=_t) == None)[1](None) is True  # noqa
-    assert (q.QueryObject(name="_f", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_f", type=_t) != None)[1](None) is False  # noqa
 
     # Zero is not None.
     assert (q.QueryObject(name="_f", type=_t) == 0.0)[1](None) is False
@@ -583,12 +556,8 @@ def test_event_id_none():
 
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
 
 
 def test_queries_with_optional_and_wildcarded_lists():
@@ -602,9 +571,7 @@ def test_queries_with_optional_and_wildcarded_lists():
 
     assert (q.QueryObject(name="_r", type=_t) == None)[1](None) is True  # noqa
     assert (q.QueryObject(name="_r", type=_t) == None)[1]("a") is False  # noqa
-    assert (q.QueryObject(name="_r", type=_t) != None)[1](
-        None
-    ) is False  # noqa
+    assert (q.QueryObject(name="_r", type=_t) != None)[1](None) is False  # noqa
     assert (q.QueryObject(name="_r", type=_t) != None)[1]("a") is True  # noqa
 
     # Try some lists.
@@ -662,18 +629,10 @@ def test_queries_with_optional_and_wildcarded_lists():
     assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1]("ab") is False
 
     # List againts lists.
-    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1](
-        ["b", "c"]
-    ) is False
-    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1](
-        ["b", "c"]
-    ) is True
-    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1](
-        ["ab", "c"]
-    ) is True
-    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1](
-        ["ab", "c"]
-    ) is False
+    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1](["b", "c"]) is False
+    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1](["b", "c"]) is True
+    assert (q.QueryObject(name="_r", type=_t) == ["a*", "x"])[1](["ab", "c"]) is True
+    assert (q.QueryObject(name="_r", type=_t) != ["a*", "x"])[1](["ab", "c"]) is False
 
 
 def test_query_merging():

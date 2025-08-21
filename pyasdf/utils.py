@@ -5,6 +5,7 @@
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
+
 import copy
 import collections
 import hashlib
@@ -40,9 +41,7 @@ from .inventory_utils import get_coordinates
 # Tuple holding a the body of a received message.
 ReceivedMessage = collections.namedtuple("ReceivedMessage", ["data"])
 # Tuple denoting a single worker.
-Worker = collections.namedtuple(
-    "Worker", ["active_jobs", "completed_jobs_count"]
-)
+Worker = collections.namedtuple("Worker", ["active_jobs", "completed_jobs_count"])
 
 
 def is_multiprocessing_problematic():  # pragma: no cover
@@ -177,9 +176,7 @@ class ProvenanceAccessor:
             raise KeyError(str(e))
 
     def __setitem__(self, key, value):
-        self.__data_set().add_provenance_document(
-            document=value, name=str(key)
-        )
+        self.__data_set().add_provenance_document(document=value, name=str(key))
 
     def __dir__(self):
         return self.list() + [
@@ -213,8 +210,7 @@ class ProvenanceAccessor:
             if name in all_ids:
                 return {"name": key, "document": document}
         raise ASDFValueError(
-            "Document containing id '%s' not found in the data set."
-            % provenance_id
+            "Document containing id '%s' not found in the data set." % provenance_id
         )
 
     def __len__(self):
@@ -332,9 +328,7 @@ class AuxiliaryDataContainer:
                 parameters="\n\t\t".join(
                     [
                         f"{_i[0]}: {_i[1]}"
-                        for _i in sorted(
-                            self.parameters.items(), key=lambda x: x[0]
-                        )
+                        for _i in sorted(self.parameters.items(), key=lambda x: x[0])
                     ]
                 ),
             )
@@ -383,9 +377,7 @@ class AuxiliaryDataAccessor:
         key = str(key)
         _l = self.list()
         if key not in _l:
-            raise KeyError(
-                "Key/Item '%s' not known or cannot be " "deleted." % key
-            )
+            raise KeyError("Key/Item '%s' not known or cannot be deleted." % key)
         ds = self.__data_set()
         try:
             del ds._auxiliary_data_group[self.__auxiliary_data_type][key]
@@ -417,9 +409,7 @@ class AuxiliaryDataAccessor:
 
     def list(self):
         return sorted(
-            self.__data_set()
-            ._auxiliary_data_group[self.__auxiliary_data_type]
-            .keys()
+            self.__data_set()._auxiliary_data_group[self.__auxiliary_data_type].keys()
         )
 
     def __dir__(self):
@@ -442,9 +432,7 @@ class AuxiliaryDataAccessor:
 
         try:
             for item in items:
-                reference = ds._auxiliary_data_group[
-                    self.__auxiliary_data_type
-                ][item]
+                reference = ds._auxiliary_data_group[self.__auxiliary_data_type][item]
 
                 if isinstance(reference, h5py.Group):
                     groups.append(item)
@@ -548,13 +536,9 @@ class AuxiliaryDataGroupAccessor:
             return "Data set contains no auxiliary data."
 
         return (
-            "Data set contains the following auxiliary data types:\n"
-            "\t{items}".format(
+            "Data set contains the following auxiliary data types:\n\t{items}".format(
                 items="\n\t".join(
-                    [
-                        "%s (%i item(s))" % (_i, len(self[_i]))
-                        for _i in self.list()
-                    ]
+                    ["%s (%i item(s))" % (_i, len(self[_i])) for _i in self.list()]
                 )
             )
         )
@@ -683,10 +667,7 @@ class WaveformAccessor:
                     attrs = group[wf].attrs
 
                     if queries["sampling_rate"]:
-                        if (
-                            queries["sampling_rate"](attrs["sampling_rate"])
-                            is False
-                        ):
+                        if queries["sampling_rate"](attrs["sampling_rate"]) is False:
                             continue
 
                     if queries["npts"]:
@@ -694,12 +675,10 @@ class WaveformAccessor:
                             continue
 
                     if queries["starttime"] or queries["endtime"]:
-                        starttime = obspy.UTCDateTime(
-                            float(attrs["starttime"]) / 1.0e9
+                        starttime = obspy.UTCDateTime(float(attrs["starttime"]) / 1.0e9)
+                        endtime = starttime + (len(group[wf]) - 1) * 1.0 / float(
+                            attrs["sampling_rate"]
                         )
-                        endtime = starttime + (
-                            len(group[wf]) - 1
-                        ) * 1.0 / float(attrs["sampling_rate"])
 
                         if queries["starttime"]:
                             if queries["starttime"](starttime) is False:
@@ -736,12 +715,7 @@ class WaveformAccessor:
                                 # Defaults to an empty id. Each can
                                 # potentially be a list of values.
                                 if key in attrs:
-                                    values = (
-                                        attrs[key]
-                                        .tobytes()
-                                        .decode()
-                                        .split(",")
-                                    )
+                                    values = attrs[key].tobytes().decode().split(",")
                                 else:
                                     values = [None]
 
@@ -855,7 +829,7 @@ class WaveformAccessor:
         station = self.__data_set()._waveform_group[self._station_name]
         if "StationXML" not in station:
             raise NoStationXMLForStation(
-                "Station '%s' has no StationXML " "file." % self._station_name
+                "Station '%s' has no StationXML file." % self._station_name
             )
         try:
             with io.BytesIO(_read_string_array(station["StationXML"])) as buf:
@@ -954,8 +928,7 @@ class WaveformAccessor:
             station = self.__data_set()._get_station(self._station_name)
             if station is None:
                 raise AttributeError(
-                    f"'{self.__class__.__name__}' object has no attribute "
-                    f"'{str(item)}'"
+                    f"'{self.__class__.__name__}' object has no attribute '{str(item)}'"
                 )
             return station
 
@@ -993,9 +966,7 @@ class WaveformAccessor:
                 raise ASDFValueError(msg)
 
         traces = [
-            self.__data_set()._get_waveform(
-                _i, starttime=starttime, endtime=endtime
-            )
+            self.__data_set()._get_waveform(_i, starttime=starttime, endtime=endtime)
             for _i in items
         ]
         return obspy.Stream(traces=traces)
@@ -1004,9 +975,7 @@ class WaveformAccessor:
         """
         Get a list of all data sets for this station.
         """
-        return sorted(
-            self.__data_set()._waveform_group[self._station_name].keys()
-        )
+        return sorted(self.__data_set()._waveform_group[self._station_name].keys())
 
     def __dir__(self):
         """
@@ -1027,9 +996,7 @@ class WaveformAccessor:
         directory.extend(self.get_waveform_tags())
         if "StationXML" in self.list():
             directory.append("StationXML")
-        directory.extend(
-            ["_station_name", "coordinates", "channel_coordinates"]
-        )
+        directory.extend(["_station_name", "coordinates", "channel_coordinates"])
         return sorted(set(directory))
 
     def __str__(self):
@@ -1078,11 +1045,7 @@ class FilteredWaveformAccessor(WaveformAccessor):
             .keys()
         )
 
-        return [
-            _i
-            for _i in items
-            if _i in self._filtered_items or _i == "StationXML"
-        ]
+        return [_i for _i in items if _i in self._filtered_items or _i == "StationXML"]
 
     def __str__(self):
         content = WaveformAccessor.__str__(self)
@@ -1331,11 +1294,7 @@ def _pretty_log(prefix, first, second, tag, payload):
     tags = [i for i in msg_tag_keys if isinstance(i, (str, bytes))]
 
     tag = MSG_TAGS[tag]
-    tag = (
-        tag_colors[tags.index(tag) % len(tag_colors)]
-        + tag
-        + colorama.Style.RESET_ALL
-    )
+    tag = tag_colors[tags.index(tag) % len(tag_colors)] + tag + colorama.Style.RESET_ALL
 
     first = (
         colorama.Fore.YELLOW + "MASTER  " + colorama.Fore.RESET
@@ -1394,9 +1353,7 @@ def _get_ids_from_bundle(bundle):
         if not hasattr(record, "identifier") or not record.identifier:
             continue
         identifier = record.identifier
-        all_ids.append(
-            "{%s}%s" % (identifier.namespace.uri, identifier.localpart)
-        )
+        all_ids.append("{%s}%s" % (identifier.namespace.uri, identifier.localpart))
     return all_ids
 
 
@@ -1462,10 +1419,7 @@ def to_list_of_resource_identifiers(obj, name, obj_type):
     if is_list(obj) and not isinstance(obj, obj_type):
         return list(
             itertools.chain.from_iterable(
-                [
-                    to_list_of_resource_identifiers(_i, name, obj_type)
-                    for _i in obj
-                ]
+                [to_list_of_resource_identifiers(_i, name, obj_type) for _i in obj]
             )
         )
 

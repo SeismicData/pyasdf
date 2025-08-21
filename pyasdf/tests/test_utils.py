@@ -7,6 +7,7 @@ Test cases for the inventory utils.
 :license:
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
+
 import inspect
 import os
 
