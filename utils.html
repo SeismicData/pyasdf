@@ -1,0 +1,470 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utils &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Watermark" href="watermark.html" />
+    <link rel="prev" title="Query" href="query.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="api.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="asdf_data_set.html">ASDF Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inventory_utils.html">Inventory Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="query.html">Query</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.AuxiliaryDataAccessor"><code class="docutils literal notranslate"><span class="pre">AuxiliaryDataAccessor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.AuxiliaryDataGroupAccessor"><code class="docutils literal notranslate"><span class="pre">AuxiliaryDataGroupAccessor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.FilteredWaveformAccessor"><code class="docutils literal notranslate"><span class="pre">FilteredWaveformAccessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.FilteredWaveformAccessor.list"><code class="docutils literal notranslate"><span class="pre">FilteredWaveformAccessor.list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.JobQueueHelper"><code class="docutils literal notranslate"><span class="pre">JobQueueHelper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.JobQueueHelper.get_job_for_worker"><code class="docutils literal notranslate"><span class="pre">JobQueueHelper.get_job_for_worker()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.JobQueueHelper.poison_pill_received"><code class="docutils literal notranslate"><span class="pre">JobQueueHelper.poison_pill_received()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.JobQueueHelper.received_job_from_worker"><code class="docutils literal notranslate"><span class="pre">JobQueueHelper.received_job_from_worker()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.ProvenanceAccessor"><code class="docutils literal notranslate"><span class="pre">ProvenanceAccessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.ProvenanceAccessor.get_provenance_document_for_id"><code class="docutils literal notranslate"><span class="pre">ProvenanceAccessor.get_provenance_document_for_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.ProvenanceAccessor.list"><code class="docutils literal notranslate"><span class="pre">ProvenanceAccessor.list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.ReceivedMessage"><code class="docutils literal notranslate"><span class="pre">ReceivedMessage</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.ReceivedMessage.data"><code class="docutils literal notranslate"><span class="pre">ReceivedMessage.data</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.SimpleBuffer"><code class="docutils literal notranslate"><span class="pre">SimpleBuffer</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.StationAccessor"><code class="docutils literal notranslate"><span class="pre">StationAccessor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.StreamBuffer"><code class="docutils literal notranslate"><span class="pre">StreamBuffer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.StreamBuffer.get_size"><code class="docutils literal notranslate"><span class="pre">StreamBuffer.get_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.StreamBuffer.keys"><code class="docutils literal notranslate"><span class="pre">StreamBuffer.keys()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.WaveformAccessor"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.WaveformAccessor.channel_coordinates"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor.channel_coordinates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.WaveformAccessor.coordinates"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor.coordinates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.WaveformAccessor.get_waveform_attributes"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor.get_waveform_attributes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.WaveformAccessor.get_waveform_tags"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor.get_waveform_tags()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.WaveformAccessor.list"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor.list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.Worker.active_jobs"><code class="docutils literal notranslate"><span class="pre">Worker.active_jobs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pyasdf.utils.Worker.completed_jobs_count"><code class="docutils literal notranslate"><span class="pre">Worker.completed_jobs_count</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.get_all_ids_for_prov_document"><code class="docutils literal notranslate"><span class="pre">get_all_ids_for_prov_document()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.is_list"><code class="docutils literal notranslate"><span class="pre">is_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.is_mpi_env"><code class="docutils literal notranslate"><span class="pre">is_mpi_env()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.is_multiprocessing_problematic"><code class="docutils literal notranslate"><span class="pre">is_multiprocessing_problematic()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.label2string"><code class="docutils literal notranslate"><span class="pre">label2string()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.labelstring2list"><code class="docutils literal notranslate"><span class="pre">labelstring2list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.sizeof_fmt"><code class="docutils literal notranslate"><span class="pre">sizeof_fmt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.split_qualified_name"><code class="docutils literal notranslate"><span class="pre">split_qualified_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.wf_name2seed_codes"><code class="docutils literal notranslate"><span class="pre">wf_name2seed_codes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf.utils.wf_name2tag"><code class="docutils literal notranslate"><span class="pre">wf_name2tag()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="watermark.html">Watermark</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="api.html">API</a></li>
+      <li class="breadcrumb-item active">Utils</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-pyasdf.utils">
+<span id="utils"></span><h1>Utils<a class="headerlink" href="#module-pyasdf.utils" title="Link to this heading">¶</a></h1>
+<dl class="field-list simple">
+<dt class="field-odd">copyright<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Lion Krischer (<a class="reference external" href="mailto:lion&#46;krischer&#37;&#52;&#48;gmail&#46;com">lion<span>&#46;</span>krischer<span>&#64;</span>gmail<span>&#46;</span>com</a>), 2013-2021</p>
+</dd>
+<dt class="field-even">license<span class="colon">:</span></dt>
+<dd class="field-even"><p>BSD 3-Clause (“BSD New” or “BSD Simplified”)</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.AuxiliaryDataAccessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">AuxiliaryDataAccessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auxiliary_data_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asdf_data_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#AuxiliaryDataAccessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.AuxiliaryDataAccessor" title="Link to this definition">¶</a></dt>
+<dd><p>Helper class to access auxiliary data items.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.AuxiliaryDataGroupAccessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">AuxiliaryDataGroupAccessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asdf_data_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#AuxiliaryDataGroupAccessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.AuxiliaryDataGroupAccessor" title="Link to this definition">¶</a></dt>
+<dd><p>Helper class to facilitate access to the auxiliary data types.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.FilteredWaveformAccessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">FilteredWaveformAccessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asdf_data_set</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filtered_items</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#FilteredWaveformAccessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.FilteredWaveformAccessor" title="Link to this definition">¶</a></dt>
+<dd><p>A version of the waveform accessor returning a limited number of waveforms.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.FilteredWaveformAccessor.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#FilteredWaveformAccessor.list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.FilteredWaveformAccessor.list" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of all data sets for this station.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.JobQueueHelper">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">JobQueueHelper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#JobQueueHelper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.JobQueueHelper" title="Link to this definition">¶</a></dt>
+<dd><p>A simple helper class managing job distribution to workers.</p>
+<p>Init with a list of jobs and a list of workers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>jobs</strong> (<em>List</em><em> of </em><em>arguments distributed to the jobs.</em>) – A list of jobs that will be distributed to the workers.</p></li>
+<li><p><strong>workers</strong> – A list of usually integers, each denoting a worker.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a> of integers</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.JobQueueHelper.get_job_for_worker">
+<span class="sig-name descname"><span class="pre">get_job_for_worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">worker_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#JobQueueHelper.get_job_for_worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.JobQueueHelper.get_job_for_worker" title="Link to this definition">¶</a></dt>
+<dd><p>Get a job for a worker.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>worker_name</strong> – The name of the worker requesting work.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.JobQueueHelper.poison_pill_received">
+<span class="sig-name descname"><span class="pre">poison_pill_received</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#JobQueueHelper.poison_pill_received"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.JobQueueHelper.poison_pill_received" title="Link to this definition">¶</a></dt>
+<dd><p>Increment the point pills received counter.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.JobQueueHelper.received_job_from_worker">
+<span class="sig-name descname"><span class="pre">received_job_from_worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arguments</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">worker_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#JobQueueHelper.received_job_from_worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.JobQueueHelper.received_job_from_worker" title="Link to this definition">¶</a></dt>
+<dd><p>Call when a worker returned a job.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arguments</strong> – The arguments the jobs was called with.</p></li>
+<li><p><strong>result</strong> – The result of the job</p></li>
+<li><p><strong>worker_name</strong> – The name of the worker.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.ProvenanceAccessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">ProvenanceAccessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asdf_data_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#ProvenanceAccessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.ProvenanceAccessor" title="Link to this definition">¶</a></dt>
+<dd><p>Accessor helper for the provenance records.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.ProvenanceAccessor.get_provenance_document_for_id">
+<span class="sig-name descname"><span class="pre">get_provenance_document_for_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">provenance_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#ProvenanceAccessor.get_provenance_document_for_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.ProvenanceAccessor.get_provenance_document_for_id" title="Link to this definition">¶</a></dt>
+<dd><p>Get the provenance document containing a record with a certain id.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>provenance_id</strong> – The id of the provenance record whose
+containing document is searched. Must be given as a qualified name,
+e.g. <code class="docutils literal notranslate"><span class="pre">'{namespace_uri}id'</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.ProvenanceAccessor.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#ProvenanceAccessor.list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.ProvenanceAccessor.list" title="Link to this definition">¶</a></dt>
+<dd><p>Return a list of available provenance documents.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.ReceivedMessage">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">ReceivedMessage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyasdf.utils.ReceivedMessage" title="Link to this definition">¶</a></dt>
+<dd><p>Create new instance of ReceivedMessage(data,)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyasdf.utils.ReceivedMessage.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#pyasdf.utils.ReceivedMessage.data" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.SimpleBuffer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">SimpleBuffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#SimpleBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.SimpleBuffer" title="Link to this definition">¶</a></dt>
+<dd><p>Object that can be used as a cache.</p>
+<p>Will never contain more then the specified number of items. If more then
+then that are used, it will remove the item with the oldest last access
+time.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.StationAccessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">StationAccessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asdf_data_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#StationAccessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.StationAccessor" title="Link to this definition">¶</a></dt>
+<dd><p>Helper class to facilitate access to the waveforms and stations.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.StreamBuffer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">StreamBuffer</span></span><a class="reference internal" href="_modules/pyasdf/utils.html#StreamBuffer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.StreamBuffer" title="Link to this definition">¶</a></dt>
+<dd><p>Very simple key value store for obspy stream object with the additional
+ability to approximate the size of all stored stream objects.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.StreamBuffer.get_size">
+<span class="sig-name descname"><span class="pre">get_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#StreamBuffer.get_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.StreamBuffer.get_size" title="Link to this definition">¶</a></dt>
+<dd><p>Try to approximate the size of all stores Stream object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.StreamBuffer.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">a</span> <span class="pre">set-like</span> <span class="pre">object</span> <span class="pre">providing</span> <span class="pre">a</span> <span class="pre">view</span> <span class="pre">on</span> <span class="pre">D's</span> <span class="pre">keys</span></span></span><a class="reference internal" href="_modules/pyasdf/utils.html#StreamBuffer.keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.StreamBuffer.keys" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.WaveformAccessor">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">WaveformAccessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">station_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asdf_data_set</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#WaveformAccessor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.WaveformAccessor" title="Link to this definition">¶</a></dt>
+<dd><p>Helper class facilitating access to the actual waveforms and stations.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyasdf.utils.WaveformAccessor.channel_coordinates">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">channel_coordinates</span></span><a class="headerlink" href="#pyasdf.utils.WaveformAccessor.channel_coordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Get coordinates of the station at the channel level if any.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyasdf.utils.WaveformAccessor.coordinates">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">coordinates</span></span><a class="headerlink" href="#pyasdf.utils.WaveformAccessor.coordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Get coordinates of the station if any.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.WaveformAccessor.get_waveform_attributes">
+<span class="sig-name descname"><span class="pre">get_waveform_attributes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#WaveformAccessor.get_waveform_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.WaveformAccessor.get_waveform_attributes" title="Link to this definition">¶</a></dt>
+<dd><p>Get a dictionary of the attributes of all waveform data sets.</p>
+<p>This works purely on the meta data level and is thus fast. Event,
+origin, arrival, and focmec ids will be returned as lists as they can
+be set multiple times per data-set.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.WaveformAccessor.get_waveform_tags">
+<span class="sig-name descname"><span class="pre">get_waveform_tags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#WaveformAccessor.get_waveform_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.WaveformAccessor.get_waveform_tags" title="Link to this definition">¶</a></dt>
+<dd><p>Get all available waveform tags for this station.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyasdf.utils.WaveformAccessor.list">
+<span class="sig-name descname"><span class="pre">list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#WaveformAccessor.list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.WaveformAccessor.list" title="Link to this definition">¶</a></dt>
+<dd><p>Get a list of all data sets for this station.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyasdf.utils.Worker">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">Worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">active_jobs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">completed_jobs_count</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyasdf.utils.Worker" title="Link to this definition">¶</a></dt>
+<dd><p>Create new instance of Worker(active_jobs, completed_jobs_count)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyasdf.utils.Worker.active_jobs">
+<span class="sig-name descname"><span class="pre">active_jobs</span></span><a class="headerlink" href="#pyasdf.utils.Worker.active_jobs" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyasdf.utils.Worker.completed_jobs_count">
+<span class="sig-name descname"><span class="pre">completed_jobs_count</span></span><a class="headerlink" href="#pyasdf.utils.Worker.completed_jobs_count" title="Link to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.get_all_ids_for_prov_document">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">get_all_ids_for_prov_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#get_all_ids_for_prov_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.get_all_ids_for_prov_document" title="Link to this definition">¶</a></dt>
+<dd><p>Gets a all ids from a prov document as qualified names in the lxml style.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.is_list">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">is_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#is_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.is_list" title="Link to this definition">¶</a></dt>
+<dd><p>True if the returned object is an iterable but not a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> – The object to test.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.is_mpi_env">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">is_mpi_env</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#is_mpi_env"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.is_mpi_env" title="Link to this definition">¶</a></dt>
+<dd><p>Returns True if the current environment is an MPI environment.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.is_multiprocessing_problematic">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">is_multiprocessing_problematic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#is_multiprocessing_problematic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.is_multiprocessing_problematic" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if multiprocessing is known to have issues on the given
+platform.</p>
+<p>Mainly results from the fact that some BLAS/LAPACK implementations
+cannot deal with forked processing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.label2string">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">label2string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#label2string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.label2string" title="Link to this definition">¶</a></dt>
+<dd><p>List of labels to a comma-saperated string.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.labelstring2list">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">labelstring2list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#labelstring2list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.labelstring2list" title="Link to this definition">¶</a></dt>
+<dd><p>String to a list of labels.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.sizeof_fmt">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">sizeof_fmt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#sizeof_fmt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.sizeof_fmt" title="Link to this definition">¶</a></dt>
+<dd><p>Handy formatting for human readable filesize.</p>
+<p>From <a class="reference external" href="http://stackoverflow.com/a/1094933/1657047">http://stackoverflow.com/a/1094933/1657047</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.split_qualified_name">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">split_qualified_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#split_qualified_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.split_qualified_name" title="Link to this definition">¶</a></dt>
+<dd><p>Takes a qualified name and returns a tuple of namespace, localpart.</p>
+<p>If namespace is not a valid URL, an error will be raised.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – The qualified name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.wf_name2seed_codes">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">wf_name2seed_codes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#wf_name2seed_codes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.wf_name2seed_codes" title="Link to this definition">¶</a></dt>
+<dd><p>Converts an ASDF waveform name to the corresponding SEED identifiers.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wf_name2seed_codes</span><span class="p">(</span><span class="s2">&quot;BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth&quot;</span><span class="p">)</span>
+<span class="go">(&quot;BW&quot;, &quot;ALTM&quot;, &quot;00&quot;, &quot;EHE&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyasdf.utils.wf_name2tag">
+<span class="sig-prename descclassname"><span class="pre">pyasdf.utils.</span></span><span class="sig-name descname"><span class="pre">wf_name2tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyasdf/utils.html#wf_name2tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pyasdf.utils.wf_name2tag" title="Link to this definition">¶</a></dt>
+<dd><p>Extract the path from an ASDF waveform name.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wf_name2seed_codes</span><span class="p">(</span><span class="s2">&quot;BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth&quot;</span><span class="p">)</span>
+<span class="go">&quot;synth&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="query.html" class="btn btn-neutral float-left" title="Query" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="watermark.html" class="btn btn-neutral float-right" title="Watermark" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

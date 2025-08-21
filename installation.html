@@ -1,0 +1,229 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorial" href="tutorial.html" />
+    <link rel="prev" title="pyasdf" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pyasdf-and-dependencies">pyasdf and Dependencies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#non-parallel-pyasdf">Non-parallel <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pyasdf-with-parallel-i-o"><code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> with parallel I/O</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-documentation">Building the Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
+<section id="pyasdf-and-dependencies">
+<h2>pyasdf and Dependencies<a class="headerlink" href="#pyasdf-and-dependencies" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> supports Python versions &gt;= 3.7 and it depends on the
+following Python modules: <code class="docutils literal notranslate"><span class="pre">NumPy</span></code>, <code class="docutils literal notranslate"><span class="pre">ObsPy</span></code>, <code class="docutils literal notranslate"><span class="pre">h5py</span></code>, <code class="docutils literal notranslate"><span class="pre">colorama</span></code>,
+<code class="docutils literal notranslate"><span class="pre">pytest</span></code>, <code class="docutils literal notranslate"><span class="pre">prov</span></code>, <code class="docutils literal notranslate"><span class="pre">dill</span></code>, and optionally <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code>. You can
+install <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> with or without parallel I/O support; the later requires
+<code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> and parallel versions of <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> and <code class="docutils literal notranslate"><span class="pre">h5py</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> itself is available on pypi and also as a conda package in the
+<code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> channel (non-parallel only).</p>
+<p>If you know what you are doing, install it any way you see fit. Otherwise do
+yourself a favor and download the
+<a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda Python distribution</a>
+for your chosen Python version.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>When to choose the parallel I/O version?</strong></p>
+<p>Please note that in most cases it is not worth it to install the parallel
+I/O version. For one most machines (aside from actual HPC machines)
+don’t even have the necessary hardware to do actually parallel I/O. Also
+seismological waveform data is usually not that big in volume so a single
+reading/writing thread might be sufficient. Furthermore modern SSDs can
+write at very high speeds.</p>
+<p>But if your application does indeed benefit from parallel I/O follow the
+instructions below.</p>
+</div>
+<section id="non-parallel-pyasdf">
+<h3>Non-parallel <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code><a class="headerlink" href="#non-parallel-pyasdf" title="Link to this heading">¶</a></h3>
+<p>This is very easy - just execute this one line and it will install all the
+dependencies including <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> (assuming you installed the
+<a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda Python distribution</a>
+as recommended above).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>pyasdf
+</pre></div>
+</div>
+</section>
+<section id="pyasdf-with-parallel-i-o">
+<h3><code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> with parallel I/O<a class="headerlink" href="#pyasdf-with-parallel-i-o" title="Link to this heading">¶</a></h3>
+<p>You only have to make sure to have a parallel version of <code class="docutils literal notranslate"><span class="pre">h5py</span></code> installed. A
+simple way is to just use one on conda, e.g.:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>spectraldns<span class="w"> </span>h5py-parallel
+</pre></div>
+</div>
+<p>Additionally you need <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code>. The one on <code class="docutils literal notranslate"><span class="pre">conda</span></code> might work, if not,
+read on.</p>
+<p>For all of the following steps make sure that the MPI package of your local
+supercomputer/cluster is loaded. The <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> potentially shipping with
+Anaconda might not work on your cluster - if that is the case uninstall it
+and reinstall with <code class="docutils literal notranslate"><span class="pre">pip</span></code> at which point it should link against your
+cluster’s MPI implementation.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>conda<span class="w"> </span>uninstall<span class="w"> </span>mpi4py
+$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>mpi4py
+</pre></div>
+</div>
+<p>After everything is installed, you can run the following command to print
+information about the current system.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import pyasdf; pyasdf.print_sys_info()&quot;</span>
+</pre></div>
+</div>
+<p>which will print something along the following lines:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pyasdf</span> <span class="n">version</span> <span class="mf">0.1.4</span>
+<span class="o">===============================================================================</span>
+<span class="n">CPython</span> <span class="mf">2.7.9</span><span class="p">,</span> <span class="n">compiler</span><span class="p">:</span> <span class="n">GCC</span> <span class="mf">4.2.1</span> <span class="p">(</span><span class="n">Apple</span> <span class="n">Inc</span><span class="o">.</span> <span class="n">build</span> <span class="mi">5577</span><span class="p">)</span>
+<span class="n">Darwin</span> <span class="mf">14.3.0</span> <span class="mi">64</span><span class="n">bit</span>
+<span class="n">Machine</span><span class="p">:</span> <span class="n">x86_64</span><span class="p">,</span> <span class="n">Processor</span><span class="p">:</span> <span class="n">i386</span> <span class="k">with</span> <span class="mi">8</span> <span class="n">cores</span>
+<span class="o">===============================================================================</span>
+<span class="n">HDF5</span> <span class="n">version</span> <span class="mf">1.8.17</span><span class="p">,</span> <span class="n">h5py</span> <span class="n">version</span><span class="p">:</span> <span class="mf">2.5.0</span>
+<span class="n">MPI</span><span class="p">:</span> <span class="n">Open</span> <span class="n">MPI</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="mf">1.10.1</span><span class="p">,</span> <span class="n">mpi4py</span> <span class="n">version</span><span class="p">:</span> <span class="mf">2.0.0</span>
+<span class="n">Parallel</span> <span class="n">I</span><span class="o">/</span><span class="n">O</span> <span class="n">support</span><span class="p">:</span> <span class="kc">True</span>
+<span class="n">Problematic</span> <span class="n">multiprocessing</span><span class="p">:</span> <span class="kc">False</span>
+<span class="o">===============================================================================</span>
+<span class="n">Other_modules</span><span class="p">:</span>
+    <span class="n">dill</span><span class="p">:</span> <span class="mf">0.2.5</span>
+    <span class="n">lxml</span><span class="p">:</span> <span class="mf">3.7.2</span>
+    <span class="n">numpy</span><span class="p">:</span> <span class="mf">1.11.3</span>
+    <span class="n">obspy</span><span class="p">:</span> <span class="mf">1.0.3</span>
+    <span class="n">prov</span><span class="p">:</span> <span class="mf">1.4.0</span>
+    <span class="n">scipy</span><span class="p">:</span> <span class="mf">0.18.1</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<p>To assert that your installation is working properly, execute</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pyasdf.tests
+</pre></div>
+</div>
+<p>and make sure all tests pass. Otherwise please contact the developers.</p>
+</section>
+<section id="building-the-documentation">
+<h2>Building the Documentation<a class="headerlink" href="#building-the-documentation" title="Link to this heading">¶</a></h2>
+<p>The documentation requires <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> and the Bootstrap theme. Install both
+with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>sphinx<span class="w"> </span>sphinx-bootstrap-theme
+</pre></div>
+</div>
+<p>Build the doc with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>doc
+$<span class="w"> </span>make<span class="w"> </span>html
+</pre></div>
+</div>
+<p>Finally open the <code class="docutils literal notranslate"><span class="pre">doc/_build/html/index.html</span></code> file with the browser of your
+choice.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="pyasdf" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial.html" class="btn btn-neutral float-right" title="Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

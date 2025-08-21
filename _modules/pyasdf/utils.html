@@ -1,0 +1,1634 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pyasdf.utils &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="../../_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+      <script src="../../_static/documentation_options.js?v=dbee5847"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            pyasdf
+              <img src="../../_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../detailed_explanations.html">Detailed Explanations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pyasdf.utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pyasdf.utils</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">:copyright:</span>
+<span class="sd">    Lion Krischer (lion.krischer@gmail.com), 2013-2021</span>
+<span class="sd">:license:</span>
+<span class="sd">    BSD 3-Clause (&quot;BSD New&quot; or &quot;BSD Simplified&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">weakref</span>
+
+<span class="c1"># Py2k/3k compat.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">urlparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlparse</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lxml.etree</span><span class="w"> </span><span class="kn">import</span> <span class="n">QName</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">obspy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.compat</span><span class="w"> </span><span class="kn">import</span> <span class="n">string_types</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">WaveformNotInFileException</span><span class="p">,</span>
+    <span class="n">NoStationXMLForStation</span><span class="p">,</span>
+    <span class="n">ASDFValueError</span><span class="p">,</span>
+    <span class="n">ASDFAttributeError</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.header</span><span class="w"> </span><span class="kn">import</span> <span class="n">MSG_TAGS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.inventory_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_coordinates</span>
+
+<span class="c1"># Tuple holding a the body of a received message.</span>
+<span class="n">ReceivedMessage</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;ReceivedMessage&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])</span>
+<span class="c1"># Tuple denoting a single worker.</span>
+<span class="n">Worker</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;Worker&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;active_jobs&quot;</span><span class="p">,</span> <span class="s2">&quot;completed_jobs_count&quot;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="is_multiprocessing_problematic">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.is_multiprocessing_problematic">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_multiprocessing_problematic</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return True if multiprocessing is known to have issues on the given</span>
+<span class="sd">    platform.</span>
+
+<span class="sd">    Mainly results from the fact that some BLAS/LAPACK implementations</span>
+<span class="sd">    cannot deal with forked processing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Handling numpy linked against accelerate.</span>
+    <span class="n">config_info</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">value</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">__config__</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;_info&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="s2">&quot;accelerate&quot;</span> <span class="ow">in</span> <span class="n">config_info</span> <span class="ow">or</span> <span class="s2">&quot;veclib&quot;</span> <span class="ow">in</span> <span class="n">config_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="s2">&quot;openblas&quot;</span> <span class="ow">in</span> <span class="n">config_info</span><span class="p">:</span>
+        <span class="c1"># Most openBLAS can only operate with one thread...</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="sizeof_fmt">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.sizeof_fmt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sizeof_fmt</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handy formatting for human readable filesize.</span>
+
+<span class="sd">    From http://stackoverflow.com/a/1094933/1657047</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;bytes&quot;</span><span class="p">,</span> <span class="s2">&quot;KB&quot;</span><span class="p">,</span> <span class="s2">&quot;MB&quot;</span><span class="p">,</span> <span class="s2">&quot;GB&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="o">&lt;</span> <span class="mf">1024.0</span> <span class="ow">and</span> <span class="n">num</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">1024.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num</span><span class="si">:</span><span class="s2">3.1f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">num</span> <span class="o">/=</span> <span class="mf">1024.0</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num</span><span class="si">:</span><span class="s2">3.1f</span><span class="si">}</span><span class="s2"> TB&quot;</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_string_array</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function taking a string data set and preparing it so it can be</span>
+<span class="sd">    read to a BytesIO object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">data</span><span class="p">[()]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="SimpleBuffer">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.SimpleBuffer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleBuffer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object that can be used as a cache.</span>
+
+<span class="sd">    Will never contain more then the specified number of items. If more then</span>
+<span class="sd">    then that are used, it will remove the item with the oldest last access</span>
+<span class="sd">    time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_limit</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_size_limit</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="c1"># Reorder on access.</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_size_limit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_limit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span><span class="o">.</span><span class="n">popitem</span><span class="p">(</span><span class="n">last</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ProvenanceAccessor">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.ProvenanceAccessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProvenanceAccessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accessor helper for the provenance records.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Cache up to 20 documents. Uses the sha1 hash of the documents.</span>
+    <span class="n">_cache</span> <span class="o">=</span> <span class="n">SimpleBuffer</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="p">):</span>
+        <span class="c1"># Use weak references to not have any dangling references to the HDF5</span>
+        <span class="c1"># file around.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">asdf_data_set</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">_records</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_records</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span>
+
+        <span class="nb">hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_provenance_group</span><span class="p">[</span><span class="n">item</span><span class="p">][()]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hash</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="nb">hash</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">get_provenance_document</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="nb">hash</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Key/Attribute &#39;</span><span class="si">%s</span><span class="s2">&#39; not known.&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">ds</span><span class="o">.</span><span class="n">_provenance_group</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">ds</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">add_provenance_document</span><span class="p">(</span><span class="n">document</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="s2">&quot;list&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;keys&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;values&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;items&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;get_provenance_document_for_id&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+<div class="viewcode-block" id="ProvenanceAccessor.list">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.ProvenanceAccessor.list">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of available provenance documents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_provenance_group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ProvenanceAccessor.get_provenance_document_for_id">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.ProvenanceAccessor.get_provenance_document_for_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_provenance_document_for_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">provenance_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the provenance document containing a record with a certain id.</span>
+
+<span class="sd">        :param provenance_id: The id of the provenance record whose</span>
+<span class="sd">            containing document is searched. Must be given as a qualified name,</span>
+<span class="sd">            e.g. ``&#39;{namespace_uri}id&#39;``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Will raise if not a proper qualified name.</span>
+        <span class="n">url</span><span class="p">,</span> <span class="n">localname</span> <span class="o">=</span> <span class="n">split_qualified_name</span><span class="p">(</span><span class="n">provenance_id</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">{{</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="se">}}</span><span class="si">{</span><span class="n">localname</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">document</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">all_ids</span> <span class="o">=</span> <span class="n">get_all_ids_for_prov_document</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">all_ids</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s2">&quot;document&quot;</span><span class="p">:</span> <span class="n">document</span><span class="p">}</span>
+        <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Document containing id &#39;</span><span class="si">%s</span><span class="s2">&#39; not found in the data set.&quot;</span> <span class="o">%</span> <span class="n">provenance_id</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">_i</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">_i</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="p">(</span><span class="n">_i</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">_i</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;No provenance document in file.&quot;</span>
+        <span class="n">ret_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%i</span><span class="s2"> Provenance Document(s):</span><span class="se">\n\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span>
+            <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret_str</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AuxiliaryDataContainer</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">data_type</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">=</span> <span class="n">data_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">tag</span>
+        <span class="k">if</span> <span class="s2">&quot;provenance_id&quot;</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;provenance_id&quot;</span><span class="p">)</span>
+            <span class="c1"># It might be returned as a byte string on some systems.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__file_cache</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">path</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">data_type</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__file_cache</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;files&quot;</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">ASDFAttributeError</span><span class="p">(</span>
+                <span class="s2">&quot;The &#39;file&#39; property is only available &quot;</span>
+                <span class="s2">&quot;for auxiliary data with the data type &#39;Files&#39; or &#39;File&#39;.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file_cache</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__file_cache</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">_read_string_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__file_cache</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Deal with nested paths.</span>
+        <span class="n">split_dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">split_dt</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;Auxiliary Data of Type &#39;</span><span class="si">{data_type}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Path: &#39;</span><span class="si">{path}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;</span><span class="si">{provenance}</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Data shape: &#39;</span><span class="si">{data_shape}</span><span class="s2">&#39;, dtype: &#39;</span><span class="si">{dtype}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Parameters:</span><span class="se">\n\t\t</span><span class="si">{parameters}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">data_type</span><span class="o">=</span><span class="n">split_dt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">data_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+                <span class="n">path</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                <span class="n">provenance</span><span class="o">=</span><span class="p">(</span>
+                    <span class="s2">&quot;&quot;</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Provenance ID: &#39;</span><span class="si">%s</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">provenance_id</span>
+                <span class="p">),</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n\t\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="AuxiliaryDataAccessor">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.AuxiliaryDataAccessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AuxiliaryDataAccessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper class to access auxiliary data items.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">auxiliary_data_type</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="p">):</span>
+        <span class="c1"># Use weak references to not have any dangling references to the HDF5</span>
+        <span class="c1"># file around.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span> <span class="o">=</span> <span class="n">auxiliary_data_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">asdf_data_set</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">ds1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="n">ds2</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ds1</span><span class="o">.</span><span class="n">filename</span> <span class="o">!=</span> <span class="n">ds2</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds1</span>
+            <span class="k">del</span> <span class="n">ds2</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_l</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Key/Item &#39;</span><span class="si">%s</span><span class="s2">&#39; not known or cannot be deleted.&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds</span><span class="o">.</span><span class="n">_auxiliary_data_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">][</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Key/Item &#39;</span><span class="si">%s</span><span class="s2">&#39; not known.&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_get_auxiliary_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">auxiliary_data_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_auxiliary_data_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;list&quot;</span><span class="p">,</span> <span class="s2">&quot;auxiliary_data_type&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">_i</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">data_arrays</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="n">reference</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">_auxiliary_data_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">][</span><span class="n">item</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reference</span><span class="p">,</span> <span class="n">h5py</span><span class="o">.</span><span class="n">Group</span><span class="p">):</span>
+                    <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data_arrays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+                <span class="k">del</span> <span class="n">reference</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds</span>
+
+        <span class="n">ret_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="n">ret_str</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{count}</span><span class="s2"> auxiliary data sub group(s) of type &#39;</span><span class="si">{type}</span><span class="s2">&#39; &quot;</span>
+                <span class="s2">&quot;available:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="si">{items}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">,</span>
+                    <span class="n">items</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">groups</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_arrays</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ret_str</span><span class="p">:</span>
+                <span class="n">ret_str</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">ret_str</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{count}</span><span class="s2"> auxiliary data item(s) of type &#39;</span><span class="si">{type}</span><span class="s2">&#39; available:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;</span><span class="se">\t</span><span class="si">{items}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">data_arrays</span><span class="p">),</span>
+                    <span class="nb">type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__auxiliary_data_type</span><span class="p">,</span>
+                    <span class="n">items</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_arrays</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">groups</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">data_arrays</span><span class="p">:</span>
+            <span class="n">ret_str</span> <span class="o">+=</span> <span class="s2">&quot;Empty auxiliary data group.&quot;</span>
+
+        <span class="k">return</span> <span class="n">ret_str</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="AuxiliaryDataGroupAccessor">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.AuxiliaryDataGroupAccessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AuxiliaryDataGroupAccessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper class to facilitate access to the auxiliary data types.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="p">):</span>
+        <span class="c1"># Use weak references to not have any dangling references to the HDF5</span>
+        <span class="c1"># file around.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">asdf_data_set</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Key/Attribute &#39;</span><span class="si">%s</span><span class="s2">&#39; not known.&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds</span><span class="o">.</span><span class="n">_auxiliary_data_group</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">__auxiliary_data_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_auxiliary_data_group</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">__auxiliary_data_group</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span>
+        <span class="k">return</span> <span class="n">AuxiliaryDataAccessor</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">__auxiliary_data_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_auxiliary_data_group</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">__auxiliary_data_group</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">__auxiliary_group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_auxiliary_data_group</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">__auxiliary_group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;list&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s2">&quot;Data set contains no auxiliary data.&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;Data set contains the following auxiliary data types:</span><span class="se">\n\t</span><span class="si">{items}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">items</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%i</span><span class="s2"> item(s))&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_i</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">_i</span><span class="p">]))</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()]</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="StationAccessor">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.StationAccessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StationAccessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper class to facilitate access to the waveforms and stations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="p">):</span>
+        <span class="c1"># Use weak references to not have any dangling references to the HDF5</span>
+        <span class="c1"># file around.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">asdf_data_set</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">replace</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Attribute &#39;</span><span class="si">%s</span><span class="s2">&#39; not found.&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">WaveformAccessor</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c1"># Item access with replaced underscore and without. This is not</span>
+        <span class="c1"># strictly valid ASDF but it helps to be flexible.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="n">_i</span><span class="o">.</span><span class="n">_station_name</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="c1"># Triggers an AttributeError if the item does not exist.</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="c1"># Only delete waveform accessors.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">WaveformAccessor</span><span class="p">):</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">ds</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="n">attr</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">ds</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Attribute &#39;</span><span class="si">%s</span><span class="s2">&#39; cannot be deleted.&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="c1"># Triggers a KeyError if the key does not exist.</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="c1"># Only delete waveform accessors.</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="k">del</span> <span class="n">ds</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="n">attr</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">ds</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_waveform_group</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_i</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="p">[</span><span class="n">_i</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="WaveformAccessor">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.WaveformAccessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WaveformAccessor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper class facilitating access to the actual waveforms and stations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_name</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="p">):</span>
+        <span class="c1"># Use weak references to not have any dangling references to the HDF5</span>
+        <span class="c1"># file around.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span> <span class="o">=</span> <span class="n">station_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">asdf_data_set</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hdf5_group</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        For internal use only! Returns the hdf5 group associated with this</span>
+<span class="sd">        station. Make sure to delete the reference afterwards as HDF5 is</span>
+<span class="sd">        very picky about dangling references especially with parallel I/O.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">filter_waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queries</span><span class="p">):</span>
+        <span class="n">wfs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">wf</span> <span class="ow">in</span> <span class="p">[</span><span class="n">_i</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="k">if</span> <span class="n">_i</span> <span class="o">!=</span> <span class="s2">&quot;StationXML&quot;</span><span class="p">]:</span>
+            <span class="c1"># Location and channel codes.</span>
+            <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">]:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">loc_code</span><span class="p">,</span> <span class="n">cha_code</span> <span class="o">=</span> <span class="n">wf_name2seed_codes</span><span class="p">(</span><span class="n">wf</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">](</span><span class="n">loc_code</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;channel&quot;</span><span class="p">](</span><span class="n">cha_code</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                        <span class="k">continue</span>
+            <span class="c1"># Tag</span>
+            <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">]:</span>
+                <span class="n">tag</span> <span class="o">=</span> <span class="n">wf_name2tag</span><span class="p">(</span><span class="n">wf</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;tag&quot;</span><span class="p">](</span><span class="n">tag</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+            <span class="c1"># Any of the other queries requires parsing the attribute path.</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;npts&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;event&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;magnitude&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;origin&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;focal_mechanism&quot;</span><span class="p">]</span>
+                <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span>
+            <span class="p">):</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hdf5_group</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">attrs</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="n">wf</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span>
+
+                    <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">](</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                    <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;npts&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;npts&quot;</span><span class="p">](</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="n">wf</span><span class="p">]))</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                    <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">]:</span>
+                        <span class="n">starttime</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="mf">1.0e9</span><span class="p">)</span>
+                        <span class="n">endtime</span> <span class="o">=</span> <span class="n">starttime</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="n">wf</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span>
+                            <span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">]</span>
+                        <span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;starttime&quot;</span><span class="p">](</span><span class="n">starttime</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                                <span class="k">continue</span>
+
+                        <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;endtime&quot;</span><span class="p">](</span><span class="n">endtime</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                                <span class="k">continue</span>
+
+                    <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="s2">&quot;labels&quot;</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+                            <span class="n">labels</span> <span class="o">=</span> <span class="n">labelstring2list</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">])</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">labels</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">](</span><span class="n">labels</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;event&quot;</span><span class="p">]</span>
+                        <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;magnitude&quot;</span><span class="p">]</span>
+                        <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;origin&quot;</span><span class="p">]</span>
+                        <span class="ow">or</span> <span class="n">queries</span><span class="p">[</span><span class="s2">&quot;focal_mechanism&quot;</span><span class="p">]</span>
+                    <span class="p">):</span>
+                        <span class="n">any_fails</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="p">[</span>
+                            <span class="s2">&quot;event&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;origin&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;magnitude&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;focal_mechanism&quot;</span><span class="p">,</span>
+                        <span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">queries</span><span class="p">[</span><span class="nb">id</span><span class="p">]:</span>
+                                <span class="n">key</span> <span class="o">=</span> <span class="nb">id</span> <span class="o">+</span> <span class="s2">&quot;_id&quot;</span>
+
+                                <span class="c1"># Defaults to an empty id. Each can</span>
+                                <span class="c1"># potentially be a list of values.</span>
+                                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+                                    <span class="n">values</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+
+                                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">queries</span><span class="p">[</span><span class="nb">id</span><span class="p">](</span><span class="n">_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">values</span><span class="p">):</span>
+                                    <span class="n">any_fails</span> <span class="o">=</span> <span class="kc">True</span>
+                                    <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">any_fails</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="k">continue</span>
+
+                <span class="k">finally</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">group</span>
+            <span class="n">wfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wf</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">wfs</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_station_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">ds1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="n">ds2</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ds1</span><span class="o">.</span><span class="n">filename</span> <span class="o">!=</span> <span class="n">ds2</span><span class="o">.</span><span class="n">filename</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">ds1</span>
+            <span class="k">del</span> <span class="n">ds2</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WaveformAccessor.get_waveform_attributes">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.WaveformAccessor.get_waveform_attributes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_waveform_attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a dictionary of the attributes of all waveform data sets.</span>
+
+<span class="sd">        This works purely on the meta data level and is thus fast. Event,</span>
+<span class="sd">        origin, arrival, and focmec ids will be returned as lists as they can</span>
+<span class="sd">        be set multiple times per data-set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">plural_keys</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;event_id&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;origin_id&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;magnitude_id&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;focal_mechanism_id&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">_i</span> <span class="o">==</span> <span class="s2">&quot;StationXML&quot;</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hdf5_group</span><span class="p">[</span><span class="n">_i</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Make sure its an actual string.</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+                <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">plural_keys</span><span class="p">:</span>
+                    <span class="n">k</span> <span class="o">+=</span> <span class="s2">&quot;s&quot;</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+                <span class="n">attrs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+            <span class="k">if</span> <span class="n">attrs</span><span class="p">:</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">_i</span><span class="p">]</span> <span class="o">=</span> <span class="n">attrs</span>
+
+        <span class="k">return</span> <span class="n">attributes</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get coordinates of the station if any.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_coordinates</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;station&quot;</span><span class="p">)</span>
+        <span class="c1"># Such a file actually cannot be created with pyasdf but maybe with</span>
+        <span class="c1"># other codes. Thus we skip the coverage here.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span>
+                <span class="s2">&quot;StationXML file has no coordinates for &quot;</span>
+                <span class="s2">&quot;station &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">coords</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">channel_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get coordinates of the station at the channel level if any.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_coordinates</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;channel&quot;</span><span class="p">)</span>
+        <span class="c1"># Filter to only keep channels with the current station name.</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">key</span><span class="p">:</span> <span class="n">value</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">coords</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span>
+                <span class="s2">&quot;StationXML file has no coordinates at &quot;</span>
+                <span class="s2">&quot;the channel level for station &#39;</span><span class="si">%s</span><span class="s2">&#39;.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">coords</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;StationXML&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">station</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">NoStationXMLForStation</span><span class="p">(</span>
+                <span class="s2">&quot;Station &#39;</span><span class="si">%s</span><span class="s2">&#39; has no StationXML file.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span>
+            <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">_read_string_array</span><span class="p">(</span><span class="n">station</span><span class="p">[</span><span class="s2">&quot;StationXML&quot;</span><span class="p">]))</span> <span class="k">as</span> <span class="n">buf</span><span class="p">:</span>
+                <span class="n">coordinates</span> <span class="o">=</span> <span class="n">get_coordinates</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># HDF5 reference are tricky...</span>
+            <span class="k">del</span> <span class="n">station</span>
+
+        <span class="k">return</span> <span class="n">coordinates</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="n">WaveformNotInFileException</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+<div class="viewcode-block" id="WaveformAccessor.get_waveform_tags">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.WaveformAccessor.get_waveform_tags">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_waveform_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all available waveform tags for this station.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">_i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span> <span class="k">if</span> <span class="n">_i</span> <span class="o">!=</span> <span class="s2">&quot;StationXML&quot;</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+        <span class="n">contents</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">contents</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__delete_data</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="c1"># This cannot really happen as it will be caught by the</span>
+        <span class="c1"># __filter_data() method.</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: nocover</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__delete_data</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__delete_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal delete method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_data</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="n">h5</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hdf5_group</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">h5</span><span class="p">:</span>
+                    <span class="k">del</span> <span class="n">h5</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">h5</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__filter_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal filtering for item access and deletion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># StationXML access.</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="o">==</span> <span class="s2">&quot;StationXML&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="p">]</span>
+
+        <span class="n">_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+
+        <span class="c1"># Single trace access</span>
+        <span class="k">if</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">_l</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">item</span><span class="p">]</span>
+        <span class="c1"># Tag access.</span>
+        <span class="k">elif</span> <span class="s2">&quot;__&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+            <span class="n">__station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">_i</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">__station</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">_i</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span> <span class="o">+</span> <span class="n">item</span><span class="p">)]</span>
+            <span class="c1"># Important as __del__() for the waveform group is otherwise</span>
+            <span class="c1"># not always called.</span>
+            <span class="k">del</span> <span class="n">__station</span>
+
+            <span class="c1"># Filter by everything in self.list(). Once to make sure its</span>
+            <span class="c1"># up-to-date and also for the filtered subclasses of this.</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">_i</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">keys</span> <span class="k">if</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">_l</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">WaveformNotInFileException</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Tag &#39;</span><span class="si">{</span><span class="n">item</span><span class="si">}</span><span class="s2">&#39; not part of the data set for station &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">keys</span>
+
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Item &#39;</span><span class="si">%s</span><span class="s2">&#39; not found.&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_item</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">starttime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">endtime</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__filter_data</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="c1"># StationXML access.</span>
+        <span class="k">if</span> <span class="n">items</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;StationXML&quot;</span><span class="p">]:</span>
+            <span class="n">station</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_get_station</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">station</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object has no attribute &#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">item</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">station</span>
+
+        <span class="c1"># Get an estimate of the total require memory. But only estimate it</span>
+        <span class="c1"># if the file is actually larger than the memory as the test is fairly</span>
+        <span class="c1"># expensive but we don&#39;t really care for small files.</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">filesize</span>
+            <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">single_item_read_limit_in_mb</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">2</span>
+        <span class="p">):</span>
+            <span class="n">total_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_get_idx_and_size_estimate</span><span class="p">(</span>
+                        <span class="n">_i</span><span class="p">,</span> <span class="n">starttime</span><span class="o">=</span><span class="n">starttime</span><span class="p">,</span> <span class="n">endtime</span><span class="o">=</span><span class="n">endtime</span>
+                    <span class="p">)[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">items</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Raise an error to not read an extreme amount of data into memory.</span>
+            <span class="k">if</span> <span class="n">total_size</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">single_item_read_limit_in_mb</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;All waveforms for station &#39;</span><span class="si">%s</span><span class="s2">&#39; and item &#39;</span><span class="si">%s</span><span class="s2">&#39; would &quot;</span>
+                    <span class="s2">&quot;require &#39;</span><span class="si">%.2f</span><span class="s2"> MB of memory. The current limit is </span><span class="si">%.2f</span><span class="s2"> &quot;</span>
+                    <span class="s2">&quot;MB. Adjust by setting &quot;</span>
+                    <span class="s2">&quot;&#39;ASDFDataSet.single_item_read_limit_in_mb&#39; or use a &quot;</span>
+                    <span class="s2">&quot;different method to read the waveform data.&quot;</span>
+                    <span class="o">%</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">,</span>
+                        <span class="n">item</span><span class="p">,</span>
+                        <span class="n">total_size</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">single_item_read_limit_in_mb</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">traces</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_get_waveform</span><span class="p">(</span><span class="n">_i</span><span class="p">,</span> <span class="n">starttime</span><span class="o">=</span><span class="n">starttime</span><span class="p">,</span> <span class="n">endtime</span><span class="o">=</span><span class="n">endtime</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">items</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">obspy</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">traces</span><span class="o">=</span><span class="n">traces</span><span class="p">)</span>
+
+<div class="viewcode-block" id="WaveformAccessor.list">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.WaveformAccessor.list">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list of all data sets for this station.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__data_set</span><span class="p">()</span><span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The dir method will list all this object&#39;s methods, the StationXML</span>
+<span class="sd">        if it has one, and all tags.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Python 3.</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="s2">&quot;__dir__&quot;</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># Python 2.</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">_i</span>
+                <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">_i</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="p">]</span>
+
+        <span class="n">directory</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_waveform_tags</span><span class="p">())</span>
+        <span class="k">if</span> <span class="s2">&quot;StationXML&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">():</span>
+            <span class="n">directory</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;StationXML&quot;</span><span class="p">)</span>
+        <span class="n">directory</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;_station_name&quot;</span><span class="p">,</span> <span class="s2">&quot;coordinates&quot;</span><span class="p">,</span> <span class="s2">&quot;channel_coordinates&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">directory</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()</span>
+        <span class="n">waveform_contents</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_waveform_tags</span><span class="p">())</span>
+
+        <span class="n">ret_str</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;Contents of the data set for station </span><span class="si">{station}</span><span class="s2">:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    - </span><span class="si">{station_xml}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;    - </span><span class="si">{count}</span><span class="s2"> Waveform Tag(s):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;        </span><span class="si">{waveforms}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ret_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">station</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">,</span>
+            <span class="n">station_xml</span><span class="o">=</span><span class="p">(</span>
+                <span class="s2">&quot;Has a StationXML file&quot;</span>
+                <span class="k">if</span> <span class="s2">&quot;StationXML&quot;</span> <span class="ow">in</span> <span class="n">contents</span>
+                <span class="k">else</span> <span class="s2">&quot;Has no StationXML file&quot;</span>
+            <span class="p">),</span>
+            <span class="n">count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">waveform_contents</span><span class="p">),</span>
+            <span class="n">waveforms</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">waveform_contents</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_pretty_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">cycle</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="FilteredWaveformAccessor">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.FilteredWaveformAccessor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilteredWaveformAccessor</span><span class="p">(</span><span class="n">WaveformAccessor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A version of the waveform accessor returning a limited number of waveforms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_name</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="p">,</span> <span class="n">filtered_items</span><span class="p">):</span>
+        <span class="n">WaveformAccessor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">station_name</span><span class="o">=</span><span class="n">station_name</span><span class="p">,</span> <span class="n">asdf_data_set</span><span class="o">=</span><span class="n">asdf_data_set</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filtered_items</span> <span class="o">=</span> <span class="n">filtered_items</span>
+
+<div class="viewcode-block" id="FilteredWaveformAccessor.list">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.FilteredWaveformAccessor.list">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get all keys and accept only the filtered items and the station</span>
+        <span class="c1"># information. This makes sure the filtered waveforms are somewhat</span>
+        <span class="c1"># up-to-date.</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_WaveformAccessor__data_set</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">_waveform_group</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_name</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">_i</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filtered_items</span> <span class="ow">or</span> <span class="n">_i</span> <span class="o">==</span> <span class="s2">&quot;StationXML&quot;</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">WaveformAccessor</span><span class="o">.</span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;^Contents&quot;</span><span class="p">,</span> <span class="s2">&quot;Filtered contents&quot;</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="is_mpi_env">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.is_mpi_env">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_mpi_env</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns True if the current environment is an MPI environment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">mpi4py</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">mpi4py.MPI</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">mpi4py</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">mpi4py</span><span class="o">.</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="StreamBuffer">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.StreamBuffer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StreamBuffer</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">MutableMapping</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Very simple key value store for obspy stream object with the additional</span>
+<span class="sd">    ability to approximate the size of all stored stream objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__streams</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">obspy</span><span class="o">.</span><span class="n">Stream</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+<div class="viewcode-block" id="StreamBuffer.keys">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.StreamBuffer.keys">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StreamBuffer.get_size">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.StreamBuffer.get_size">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Try to approximate the size of all stores Stream object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cum_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__streams</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="c1"># Skip None values.</span>
+            <span class="k">if</span> <span class="n">stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">cum_size</span> <span class="o">+=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">cum_size</span> <span class="o">+=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
+                <span class="n">cum_size</span> <span class="o">+=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">stats</span><span class="p">)</span>
+                <span class="n">cum_size</span> <span class="o">+=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+                <span class="n">cum_size</span> <span class="o">+=</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">cum_size</span> <span class="o">+=</span> <span class="n">trace</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">nbytes</span>
+        <span class="c1"># Add one percent buffer just in case.</span>
+        <span class="k">return</span> <span class="n">cum_size</span> <span class="o">*</span> <span class="mf">1.01</span></div>
+</div>
+
+
+
+<span class="c1"># Two objects describing a job and a worker.</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Job</span><span class="p">:</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s2">&quot;arguments&quot;</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arguments</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">arguments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Job(arguments=</span><span class="si">%s</span><span class="s2">, result=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">),</span>
+            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result</span><span class="p">),</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="JobQueueHelper">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.JobQueueHelper">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JobQueueHelper</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simple helper class managing job distribution to workers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobs</span><span class="p">,</span> <span class="n">worker_names</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Init with a list of jobs and a list of workers.</span>
+
+<span class="sd">        :type jobs: List of arguments distributed to the jobs.</span>
+<span class="sd">        :param jobs: A list of jobs that will be distributed to the workers.</span>
+<span class="sd">        :type: list of integers</span>
+<span class="sd">        :param workers: A list of usually integers, each denoting a worker.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_all_jobs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Job</span><span class="p">(</span><span class="n">_i</span><span class="p">)</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">jobs</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_in_queue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_jobs</span><span class="p">[:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished_jobs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_poison_pills_received</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span> <span class="o">=</span> <span class="p">{</span><span class="n">_i</span><span class="p">:</span> <span class="n">Worker</span><span class="p">([],</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">worker_names</span><span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+<div class="viewcode-block" id="JobQueueHelper.poison_pill_received">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.JobQueueHelper.poison_pill_received">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">poison_pill_received</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Increment the point pills received counter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_poison_pills_received</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="JobQueueHelper.get_job_for_worker">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.JobQueueHelper.get_job_for_worker">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_job_for_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a job for a worker.</span>
+
+<span class="sd">        :param worker_name: The name of the worker requesting work.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_in_queue</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">[</span><span class="n">worker_name</span><span class="p">]</span><span class="o">.</span><span class="n">active_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">job</span><span class="o">.</span><span class="n">arguments</span></div>
+
+
+<div class="viewcode-block" id="JobQueueHelper.received_job_from_worker">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.JobQueueHelper.received_job_from_worker">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">received_job_from_worker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arguments</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">worker_name</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Call when a worker returned a job.</span>
+
+<span class="sd">        :param arguments: The arguments the jobs was called with.</span>
+<span class="sd">        :param result: The result of the job</span>
+<span class="sd">        :param worker_name: The name of the worker.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Find the correct job.</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">_i</span>
+            <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">[</span><span class="n">worker_name</span><span class="p">]</span><span class="o">.</span><span class="n">active_jobs</span>
+            <span class="k">if</span> <span class="n">_i</span><span class="o">.</span><span class="n">arguments</span> <span class="o">==</span> <span class="n">arguments</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">job</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;MASTER: Job </span><span class="si">%s</span><span class="s2"> from worker </span><span class="si">%i</span><span class="s2"> not found. All jobs: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">arguments</span><span class="p">),</span>
+                <span class="n">worker_name</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">[</span><span class="n">worker_name</span><span class="p">]</span><span class="o">.</span><span class="n">active_jobs</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">job</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;WTF </span><span class="si">%i</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">worker_name</span><span class="p">,</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">arguments</span><span class="p">),</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">[</span><span class="n">worker_name</span><span class="p">]</span><span class="o">.</span><span class="n">active_jobs</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="n">job</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">job</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">result</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">[</span><span class="n">worker_name</span><span class="p">]</span><span class="o">.</span><span class="n">active_jobs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">[</span><span class="n">worker_name</span><span class="p">]</span><span class="o">.</span><span class="n">completed_jobs_count</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished_jobs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">workers</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;Worker </span><span class="si">%s</span><span class="s2">: </span><span class="si">%i</span><span class="s2"> active, </span><span class="si">%i</span><span class="s2"> completed jobs&quot;</span>
+                <span class="o">%</span> <span class="p">(</span>
+                    <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">active_jobs</span><span class="p">),</span>
+                    <span class="n">value</span><span class="o">.</span><span class="n">completed_jobs_count</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;Jobs (running </span><span class="si">%.2f</span><span class="s2"> seconds): &quot;</span>
+            <span class="s2">&quot;queued: </span><span class="si">%i</span><span class="s2"> | finished: </span><span class="si">%i</span><span class="s2"> | total: </span><span class="si">%i</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_starttime</span><span class="p">,</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_queue</span><span class="p">),</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finished_jobs</span><span class="p">),</span>
+                <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_jobs</span><span class="p">),</span>
+                <span class="n">workers</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">queue_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_queue</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finished_jobs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_done</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_jobs</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finished_jobs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_poison_pills_received</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_workers</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_poison_pills_received</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pretty_sender_log</span><span class="p">(</span><span class="n">rank</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">colorama</span>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RED</span> <span class="o">+</span> <span class="s2">&quot;sent to      &quot;</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RESET</span>
+    <span class="n">_pretty_log</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">pretty_receiver_log</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">colorama</span>
+
+    <span class="n">prefix</span> <span class="o">=</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span> <span class="o">+</span> <span class="s2">&quot;received from&quot;</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RESET</span>
+    <span class="n">_pretty_log</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pretty_log</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">payload</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">colorama</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">MAGENTA</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">BLUE</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">BLACK</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RED</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Back</span><span class="o">.</span><span class="n">WHITE</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">CYAN</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">tag_colors</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RED</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">GREEN</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">BLUE</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span><span class="p">,</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">MAGENTA</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Deterministic colors also on Python 3.</span>
+    <span class="n">msg_tag_keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">MSG_TAGS</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">msg_tag_keys</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))]</span>
+
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">MSG_TAGS</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">tag_colors</span><span class="p">[</span><span class="n">tags</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag_colors</span><span class="p">)]</span> <span class="o">+</span> <span class="n">tag</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span>
+
+    <span class="n">first</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s2">&quot;MASTER  &quot;</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RESET</span>
+        <span class="k">if</span> <span class="n">first</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="n">colors</span><span class="p">[</span><span class="n">first</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
+        <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;WORKER </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">first</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span>
+    <span class="p">)</span>
+    <span class="n">second</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">YELLOW</span> <span class="o">+</span> <span class="s2">&quot;MASTER  &quot;</span> <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Fore</span><span class="o">.</span><span class="n">RESET</span>
+        <span class="k">if</span> <span class="n">second</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">else</span> <span class="n">colors</span><span class="p">[</span><span class="n">second</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)]</span>
+        <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;WORKER </span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">second</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">colorama</span><span class="o">.</span><span class="n">Style</span><span class="o">.</span><span class="n">RESET_ALL</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> [</span><span class="si">%s</span><span class="s2">] -- </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">second</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">payload</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="split_qualified_name">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.split_qualified_name">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split_qualified_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Takes a qualified name and returns a tuple of namespace, localpart.</span>
+
+<span class="sd">    If namespace is not a valid URL, an error will be raised.</span>
+
+<span class="sd">    :param name: The qualified name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">q_name</span> <span class="o">=</span> <span class="n">QName</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span><span class="s2">&quot;Not a valid qualified name.&quot;</span><span class="p">)</span>
+    <span class="n">url</span><span class="p">,</span> <span class="n">localname</span> <span class="o">=</span> <span class="n">q_name</span><span class="o">.</span><span class="n">namespace</span><span class="p">,</span> <span class="n">q_name</span><span class="o">.</span><span class="n">localname</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span><span class="s2">&quot;Not a valid qualified name.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ASDFValueError</span><span class="p">(</span><span class="s2">&quot;Not a valid qualified name.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">url</span><span class="p">,</span> <span class="n">localname</span></div>
+
+
+
+<div class="viewcode-block" id="get_all_ids_for_prov_document">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.get_all_ids_for_prov_document">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_all_ids_for_prov_document</span><span class="p">(</span><span class="n">document</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gets a all ids from a prov document as qualified names in the lxml style.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">_get_ids_from_bundle</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">bundle</span> <span class="ow">in</span> <span class="n">document</span><span class="o">.</span><span class="n">bundles</span><span class="p">:</span>
+        <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_get_ids_from_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_ids_from_bundle</span><span class="p">(</span><span class="n">bundle</span><span class="p">):</span>
+    <span class="n">all_ids</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">bundle</span><span class="o">.</span><span class="n">_records</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="s2">&quot;identifier&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">record</span><span class="o">.</span><span class="n">identifier</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">identifier</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">identifier</span>
+        <span class="n">all_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;{</span><span class="si">%s</span><span class="s2">}</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">identifier</span><span class="o">.</span><span class="n">namespace</span><span class="o">.</span><span class="n">uri</span><span class="p">,</span> <span class="n">identifier</span><span class="o">.</span><span class="n">localpart</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">all_ids</span>
+
+
+<div class="viewcode-block" id="wf_name2seed_codes">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.wf_name2seed_codes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wf_name2seed_codes</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts an ASDF waveform name to the corresponding SEED identifiers.</span>
+
+<span class="sd">    &gt;&gt;&gt; wf_name2seed_codes(&quot;BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth&quot;)</span>
+<span class="sd">    (&quot;BW&quot;, &quot;ALTM&quot;, &quot;00&quot;, &quot;EHE&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[:</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">tag</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">tag</span></div>
+
+
+
+<div class="viewcode-block" id="wf_name2tag">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.wf_name2tag">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wf_name2tag</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the path from an ASDF waveform name.</span>
+
+<span class="sd">    &gt;&gt;&gt; wf_name2seed_codes(&quot;BW.ALTM.00.EHE__2012-01-..__2012_01-...__synth&quot;)</span>
+<span class="sd">    &quot;synth&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">tag</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="label2string">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.label2string">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">label2string</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List of labels to a comma-saperated string.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;,&quot;</span> <span class="ow">in</span> <span class="n">_i</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The labels must not contain a comma as it is used &quot;</span>
+                    <span class="s2">&quot;as the separator for the different values.&quot;</span>
+                <span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">_i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">labels</span></div>
+
+
+
+<div class="viewcode-block" id="labelstring2list">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.labelstring2list">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">labelstring2list</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    String to a list of labels.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">_i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span></div>
+
+
+
+<div class="viewcode-block" id="is_list">
+<a class="viewcode-back" href="../../utils.html#pyasdf.utils.is_list">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_list</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    True if the returned object is an iterable but not a string.</span>
+
+<span class="sd">    :param obj: The object to test.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+        <span class="n">obj</span><span class="p">,</span> <span class="n">string_types</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">to_list_of_resource_identifiers</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj_type</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">if</span> <span class="n">is_list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj_type</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">to_list_of_resource_identifiers</span><span class="p">(</span><span class="n">_i</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">obj_type</span><span class="p">)</span> <span class="k">for</span> <span class="n">_i</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj_type</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">resource_id</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obspy</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">ResourceIdentifier</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">ResourceIdentifier</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Invalid type for </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">name</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

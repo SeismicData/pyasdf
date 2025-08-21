@@ -1,0 +1,299 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parallel Processing &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage as a Context Manager" href="usage_as_context_manager.html" />
+    <link rel="prev" title="Converting Data to ASDF" href="converting_data_asdf.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="converting_data_asdf.html">Converting Data to ASDF</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Parallel Processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#process-method">process() method</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#run-it-with-mpi">Run it with MPI</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#run-it-with-multiprocessing">Run it with multiprocessing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#process-two-files-without-parallel-output-method">process_two_files_without_parallel_output() method</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="usage_as_context_manager.html">Usage as a Context Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deleting_pieces.html">Deleting Pieces of a Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="of_tags_and_labels.html">Of Tags and Labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="querying_data.html">Querying a Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="station_data.html">Working With Station Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="large_continuous_datasets.html">Large Continuous Data Sets</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="detailed_explanations.html">Detailed Explanations</a></li>
+      <li class="breadcrumb-item active">Parallel Processing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/parallel_processing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="parallel-processing">
+<h1>Parallel Processing<a class="headerlink" href="#parallel-processing" title="Link to this heading">¶</a></h1>
+<p>An explicit design goal of the <code class="docutils literal notranslate"><span class="pre">ASDF</span></code> format has been to enable
+high-performance and parallel processing. <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> aids in that regard by
+providing a couple of different functions. If you require functions that
+operate in different patterns please open a Github issue and we can discuss it.</p>
+<section id="process-method">
+<h2>process() method<a class="headerlink" href="#process-method" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet.process" title="pyasdf.asdf_data_set.ASDFDataSet.process"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process()</span></code></a> method is conceptually
+very simple: It applies a function to each station in one data set and writes
+the results to a new data set. It can run in parallel with MPI. In that case
+parallel I/O will be used if available. Alternatively it can be run in parallel
+without MPI on shared memory architectures but in that case I/O is not parallel
+and only one process will write at any point in time.</p>
+<p>A simple example best illustrates how to use it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyasdf</span>
+
+<span class="c1"># The first step is to define a function. You can do whatever you want in</span>
+<span class="c1"># that function to process the data.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">inv</span><span class="p">):</span>
+    <span class="c1"># st is an ObsPy stream object with a certain tag and inv is an ObsPy</span>
+    <span class="c1"># inventory object which might be None.</span>
+
+    <span class="c1"># This example will not write anything for data which has no</span>
+    <span class="c1"># corresponding inventory information.</span>
+    <span class="k">if</span> <span class="n">inv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="c1"># This very simple example will deconvolve the instrument response.</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">attach_response</span><span class="p">(</span><span class="n">inv</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">remove_response</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s2">&quot;VEL&quot;</span><span class="p">)</span>
+
+    <span class="c1"># The new file will contain whatever is returned here. If nothing is</span>
+    <span class="c1"># returned, nothing will be written. In case something is returned, the</span>
+    <span class="c1"># inventory data will also be copied from the input to the output file.</span>
+    <span class="k">return</span> <span class="n">st</span>
+
+
+<span class="c1"># Open an existing data set. Setting the mode is not strictly necessary but</span>
+<span class="c1"># might improve the speed a bit.</span>
+
+<span class="c1"># Make sure to either use a with statement or delete the reference to the</span>
+<span class="c1"># data set object at the end. Otherwise it might not be able to properly</span>
+<span class="c1"># close the file which will stall MPI.</span>
+<span class="k">with</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;example.h5&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ds</span><span class="p">:</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+        <span class="c1"># Pass the processing function here.</span>
+        <span class="n">process_function</span><span class="o">=</span><span class="n">process</span><span class="p">,</span>
+        <span class="c1"># The output filename. Must not yet exist.</span>
+        <span class="n">output_filename</span><span class="o">=</span><span class="s2">&quot;processed_example.h5&quot;</span><span class="p">,</span>
+        <span class="c1"># Maps the tags. The keys are the tags in the input file and traces</span>
+        <span class="c1"># with that tag will end up in the output file with the corresponding</span>
+        <span class="c1"># value.</span>
+        <span class="c1"># Also note that only data with tags present in this map will be</span>
+        <span class="c1"># processed. Others will be ignored.</span>
+        <span class="n">tag_map</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;raw_recording&quot;</span><span class="p">:</span> <span class="s2">&quot;processed&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<section id="run-it-with-mpi">
+<h3>Run it with MPI<a class="headerlink" href="#run-it-with-mpi" title="Link to this heading">¶</a></h3>
+<p>Save the above example to file and run it with MPI. Make sure <code class="docutils literal notranslate"><span class="pre">h5py</span></code> has been
+compiled with parallel I/O support. Consult the <a class="reference internal" href="installation.html"><span class="doc">Installation</span></a> document on
+how do that and making sure it works.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mpirun<span class="w"> </span>-n<span class="w"> </span><span class="m">64</span><span class="w"> </span>python<span class="w"> </span>script.py
+</pre></div>
+</div>
+<p>As soon as it is run with more then 1 core and an MPI communicator is available
+<code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> will recognize its being called with MPI and chose the correct
+internal functions.</p>
+</section>
+<section id="run-it-with-multiprocessing">
+<h3>Run it with multiprocessing<a class="headerlink" href="#run-it-with-multiprocessing" title="Link to this heading">¶</a></h3>
+<p>If MPI is not available <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> will attempt to run the processing in
+parallel using Python’s native <code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code> module. In that case only
+one core will be able to write at any given point in time: the cores will take
+turns. Nonetheless this speeds up things quite a bit if your processing is
+reasonably heavy.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>script.py
+</pre></div>
+</div>
+<p>It will attempt to use all available cores by default. Additional parameters
+available for processing with multiprocessing:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+
+<span class="n">ds</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="o">...</span><span class="p">,</span>
+           <span class="c1"># The length of the traceback shown if an error is raised during</span>
+           <span class="c1"># the processing of a trace. Defaults to 3.</span>
+           <span class="n">traceback_limit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+           <span class="c1"># The number of cores to run it on. Defaults to -1 which is</span>
+           <span class="c1"># equal to the number of cores on your system.</span>
+           <span class="n">cpu_count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="process-two-files-without-parallel-output-method">
+<h2>process_two_files_without_parallel_output() method<a class="headerlink" href="#process-two-files-without-parallel-output-method" title="Link to this heading">¶</a></h2>
+<p>The
+<a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet.process_two_files_without_parallel_output" title="pyasdf.asdf_data_set.ASDFDataSet.process_two_files_without_parallel_output"><code class="xref py py-meth docutils literal notranslate"><span class="pre">process_two_files_without_parallel_output()</span></code></a>
+is useful to compare data in two separate data sets for example for misfit or
+window selection procedures. One once again has to provide a function which
+will be called for each station that is common in both data sets. The results
+are collected in memory and gathered on rank 0.</p>
+<p>The function can currently only be run with MPI and is best explained by a
+short example. The following script will calculate the squared sum for all
+traces at each station in both data sets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyasdf</span>
+
+<span class="c1"># Open two data sets. Setting the mode is optional but might speed up things a</span>
+<span class="c1"># bit.</span>
+<span class="n">ds_1</span> <span class="o">=</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;/Users/lion/asdf_example.h5&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+<span class="n">ds_2</span> <span class="o">=</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;/Users/lion/asdf_example.h5&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># The function takes two station groups which contain waveform and inventory</span>
+<span class="c1"># information for the same station in both data sets. The function will only be</span>
+<span class="c1"># called for stations that are available in both data sets. Keep in mind that</span>
+<span class="c1"># each station can contain data from an arbitrary number of tags and can also</span>
+<span class="c1"># contain inventory information.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="n">s_group_1</span><span class="p">,</span> <span class="n">s_group_2</span><span class="p">):</span>
+    <span class="n">energy_ds_1</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">energy_ds_2</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Get energy for data in data set one. Don&#39;t deal with the sampling rate</span>
+    <span class="c1"># for now...</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">s_group_1</span><span class="o">.</span><span class="n">get_waveform_tags</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">s_group_1</span><span class="p">[</span><span class="n">tag</span><span class="p">]:</span>
+            <span class="n">energy_ds_1</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">data</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="c1"># Do the same for the other group.</span>
+    <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">s_group_2</span><span class="o">.</span><span class="n">get_waveform_tags</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">s_group_2</span><span class="p">[</span><span class="n">tag</span><span class="p">]:</span>
+            <span class="n">energy_ds_2</span> <span class="o">+=</span> <span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">data</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="c1"># Just return what you want to collect. Make sure this is not too big as it</span>
+    <span class="c1"># will be stored in memory and send over MPI to the process with rank 0.</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;energy_ds_1&quot;</span><span class="p">:</span> <span class="n">energy_ds_1</span><span class="p">,</span>
+        <span class="s2">&quot;energy_ds_2&quot;</span><span class="p">:</span> <span class="n">energy_ds_2</span><span class="p">}</span>
+
+<span class="c1"># Launch it.</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">ds_1</span><span class="o">.</span><span class="n">process_two_files_without_parallel_output</span><span class="p">(</span><span class="n">ds_2</span><span class="p">,</span> <span class="n">process</span><span class="p">)</span>
+
+<span class="c1"># Results are available on rank 0.</span>
+<span class="k">if</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Save to a file an run with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mpirun<span class="w"> </span>-n<span class="w"> </span><span class="m">64</span><span class="w"> </span>python<span class="w"> </span>script.py
+</pre></div>
+</div>
+<p>The result is something akin to</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s1">&#39;AF.CVNA&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;energy_ds_1&#39;</span><span class="p">:</span> <span class="mf">9.228861452825754e-09</span><span class="p">,</span>
+             <span class="s1">&#39;energy_ds_2&#39;</span><span class="p">:</span> <span class="mf">9.228861452825754e-09</span><span class="p">},</span>
+ <span class="s1">&#39;AF.DODT&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;energy_ds_1&#39;</span><span class="p">:</span> <span class="mf">4.879421311443366e-09</span><span class="p">,</span>
+             <span class="s1">&#39;energy_ds_2&#39;</span><span class="p">:</span> <span class="mf">4.879421311443366e-09</span><span class="p">},</span>
+ <span class="s1">&#39;AF.EKNA&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;energy_ds_1&#39;</span><span class="p">:</span> <span class="mf">3.5441928281088053e-09</span><span class="p">,</span>
+             <span class="s1">&#39;energy_ds_2&#39;</span><span class="p">:</span> <span class="mf">3.5441928281088053e-09</span><span class="p">},</span>
+ <span class="s1">&#39;AF.GRM&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;energy_ds_1&#39;</span><span class="p">:</span> <span class="mf">2.5369817358011915e-08</span><span class="p">,</span>
+            <span class="s1">&#39;energy_ds_2&#39;</span><span class="p">:</span> <span class="mf">2.5369817358011915e-08</span><span class="p">},</span>
+ <span class="o">...</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="converting_data_asdf.html" class="btn btn-neutral float-left" title="Converting Data to ASDF" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage_as_context_manager.html" class="btn btn-neutral float-right" title="Usage as a Context Manager" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

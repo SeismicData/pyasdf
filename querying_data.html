@@ -1,0 +1,344 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Querying a Data Set &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Working With Station Data" href="station_data.html" />
+    <link rel="prev" title="Of Tags and Labels" href="of_tags_and_labels.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="converting_data_asdf.html">Converting Data to ASDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_processing.html">Parallel Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage_as_context_manager.html">Usage as a Context Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deleting_pieces.html">Deleting Pieces of a Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="of_tags_and_labels.html">Of Tags and Labels</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Querying a Data Set</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quick-example">Quick Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#more-example-queries">More Example Queries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#query-types">Query Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="station_data.html">Working With Station Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="large_continuous_datasets.html">Large Continuous Data Sets</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="detailed_explanations.html">Detailed Explanations</a></li>
+      <li class="breadcrumb-item active">Querying a Data Set</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/querying_data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="querying-a-data-set">
+<h1>Querying a Data Set<a class="headerlink" href="#querying-a-data-set" title="Link to this heading">¶</a></h1>
+<p>The potential size of ASDF data sets demands efficient and easy ways to loop
+over and work on certain subsets of it. This functionality is available in
+the <a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet.ifilter" title="pyasdf.asdf_data_set.ASDFDataSet.ifilter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">pyasdf.asdf_data_set.ASDFDataSet.ifilter()</span></code></a> method which is very
+powerful and explained in the rest of this section.</p>
+<section id="quick-example">
+<h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading">¶</a></h2>
+<p>In this introductory example we will loop over a data set and extract all
+waveform data that has a network starting with <code class="docutils literal notranslate"><span class="pre">T</span></code>, a <code class="docutils literal notranslate"><span class="pre">raw_recording</span></code> tag,
+and a sampling rate of more than 10 <em>Hz</em>. The
+<a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet.ifilter" title="pyasdf.asdf_data_set.ASDFDataSet.ifilter"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ifilter()</span></code></a> method returns an iterator
+meaning one has to loop over it to cause it to extract the required
+information. It yields a <a class="reference internal" href="utils.html#pyasdf.utils.FilteredWaveformAccessor" title="pyasdf.utils.FilteredWaveformAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">FilteredWaveformAccessor</span></code></a> which
+works the same as the normal waveform accessor object but with a potentially
+limited dataset. Have a look at the syntax and it should be pretty
+self-explanatory.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyasdf</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;example.h5&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">network</span> <span class="o">==</span> <span class="s2">&quot;T*&quot;</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;raw_recording&quot;</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">&gt;</span> <span class="mf">10.0</span><span class="p">):</span>
+    <span class="c1"># Extract the StationXML information in the same way as always. Might</span>
+    <span class="c1"># be `None` if it does not exists.</span>
+    <span class="n">inv</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">StationXML</span>
+    <span class="k">if</span> <span class="n">inv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">continue</span>
+
+    <span class="c1"># You can also get the coordinates.</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">coordinates</span>
+
+    <span class="c1"># Waveform access also works the normal way by tag.</span>
+    <span class="n">st</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">raw_recording</span>
+
+    <span class="c1"># Process it and do whatever you want.</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hann&quot;</span><span class="p">,</span> <span class="n">max_percentage</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">attach_response</span><span class="p">(</span><span class="n">inv</span><span class="p">)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">remove_response</span><span class="p">()</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="more-example-queries">
+<h2>More Example Queries<a class="headerlink" href="#more-example-queries" title="Link to this heading">¶</a></h2>
+<p>We’ll show some more example to give you a feel for how to construct queries
+and what they mean. The syntax is not as powerful as a full SQL implementation
+but for practical purposes it gets pretty close and it can express and resolve
+some fairly complex queries. You can chain an arbitrary number of constraints
+which must all be fulfilled at the same time, each constraint is based on
+the rich comparison operators from Python: <code class="docutils literal notranslate"><span class="pre">==</span></code>, <code class="docutils literal notranslate"><span class="pre">!=</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&gt;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code>.</p>
+<p>Separate arguments are chained by a logical <code class="docutils literal notranslate"><span class="pre">AND</span></code>, so <strong>every comma can be
+interpreted as a logical</strong> <code class="docutils literal notranslate"><span class="pre">AND</span></code> <strong>.</strong> The following query will iterate over
+all waveforms with a network starting with <code class="docutils literal notranslate"><span class="pre">T</span></code>, but not the <code class="docutils literal notranslate"><span class="pre">TA</span></code>
+(USArray) network. Wildcards are resolved by the <a class="reference external" href="https://docs.python.org/3/library/fnmatch.html#module-fnmatch" title="(in Python v3.13)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fnmatch</span></code></a> module.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">network</span> <span class="o">==</span> <span class="s2">&quot;T*&quot;</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">network</span> <span class="o">!=</span> <span class="s2">&quot;TA&quot;</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>String attributes (<code class="docutils literal notranslate"><span class="pre">network</span></code>, <code class="docutils literal notranslate"><span class="pre">station</span></code>, <code class="docutils literal notranslate"><span class="pre">channel</span></code>, …) can also be
+queried by passing a list of potentially wildcarded strings. <strong>Each element in
+such a list is joined by a logical</strong> <code class="docutils literal notranslate"><span class="pre">OR</span></code>, e.g. the next query will select
+all stations starting with <code class="docutils literal notranslate"><span class="pre">B</span></code>, or the <code class="docutils literal notranslate"><span class="pre">CA</span></code> station, or any two letter
+station starting with <code class="docutils literal notranslate"><span class="pre">T</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">station</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;B*&quot;</span><span class="p">,</span> <span class="s2">&quot;ALTM&quot;</span><span class="p">,</span> <span class="s2">&quot;T?&quot;</span><span class="p">]):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>You can also search over geographical constraints based on the <code class="docutils literal notranslate"><span class="pre">latitude</span></code>,
+<code class="docutils literal notranslate"><span class="pre">longitude</span></code>, and <code class="docutils literal notranslate"><span class="pre">elevation_in_m</span></code> keys. As soon as one of these keys is
+given it will only return stations that have coordinate information in the
+form of StationXML.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">latitude</span> <span class="o">&gt;=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">latitude</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">longitude</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">101.2</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">elevation_in_m</span> <span class="o">&gt;</span> <span class="mf">200.0</span><span class="p">)</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Get all vertical component channels from USArray with a sampling rate of at
+least 5 <em>Hz</em> that are not processed (<code class="docutils literal notranslate"><span class="pre">raw_recording</span></code> tag by convention) in
+January 2015:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">network</span> <span class="o">==</span> <span class="s2">&quot;TA&quot;</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">channel</span> <span class="o">==</span> <span class="s2">&quot;*Z&quot;</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;raw_recording&quot;</span><span class="p">,</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">starttime</span> <span class="o">&gt;=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                          <span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">endtime</span> <span class="o">&lt;=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Get waveforms for all stations that have no coordinates:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">latitude</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Get all waveforms associated with a certain event:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">event</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">read_events</span><span class="p">(</span><span class="o">...</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">event</span> <span class="o">==</span> <span class="n">event</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>Get all waveforms if any label is either “Fun” or matches the pattern “A*C”:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">ifilter</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">labels</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;Fun&quot;</span><span class="p">,</span> <span class="s2">&quot;A*C&quot;</span><span class="p">]):</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="query-types">
+<h2>Query Types<a class="headerlink" href="#query-types" title="Link to this heading">¶</a></h2>
+<p>The available query keys alongside other information regarding their usage are
+listed in the following table:</p>
+<div style="height:10px"></div><table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Allowed Types</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td colspan="3"><p><strong>String Parameters:</strong>
+These can be given as a single (wildcarded) string or as a list of (wildcarded) strings which will be connected via a logical <code class="docutils literal notranslate"><span class="pre">OR</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">network</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or list of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The network code.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">station</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or list of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The station code.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">location</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or list of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The location code.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">channel</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or list of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The channel code.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tag</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or list of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The hierarchical tag associated with the trace.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">labels</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or list of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>Search over the labels of each waveforms.</p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p><strong>Geographical Parameters:</strong>
+Search over geographical parameters stored in the StationXML files.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">longitude</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>The longitude of the recording station.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">latitude</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>The latitude of the recording station.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">elevation_in_m</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>The elevation in meters of the recording station.</p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p><strong>Temporal Parameters:</strong>
+Pass as a <a class="reference external" href="https://docs.obspy.org/packages/autogen/obspy.core.utcdatetime.UTCDateTime.html#obspy.core.utcdatetime.UTCDateTime" title="(in ObsPy v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code></a> object or any string or number that can be parsed to one.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">starttime</span></code></p></td>
+<td><p><a class="reference external" href="https://docs.obspy.org/packages/autogen/obspy.core.utcdatetime.UTCDateTime.html#obspy.core.utcdatetime.UTCDateTime" title="(in ObsPy v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code></a>, <code class="docutils literal notranslate"><span class="pre">str</span></code>, or <code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>The start time of the waveform.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">endtime</span></code></p></td>
+<td><p><a class="reference external" href="https://docs.obspy.org/packages/autogen/obspy.core.utcdatetime.UTCDateTime.html#obspy.core.utcdatetime.UTCDateTime" title="(in ObsPy v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UTCDateTime</span></code></a>, <code class="docutils literal notranslate"><span class="pre">str</span></code>, or <code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>The end time of the waveform.</p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p><strong>Waveform Attribute Parameters:</strong>
+Evaluated per waveform trace. Don’t use <code class="docutils literal notranslate"><span class="pre">==</span></code> for floats but rather a combination of <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sampling_rate</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></td>
+<td><p>The sampling rate of the waveform in <em>Hz</em>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">npts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p>The number of samples of the waveform.</p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p><strong>Event Relation Parameters:</strong>
+These are not wildcarded as <code class="docutils literal notranslate"><span class="pre">?</span></code> and <code class="docutils literal notranslate"><span class="pre">*</span></code> are perfectly valid URL components and most IDs are URLs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">event</span></code></p></td>
+<td><p><a class="reference external" href="https://docs.obspy.org/packages/autogen/obspy.core.event.Event.html#obspy.core.event.Event" title="(in ObsPy v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Event</span></code></a>,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIdentifier</span></code>, or <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The event associated with the waveform.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">magnitude</span></code></p></td>
+<td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Magnitude</span></code>,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIdentifier</span></code>, or <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The magnitude associated with the waveform.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">origin</span></code></p></td>
+<td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Origin</span></code>,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIdentifier</span></code>, or <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The origin associated with the waveform.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">focal_mechanism</span></code></p></td>
+<td><p><code class="xref py py-class docutils literal notranslate"><span class="pre">FocalMechanism</span></code>,
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ResourceIdentifier</span></code>, or <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The focal mechanism associated with the waveform.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="of_tags_and_labels.html" class="btn btn-neutral float-left" title="Of Tags and Labels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="station_data.html" class="btn btn-neutral float-right" title="Working With Station Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

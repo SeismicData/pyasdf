@@ -1,0 +1,212 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processing Observed Data in Parallel &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="../_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+      <script src="../_static/documentation_options.js?v=dbee5847"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Running pyflex in Parallel" href="parallel_pyflex.html" />
+    <link rel="prev" title="Creating an ASDF File" href="create_observed_asdf_file.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            pyasdf
+              <img src="../_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../examples.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="create_observed_asdf_file.html">Creating an ASDF File</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Processing Observed Data in Parallel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_pyflex.html">Running pyflex in Parallel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source_receiver_geometry.html">Calculate Source-Receiver Geometry</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../detailed_explanations.html">Detailed Explanations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../examples.html">Examples</a></li>
+      <li class="breadcrumb-item active">Processing Observed Data in Parallel</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/process_observed.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="processing-observed-data-in-parallel">
+<h1>Processing Observed Data in Parallel<a class="headerlink" href="#processing-observed-data-in-parallel" title="Link to this heading">¶</a></h1>
+<p>This fairly complex examples takes an ASDF file and produces two new data
+sets, each processed in a different frequency band.</p>
+<p>It can be run with MPI. It scales fairly well and will utilize parallel I/O if
+your machine supports it. Please keep in mind that there is a significant
+start-up cost for Python on each core (special Python versions that get around
+that if really necessary are in existence) so don’t use too many cores.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>mpirun<span class="w"> </span>-n<span class="w"> </span><span class="m">64</span><span class="w"> </span>python<span class="w"> </span>process_observed.py
+</pre></div>
+</div>
+<p>If you don’t run it with MPI with will utilize Python’s <code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code>
+module and run it on each of the machines cores. I/O is not parallel and
+uses a round-robin scheme where only one core writes at single point in time.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>process_observed.py
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span><span class="w"> </span><span class="nn">obspy</span>
+<span class="linenos"> 2</span><span class="kn">from</span><span class="w"> </span><span class="nn">obspy.core.util.geodetics</span><span class="w"> </span><span class="kn">import</span> <span class="n">gps2DistAzimuth</span>
+<span class="linenos"> 3</span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="kn">from</span><span class="w"> </span><span class="nn">pyasdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASDFDataSet</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">ds</span> <span class="o">=</span> <span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;./observed.h5&quot;</span><span class="p">)</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="n">event</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="n">origin</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">preferred_origin</span><span class="p">()</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">12</span><span class="n">event_latitude</span> <span class="o">=</span> <span class="n">origin</span><span class="o">.</span><span class="n">latitude</span>
+<span class="linenos">13</span><span class="n">event_longitude</span> <span class="o">=</span> <span class="n">origin</span><span class="o">.</span><span class="n">longitude</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span><span class="c1"># Figure out these parameters somehonw!</span>
+<span class="linenos">16</span><span class="n">starttime</span> <span class="o">=</span> <span class="n">obspy</span><span class="o">.</span><span class="n">UTCDateTime</span><span class="p">(</span><span class="s2">&quot;2010-03-11T06:22:19.021324Z&quot;</span><span class="p">)</span>
+<span class="linenos">17</span><span class="n">npts</span> <span class="o">=</span> <span class="mi">5708</span>
+<span class="linenos">18</span><span class="n">sampling_rate</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span><span class="c1"># Loop over both period sets. This will result in two files. It could also be</span>
+<span class="linenos">22</span><span class="c1"># saved to the same file.</span>
+<span class="linenos">23</span><span class="k">for</span> <span class="n">min_period</span><span class="p">,</span> <span class="n">max_period</span> <span class="ow">in</span> <span class="p">[(</span><span class="mf">27.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">)]:</span>
+<span class="linenos">24</span>    <span class="n">f2</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">max_period</span>
+<span class="linenos">25</span>    <span class="n">f3</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">min_period</span>
+<span class="linenos">26</span>    <span class="n">f1</span> <span class="o">=</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">f2</span>
+<span class="linenos">27</span>    <span class="n">f4</span> <span class="o">=</span> <span class="mf">1.2</span> <span class="o">*</span> <span class="n">f3</span>
+<span class="linenos">28</span>    <span class="n">pre_filt</span> <span class="o">=</span> <span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">f4</span><span class="p">)</span>
+<span class="linenos">29</span>
+<span class="linenos">30</span>    <span class="k">def</span><span class="w"> </span><span class="nf">process_function</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">inv</span><span class="p">):</span>
+<span class="linenos">31</span>        <span class="n">st</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+<span class="linenos">32</span>        <span class="n">st</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="s2">&quot;demean&quot;</span><span class="p">)</span>
+<span class="linenos">33</span>        <span class="n">st</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">max_percentage</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hann&quot;</span><span class="p">)</span>
+<span class="linenos">34</span>
+<span class="linenos">35</span>        <span class="n">st</span><span class="o">.</span><span class="n">attach_response</span><span class="p">(</span><span class="n">inv</span><span class="p">)</span>
+<span class="linenos">36</span>        <span class="n">st</span><span class="o">.</span><span class="n">remove_response</span><span class="p">(</span>
+<span class="linenos">37</span>            <span class="n">output</span><span class="o">=</span><span class="s2">&quot;DISP&quot;</span><span class="p">,</span> <span class="n">pre_filt</span><span class="o">=</span><span class="n">pre_filt</span><span class="p">,</span> <span class="n">zero_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">taper</span><span class="o">=</span><span class="kc">False</span>
+<span class="linenos">38</span>        <span class="p">)</span>
+<span class="linenos">39</span>
+<span class="linenos">40</span>        <span class="n">st</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+<span class="linenos">41</span>        <span class="n">st</span><span class="o">.</span><span class="n">detrend</span><span class="p">(</span><span class="s2">&quot;demean&quot;</span><span class="p">)</span>
+<span class="linenos">42</span>        <span class="n">st</span><span class="o">.</span><span class="n">taper</span><span class="p">(</span><span class="n">max_percentage</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;hann&quot;</span><span class="p">)</span>
+<span class="linenos">43</span>
+<span class="linenos">44</span>        <span class="n">st</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">sampling_rate</span><span class="o">=</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="n">starttime</span><span class="o">=</span><span class="n">starttime</span><span class="p">,</span> <span class="n">npts</span><span class="o">=</span><span class="n">npts</span><span class="p">)</span>
+<span class="linenos">45</span>
+<span class="linenos">46</span>        <span class="n">station_latitude</span> <span class="o">=</span> <span class="n">inv</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">latitude</span>
+<span class="linenos">47</span>        <span class="n">station_longitude</span> <span class="o">=</span> <span class="n">inv</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">longitude</span>
+<span class="linenos">48</span>        <span class="n">_</span><span class="p">,</span> <span class="n">baz</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">gps2DistAzimuth</span><span class="p">(</span>
+<span class="linenos">49</span>            <span class="n">station_latitude</span><span class="p">,</span>
+<span class="linenos">50</span>            <span class="n">station_longitude</span><span class="p">,</span>
+<span class="linenos">51</span>            <span class="n">event_latitude</span><span class="p">,</span>
+<span class="linenos">52</span>            <span class="n">event_longitude</span><span class="p">,</span>
+<span class="linenos">53</span>        <span class="p">)</span>
+<span class="linenos">54</span>
+<span class="linenos">55</span>        <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">tr</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">channel</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">st</span><span class="p">]</span>
+<span class="linenos">56</span>        <span class="k">if</span> <span class="s2">&quot;N&quot;</span> <span class="ow">in</span> <span class="n">components</span> <span class="ow">and</span> <span class="s2">&quot;E&quot;</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+<span class="linenos">57</span>            <span class="n">st</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">&quot;NE-&gt;RT&quot;</span><span class="p">,</span> <span class="n">back_azimuth</span><span class="o">=</span><span class="n">baz</span><span class="p">)</span>
+<span class="linenos">58</span>
+<span class="linenos">59</span>        <span class="c1"># Convert to single precision to save space.</span>
+<span class="linenos">60</span>        <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">st</span><span class="p">:</span>
+<span class="linenos">61</span>            <span class="n">tr</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">tr</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span>
+<span class="linenos">62</span>
+<span class="linenos">63</span>        <span class="k">return</span> <span class="n">st</span>
+<span class="linenos">64</span>
+<span class="linenos">65</span>    <span class="n">tag_name</span> <span class="o">=</span> <span class="s2">&quot;preprocessed_</span><span class="si">%i</span><span class="s2">s_to_</span><span class="si">%i</span><span class="s2">s&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">min_period</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_period</span><span class="p">))</span>
+<span class="linenos">66</span>
+<span class="linenos">67</span>    <span class="n">tag_map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;raw_recording&quot;</span><span class="p">:</span> <span class="n">tag_name</span><span class="p">}</span>
+<span class="linenos">68</span>
+<span class="linenos">69</span>    <span class="n">ds</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">process_function</span><span class="p">,</span> <span class="n">tag_name</span> <span class="o">+</span> <span class="s2">&quot;.h5&quot;</span><span class="p">,</span> <span class="n">tag_map</span><span class="o">=</span><span class="n">tag_map</span><span class="p">)</span>
+<span class="linenos">70</span>
+<span class="linenos">71</span><span class="c1"># Important when running with MPI as it might otherwise not be able to finish.</span>
+<span class="linenos">72</span><span class="k">del</span> <span class="n">ds</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="create_observed_asdf_file.html" class="btn btn-neutral float-left" title="Creating an ASDF File" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parallel_pyflex.html" class="btn btn-neutral float-right" title="Running pyflex in Parallel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

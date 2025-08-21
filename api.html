@@ -1,0 +1,176 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ASDF Data Set" href="asdf_data_set.html" />
+    <link rel="prev" title="Calculate Source-Receiver Geometry" href="examples/source_receiver_geometry.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="asdf_data_set.html">ASDF Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inventory_utils.html">Inventory Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="query.html">Query</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">Utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="watermark.html">Watermark</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api">
+<h1>API<a class="headerlink" href="#api" title="Link to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="asdf_data_set.html">ASDF Data Set</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet"><code class="docutils literal notranslate"><span class="pre">ASDFDataSet</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">Exceptions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#pyasdf.exceptions.ASDFAttributeError"><code class="docutils literal notranslate"><span class="pre">ASDFAttributeError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#pyasdf.exceptions.ASDFException"><code class="docutils literal notranslate"><span class="pre">ASDFException</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#pyasdf.exceptions.ASDFValueError"><code class="docutils literal notranslate"><span class="pre">ASDFValueError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#pyasdf.exceptions.ASDFWarning"><code class="docutils literal notranslate"><span class="pre">ASDFWarning</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#pyasdf.exceptions.NoStationXMLForStation"><code class="docutils literal notranslate"><span class="pre">NoStationXMLForStation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html#pyasdf.exceptions.WaveformNotInFileException"><code class="docutils literal notranslate"><span class="pre">WaveformNotInFileException</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="inventory_utils.html">Inventory Utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="inventory_utils.html#pyasdf.inventory_utils.get_coordinates"><code class="docutils literal notranslate"><span class="pre">get_coordinates()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="inventory_utils.html#pyasdf.inventory_utils.isolate_and_merge_station"><code class="docutils literal notranslate"><span class="pre">isolate_and_merge_station()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="inventory_utils.html#pyasdf.inventory_utils.merge_inventories"><code class="docutils literal notranslate"><span class="pre">merge_inventories()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="query.html">Query</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.AuxiliaryDataAccessor"><code class="docutils literal notranslate"><span class="pre">AuxiliaryDataAccessor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.AuxiliaryDataGroupAccessor"><code class="docutils literal notranslate"><span class="pre">AuxiliaryDataGroupAccessor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.FilteredWaveformAccessor"><code class="docutils literal notranslate"><span class="pre">FilteredWaveformAccessor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.JobQueueHelper"><code class="docutils literal notranslate"><span class="pre">JobQueueHelper</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.ProvenanceAccessor"><code class="docutils literal notranslate"><span class="pre">ProvenanceAccessor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.ReceivedMessage"><code class="docutils literal notranslate"><span class="pre">ReceivedMessage</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.SimpleBuffer"><code class="docutils literal notranslate"><span class="pre">SimpleBuffer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.StationAccessor"><code class="docutils literal notranslate"><span class="pre">StationAccessor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.StreamBuffer"><code class="docutils literal notranslate"><span class="pre">StreamBuffer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.WaveformAccessor"><code class="docutils literal notranslate"><span class="pre">WaveformAccessor</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.get_all_ids_for_prov_document"><code class="docutils literal notranslate"><span class="pre">get_all_ids_for_prov_document()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.is_list"><code class="docutils literal notranslate"><span class="pre">is_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.is_mpi_env"><code class="docutils literal notranslate"><span class="pre">is_mpi_env()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.is_multiprocessing_problematic"><code class="docutils literal notranslate"><span class="pre">is_multiprocessing_problematic()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.label2string"><code class="docutils literal notranslate"><span class="pre">label2string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.labelstring2list"><code class="docutils literal notranslate"><span class="pre">labelstring2list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.sizeof_fmt"><code class="docutils literal notranslate"><span class="pre">sizeof_fmt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.split_qualified_name"><code class="docutils literal notranslate"><span class="pre">split_qualified_name()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.wf_name2seed_codes"><code class="docutils literal notranslate"><span class="pre">wf_name2seed_codes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#pyasdf.utils.wf_name2tag"><code class="docutils literal notranslate"><span class="pre">wf_name2tag()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="watermark.html">Watermark</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="watermark.html#pyasdf.watermark.get_watermark"><code class="docutils literal notranslate"><span class="pre">get_watermark()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="examples/source_receiver_geometry.html" class="btn btn-neutral float-left" title="Calculate Source-Receiver Geometry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asdf_data_set.html" class="btn btn-neutral float-right" title="ASDF Data Set" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

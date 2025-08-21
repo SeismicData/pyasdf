@@ -1,0 +1,1107 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#learning-python-and-obspy">Learning Python and ObsPy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-pyasdf">Using pyasdf</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-an-asdf-data-set">Creating an ASDF data set</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#initialization">Initialization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-information-about-an-earthquake">Adding Information about an Earthquake</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-waveforms">Adding Waveforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-station-information">Adding Station Information</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#adding-auxiliary-data">Adding Auxiliary Data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#reading-an-existing-asdf-data-set">Reading an existing ASDF data set</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#reading-events">Reading Events</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reading-waveforms-and-stationxml">Reading Waveforms and StationXML</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reading-auxiliary-data">Reading Auxiliary Data</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading">¶</a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#learning-python-and-obspy" id="id1">Learning Python and ObsPy</a></p></li>
+<li><p><a class="reference internal" href="#using-pyasdf" id="id2">Using pyasdf</a></p>
+<ul>
+<li><p><a class="reference internal" href="#creating-an-asdf-data-set" id="id3">Creating an ASDF data set</a></p>
+<ul>
+<li><p><a class="reference internal" href="#initialization" id="id4">Initialization</a></p></li>
+<li><p><a class="reference internal" href="#adding-information-about-an-earthquake" id="id5">Adding Information about an Earthquake</a></p></li>
+<li><p><a class="reference internal" href="#adding-waveforms" id="id6">Adding Waveforms</a></p></li>
+<li><p><a class="reference internal" href="#adding-station-information" id="id7">Adding Station Information</a></p></li>
+<li><p><a class="reference internal" href="#adding-auxiliary-data" id="id8">Adding Auxiliary Data</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#reading-an-existing-asdf-data-set" id="id9">Reading an existing ASDF data set</a></p>
+<ul>
+<li><p><a class="reference internal" href="#reading-events" id="id10">Reading Events</a></p></li>
+<li><p><a class="reference internal" href="#reading-waveforms-and-stationxml" id="id11">Reading Waveforms and StationXML</a></p></li>
+<li><p><a class="reference internal" href="#reading-auxiliary-data" id="id12">Reading Auxiliary Data</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+<div class="admonition-example-data-set admonition">
+<p class="admonition-title">Example Data Set</p>
+<p>For the time being we will attempt to curate an up-to-date example data set
+which you can use to get started. <a class="reference external" href="https://www.geophysik.uni-muenchen.de/~krischer/asdf_example.h5">Download it here (220 MB).</a></p>
+</div>
+<section id="learning-python-and-obspy">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Learning Python and ObsPy</a><a class="headerlink" href="#learning-python-and-obspy" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> is written in <a class="reference external" href="http://www.python.org">Python</a> and utilizes the
+data structures of <a class="reference external" href="http://obspy.org">ObsPy</a> to allow the construction of
+modern and efficient workflows. Python is an easy to learn and powerful
+interactive programming language with an exhaustive scientific ecosystem. The
+following resources are useful if you are starting out with Python and ObsPy:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://learnpythonthehardway.org/book/">Good, general Python tutorial</a></p></li>
+<li><p><a class="reference external" href="http://www.nature.com/news/interactive-notebooks-sharing-the-code-1.16261">IPython Notebook in Nature</a></p></li>
+<li><p><a class="reference external" href="https://scipy-lectures.github.io/">Introduction to the scientific Python ecosystem</a></p></li>
+<li><p><a class="reference external" href="http://docs.obspy.org">The ObsPy Documentation</a></p></li>
+<li><p><a class="reference external" href="http://docs.obspy.org/tutorial/index.html">The ObsPy Tutorial</a></p></li>
+</ul>
+</section>
+<section id="using-pyasdf">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Using pyasdf</a><a class="headerlink" href="#using-pyasdf" title="Link to this heading">¶</a></h2>
+<p>This section will teach you the basics of creating and working with ASDF
+files with <cite>pyasdf</cite>. For more detailed information, please see the
+<a class="reference internal" href="api.html"><span class="doc">API</span></a> documentation or have a look at the <a class="reference internal" href="examples.html"><span class="doc">Examples</span></a> section that
+demonstrates more complex workflows.</p>
+<div class="admonition-notes-on-using-mpi admonition">
+<p class="admonition-title">Notes on using MPI</p>
+<p><code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> will behave slightly different depending on whether it is being
+called with MPI or not. If called with MPI, the underlying HDF5 files
+will be opened with MPI I/O and fully parallel I/O will be utilized for
+the processing functions. Keep the scripts reasonably short if using MPI
+or place appropriate barriers.</p>
+<p>The module will detect if it has been called with MPI if <code class="docutils literal notranslate"><span class="pre">mpi4py</span></code> can
+be imported and the size of the communicator is greater than one. Thus
+calling it with <code class="docutils literal notranslate"><span class="pre">mpirun/mpiexec</span></code> with only one core will not be
+recognized as being called with MPI.</p>
+<p>Due to a limitation of Python you should always delete all references to
+the <a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet" title="pyasdf.asdf_data_set.ASDFDataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASDFDataSet</span></code></a> objects at the end.
+Otherwise the program will potentially not finish when called with MPI.
+An even better alternative is described in <a class="reference internal" href="usage_as_context_manager.html"><span class="doc">Usage as a Context Manager</span></a>.</p>
+</div>
+<section id="creating-an-asdf-data-set">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">Creating an ASDF data set</a><a class="headerlink" href="#creating-an-asdf-data-set" title="Link to this heading">¶</a></h3>
+<section id="initialization">
+<h4><a class="toc-backref" href="#id4" role="doc-backlink">Initialization</a><a class="headerlink" href="#initialization" title="Link to this heading">¶</a></h4>
+<p>The first step is always to import <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> and create a
+<a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet" title="pyasdf.asdf_data_set.ASDFDataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASDFDataSet</span></code></a> object. If the file does not
+exists, it will be created, otherwise the existing one will be opened.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pyasdf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;new_file.h5&quot;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;gzip-3&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Compression will help to reduce the size of files without affecting the
+quality as all offered compression options are lossless. Only new data will
+be compressed and compression will be disable for files created with
+parallel I/O as these two features are not compatible. See the documentation
+of the  <a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet" title="pyasdf.asdf_data_set.ASDFDataSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">ASDFDataSet</span></code></a> object for more details.</p>
+<p>At any point you can get an overview of the contents by printing the object</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="go">ASDF file [format version: 1.0.0]: &#39;new_file.h5&#39; (7.7 KB)</span>
+<span class="go">Contains 0 event(s)</span>
+<span class="go">Contains waveform data from 0 station(s).</span>
+</pre></div>
+</div>
+</section>
+<section id="adding-information-about-an-earthquake">
+<h4><a class="toc-backref" href="#id5" role="doc-backlink">Adding Information about an Earthquake</a><a class="headerlink" href="#adding-information-about-an-earthquake" title="Link to this heading">¶</a></h4>
+<p>ASDF can optionally store events and associate waveforms with a given event.
+To add an event with <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> use the
+<a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet.add_quakeml" title="pyasdf.asdf_data_set.ASDFDataSet.add_quakeml"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_quakeml()</span></code></a> method. Be aware that
+all operations will directly write to the file without an explicit
+<em>save/write</em> step. This enables <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> to deal with arbitrarily big data
+sets.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">add_quakeml</span><span class="p">(</span><span class="s2">&quot;/path/to/quake.xml&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="go">ASDF file [format version: 1.0.0]: &#39;new_file.h5&#39; (14.7 KB)</span>
+<span class="go">Contains 1 event(s)</span>
+<span class="go">Contains waveform data from 0 station(s).</span>
+</pre></div>
+</div>
+<p>The event can later be accessed again by using the <code class="docutils literal notranslate"><span class="pre">event</span></code> attribute.
+Please be careful that this might contain multiple events and not only one.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="adding-waveforms">
+<h4><a class="toc-backref" href="#id6" role="doc-backlink">Adding Waveforms</a><a class="headerlink" href="#adding-waveforms" title="Link to this heading">¶</a></h4>
+<p>The next step is to add waveform data. In this example we will add all SAC
+files in one folder with the help of the
+<a class="reference internal" href="asdf_data_set.html#pyasdf.asdf_data_set.ASDFDataSet.add_waveforms" title="pyasdf.asdf_data_set.ASDFDataSet.add_waveforms"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_waveforms()</span></code></a> method.
+Printing the progress is unnecessary but useful when dealing with large
+amounts of data. There are a couple of subtleties to keep in mind here:</p>
+<ul class="simple">
+<li><p>The data will be compressed with the compression settings given during the
+initialization of the data set object.</p></li>
+<li><p>It is possible to optionally associate waveforms with a specific event.</p></li>
+<li><p>You must give a tag. The tag is an additional identifier of that particular
+waveform. The <code class="docutils literal notranslate"><span class="pre">&quot;raw_recording&quot;</span></code> tag is by convention only given to raw,
+unprocessed data.</p></li>
+<li><p>The actual type of the data will not change. This example uses SAC which
+means data is in single precision floating point, MiniSEED will typically
+be in single precision integer if coming from a data center. If you desire
+a different data type to be stored for whatever reason you have to
+manually convert it and pass the ObsPy <a class="reference external" href="https://docs.obspy.org/packages/autogen/obspy.core.stream.Stream.html#obspy.core.stream.Stream" title="(in ObsPy v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stream</span></code></a>
+object.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;/path/to/data/*.mseed&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_i</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding file </span><span class="si">%i</span><span class="s2"> of </span><span class="si">%i</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)))</span>
+<span class="gp">... </span>    <span class="n">ds</span><span class="o">.</span><span class="n">add_waveforms</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;raw_recording&quot;</span><span class="p">,</span> <span class="n">event_id</span><span class="o">=</span><span class="n">event</span><span class="p">)</span>
+<span class="go">Adding file 1 of 588 ...</span>
+<span class="go">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="go">ASDF file [format version: 1.0.0]: &#39;new_file.h5&#39; (169.7 MB)</span>
+<span class="go">Contains 1 event(s)</span>
+<span class="go">Contains waveform data from 196 station(s).</span>
+</pre></div>
+</div>
+</section>
+<section id="adding-station-information">
+<h4><a class="toc-backref" href="#id7" role="doc-backlink">Adding Station Information</a><a class="headerlink" href="#adding-station-information" title="Link to this heading">¶</a></h4>
+<p>The last step to create a very basic ASDF file is to add station information
+which is fairly straightforward.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please keep in mind that this will potentially rearrange and split the
+StationXML files to fit within the structure imposed by the ASDF format.
+StationXML can store any number and combination of networks, stations,
+and channels whereas ASDF requires a <strong>separate StationXML file per
+station</strong>. <code class="docutils literal notranslate"><span class="pre">pyasdf</span></code> will thus split up files if necessary and also
+merge them with any possibly already existing StationXML files.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;/path/to/stations/*.xml&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">_i</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding file </span><span class="si">%i</span><span class="s2"> of </span><span class="si">%i</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)))</span>
+<span class="gp">... </span>    <span class="n">ds</span><span class="o">.</span><span class="n">add_stationxml</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="go">Adding file 1 of 196 ...</span>
+<span class="go">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="go">ASDF file [format version: 1.0.0]: &#39;new_file.h5&#39; (188.3 MB)</span>
+<span class="go">Contains 1 event(s)</span>
+<span class="go">Contains waveform data from 196 station(s).</span>
+</pre></div>
+</div>
+</section>
+<section id="adding-auxiliary-data">
+<h4><a class="toc-backref" href="#id8" role="doc-backlink">Adding Auxiliary Data</a><a class="headerlink" href="#adding-auxiliary-data" title="Link to this heading">¶</a></h4>
+<p>The ASDF format has the capability to store generic non-waveform data called
+<em>auxiliary data</em>. Auxiliary data are data arrays with associcated
+attributes that can represent anything; each sub-community is supposed to come
+up with conventions of how to use this.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="go"># The type always should be camel case.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_type</span> <span class="o">=</span> <span class="s2">&quot;RandomArrays&quot;</span>
+<span class="go"># Name to identify the particular piece of data.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;example_array&quot;</span>
+<span class="go"># Any additional parameters as a Python dictionary which will end up as</span>
+<span class="go"># attributes of the array.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">add_auxiliary_data</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">data_type</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+<span class="gp">... </span>                      <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="go">ASDF file [format version: &#39;1.0.0&#39;]: &#39;new_file.h5&#39; (188.3 MB)</span>
+<span class="go">Contains 1 event(s)</span>
+<span class="go">Contains waveform data from 196 station(s).</span>
+<span class="go">Contains 1 type(s) of auxiliary data: RandomArrays</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="reading-an-existing-asdf-data-set">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Reading an existing ASDF data set</a><a class="headerlink" href="#reading-an-existing-asdf-data-set" title="Link to this heading">¶</a></h3>
+<p>Once you have acquired an ASDF file by whatever means it is time to read the
+data. To a large extent reading works by attribute access (meaning tab
+completion in interactive environments is available). At access time the
+data is read from an ASDF file an parsed to an ObsPy object.</p>
+<p>As always, the first step is to open a file. Note that this does not yet
+read any data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pyasdf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;example.h5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="reading-events">
+<h4><a class="toc-backref" href="#id10" role="doc-backlink">Reading Events</a><a class="headerlink" href="#reading-events" title="Link to this heading">¶</a></h4>
+<p>To read event data, simply access the <code class="docutils literal notranslate"><span class="pre">event</span></code> attribute. At access time the
+events will be parsed to an <a class="reference external" href="https://docs.obspy.org/packages/autogen/obspy.core.event.Catalog.html#obspy.core.event.Catalog" title="(in ObsPy v1.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">obspy.core.event.Catalog</span></code></a> object which can
+used for further analysis.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">events</span><span class="p">)</span>
+<span class="go">obspy.core.event.Catalog</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">events</span><span class="p">)</span>
+<span class="go">4 Event(s) in Catalog:</span>
+<span class="go">1998-09-01T10:29:54.500000Z | -58.500,  -26.100 | 5.5 Mwc</span>
+<span class="go">2012-04-04T14:21:42.300000Z | +41.818,  +79.689 | 4.4 mb | manual</span>
+<span class="go">2012-04-04T14:18:37.000000Z | +39.342,  +41.044 | 4.3 ML | manual</span>
+<span class="go">2012-04-04T14:08:46.000000Z | +38.017,  +37.736 | 3.0 ML | manual</span>
+</pre></div>
+</div>
+</section>
+<section id="reading-waveforms-and-stationxml">
+<h4><a class="toc-backref" href="#id11" role="doc-backlink">Reading Waveforms and StationXML</a><a class="headerlink" href="#reading-waveforms-and-stationxml" title="Link to this heading">¶</a></h4>
+<p>Waveforms and station meta information can be accessed at a per-station
+granularity under the <code class="docutils literal notranslate"><span class="pre">waveforms</span></code> attribute. <strong>Note that tab completion
+works everywhere so please play around in the IPython shell which is the
+best way to learn how to use pyasdf.</strong></p>
+<p>In the following we will access the data for the <code class="docutils literal notranslate"><span class="pre">IU.ANMO</span></code> station. Note
+that the dot is replaced by an underscore to work around syntax limitations
+imposed by Python. Once again, at attribute access everything is read from
+the ASDF file and parsed to an ObsPy object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="p">)</span>
+<span class="go">Contents of the data set for station IU.ANMO:</span>
+<span class="go">    - Has a StationXML file</span>
+<span class="go">    - 2 Waveform Tag(s):</span>
+<span class="go">        observed_processed</span>
+<span class="go">        synthetic)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">waveform</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="o">.</span><span class="n">StationXML</span><span class="p">))</span>
+<span class="go">obspy.core.inventory.inventory.Inventory</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">waveform</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="o">.</span><span class="n">StationXML</span><span class="p">)</span>
+<span class="go">Inventory created at 2014-12-10T17:04:09.000000Z</span>
+<span class="go">Created by: IRIS WEB SERVICE: fdsnws-station | version: 1.1.9</span>
+<span class="go">        http://service.iris.edu/fdsnws/station/1/query?network=IU&amp;level=res...</span>
+<span class="go">Sending institution: IRIS-DMC (IRIS-DMC)</span>
+<span class="go">Contains:</span>
+<span class="go">    Networks (1):</span>
+<span class="go">        IU</span>
+<span class="go">    Stations (1):</span>
+<span class="go">        IU.ANMO (Albuquerque, New Mexico, USA)</span>
+<span class="go">    Channels (6):</span>
+<span class="go">        IU.ANMO..BH1, IU.ANMO..BH2, IU.ANMO..BHU, IU.ANMO..BHV,</span>
+<span class="go">        IU.ANMO..BHW, IU.ANMO..BHZ</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="o">.</span><span class="n">synthetic</span><span class="p">)</span>
+<span class="go">obspy.core.stream.Stream</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="o">.</span><span class="n">synthetic</span><span class="p">)</span>
+<span class="go">3 Trace(s) in Stream:</span>
+<span class="go">IU.ANMO.S3.MXE | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+<span class="go">IU.ANMO.S3.MXN | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+<span class="go">IU.ANMO.S3.MXZ | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+</pre></div>
+</div>
+<p>Now attribute access is convenient for interactive use, but not that much for
+programmatic access. A number of better ways are available for that case:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="go">[&#39;IU.ADK&#39;, &#39;IU.AFI&#39;, &#39;IU.ANMO&#39;, &#39;IU.ANTO&#39;, &#39;IU.BBSR&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="p">[</span><span class="s2">&quot;IU.ANMO&quot;</span><span class="p">])</span>
+<span class="go">Contents of the data set for station IU.ANMO:</span>
+<span class="go">    - Has a StationXML file</span>
+<span class="go">    - 2 Waveform Tag(s):</span>
+<span class="go">        observed_processed</span>
+<span class="go">        synthetic)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">break</span>
+<span class="go">Contents of the data set for station IU.ADK:</span>
+<span class="go">    - Has a StationXML file</span>
+<span class="go">    - 2 Waveform Tag(s):</span>
+<span class="go">        observed_processed</span>
+<span class="go">        synthetic)</span>
+</pre></div>
+</div>
+<p>The object returned for each station is just a helper object easing the
+access to the waveform and station data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sta</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="p">[</span><span class="s2">&quot;IU.ANMO&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">sta</span><span class="p">)</span>
+<span class="go">pyasdf.utils.WaveformAccessor</span>
+</pre></div>
+</div>
+<p>ASDF distinguishes waveforms by tags. All waveforms belonging to a certain
+tag can be accessed with either attribute or key access.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">synthetic</span><span class="p">)</span>
+<span class="go">3 Trace(s) in Stream:</span>
+<span class="go">IU.ANMO.S3.MXE | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+<span class="go">IU.ANMO.S3.MXN | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+<span class="go">IU.ANMO.S3.MXZ | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sta</span><span class="o">.</span><span class="n">synthetic</span> <span class="o">==</span> <span class="n">sta</span><span class="p">[</span><span class="s2">&quot;synthetic&quot;</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Get a list of all tags for a certain station:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sta</span><span class="o">.</span><span class="n">get_waveform_tags</span><span class="p">()</span>
+<span class="go">[&#39;observed_processed&#39;, &#39;synthetic&#39;]</span>
+</pre></div>
+</div>
+<p>Sometimes more granular access is required. To that end one can also access
+waveforms at the individual trace level.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sta</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="go">[&#39;IU.ANMO..BHZ__1998-09-01T10:24:49__1998-09-01T12:09:48__observed_processed&#39;,</span>
+<span class="go"> &#39;IU.ANMO.S3.MXE__1998-09-01T10:29:52__1998-09-01T12:10:19__synthetic&#39;,</span>
+<span class="go"> &#39;IU.ANMO.S3.MXN__1998-09-01T10:29:52__1998-09-01T12:10:19__synthetic&#39;,</span>
+<span class="go"> &#39;IU.ANMO.S3.MXZ__1998-09-01T10:29:52__1998-09-01T12:10:19__synthetic&#39;,</span>
+<span class="go"> &#39;StationXML&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sta</span><span class="p">[</span><span class="s2">&quot;IU.ANMO.S3.MXE__1998-09-01T10:29:52__1998-09-01T12:10:19__synthetic&quot;</span><span class="p">])</span>
+<span class="go">1 Trace(s) in Stream:</span>
+<span class="go">IU.ANMO.S3.MXE | 1998-09-01T10:29:52.250000Z - 1998-09-01T12:10:19.857558Z | 7.0 Hz, 42300 samples</span>
+</pre></div>
+</div>
+<p>The advantage of the ASDF format is that it is also able to store relations
+so it can for example tell what event a certain waveform is associated with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">events</span>  <span class="c1"># The events have to be in memory for the reference to work.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">synthetic</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">asdf</span><span class="o">.</span><span class="n">event_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_referred_object</span><span class="p">())</span>
+<span class="go">Event:      1998-09-01T10:29:54.500000Z | -58.500,  -26.100 | 5.5 Mwc</span>
+
+<span class="go">        resource_id: ResourceIdentifier(id=&quot;smi:service.iris.edu/fdsnws/event/1/query?eventid=656970&quot;)</span>
+<span class="go">         event_type: &#39;earthquake&#39;</span>
+<span class="go">---------</span>
+<span class="go"> event_descriptions: 1 Elements</span>
+<span class="go">   focal_mechanisms: 1 Elements</span>
+<span class="go">            origins: 1 Elements</span>
+<span class="go">         magnitudes: 1 Elements</span>
+</pre></div>
+</div>
+<p>Additionally it can also store the provenance associated with a certain
+waveform trace:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">prov_id</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">synthetic</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">asdf</span><span class="o">.</span><span class="n">provenance_id</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">provenance</span><span class="o">.</span><span class="n">get_provenance_document_for_id</span><span class="p">(</span><span class="n">prov_id</span><span class="p">)</span>
+<span class="go">{&#39;document&#39;: &lt;ProvDocument&gt;, &#39;name&#39;: &#39;373da5fe_d424_4f44_9bca_4334d77ed10b&#39;}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">provenance</span><span class="o">.</span><span class="n">get_provenance_document_for_id</span><span class="p">(</span><span class="n">prov_id</span><span class="p">)[</span><span class="s2">&quot;document&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+digraph G {
+	graph [bb=&quot;0,0,1480,925.94&quot;,
+		charset=&quot;utf-8&quot;,
+		rankdir=BT
+	];
+	node [label=&quot;\N&quot;];
+	n1	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_pp_dj89345j&quot;,
+		fillcolor=&quot;#FED37F&quot;,
+		height=0.77692,
+		label=&lt;Hans Mustermann&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_pp_dj89345j&lt;/font&gt;&gt;,
+		pos=&quot;206,897.97&quot;,
+		shape=house,
+		style=filled,
+		width=3.3154];
+	ann1	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.80556,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Hans Mustermann&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#Person&quot;&gt;prov:Person&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#email&quot;&gt;seis_prov:email&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;hans.mustermann&#64;email.com&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#name&quot;&gt;seis_prov:name&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Hans Mustermann&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;103,804&quot;,
+		shape=note,
+		width=2.8611];
+	ann1 -&gt; n1	 [arrowhead=none,
+		color=gray,
+		pos=&quot;134.46,833.09 149.61,846.62 167.49,862.59 181.59,875.17&quot;,
+		style=dashed];
+	n2	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_pp_9034j90df&quot;,
+		fillcolor=&quot;#FED37F&quot;,
+		height=0.77692,
+		label=&lt;Susanna Musterfrau&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_pp_9034j90df&lt;/font&gt;&gt;,
+		pos=&quot;348,804&quot;,
+		shape=house,
+		style=filled,
+		width=3.4502];
+	ann2	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.80556,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Susanna Musterfrau&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#Person&quot;&gt;prov:Person&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#email&quot;&gt;seis_prov:email&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;susanna.musterfrau&#64;email.com&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#name&quot;&gt;seis_prov:name&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Susanna Musterfrau&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;222,694&quot;,
+		shape=note,
+		width=2.9583];
+	ann2 -&gt; n2	 [arrowhead=none,
+		color=gray,
+		pos=&quot;254.78,723.09 275.92,741.22 303.02,764.45 322.55,781.18&quot;,
+		style=dashed];
+	n3	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_sa_9dig8ata&quot;,
+		fillcolor=&quot;#FED37F&quot;,
+		height=0.77692,
+		label=&lt;SPECFEM3D GLOBE&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_sa_9dig8ata&lt;/font&gt;&gt;,
+		pos=&quot;495,694&quot;,
+		shape=house,
+		style=filled,
+		width=3.533];
+	b3	 [color=gray,
+		height=0.05,
+		label=&quot;&quot;,
+		pos=&quot;493,804&quot;,
+		shape=point,
+		width=0.05];
+	n3 -&gt; b3	 [arrowhead=none,
+		color=&quot;#FED37F&quot;,
+		fontsize=10.0,
+		label=actedOnBehalfOf,
+		lp=&quot;529.26,752&quot;,
+		pos=&quot;494.5,721.97 493.95,751.46 493.14,795.44 493.02,802.13&quot;];
+	ann3	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.97222,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;SPECFEM3D GLOBE&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#SoftwareAgent&quot;&gt;prov:SoftwareAgent&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#software_name&quot;&gt;seis_prov:software_name&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;SPECFEM3D GLOBE&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#software_version&quot;&gt;seis_prov:software_version&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;7.0.0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#website&quot;&gt;seis_prov:website&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;http://geodynamics.org/cig/software/specfem3d&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;650,578&quot;,
+		shape=note,
+		width=4.4583];
+	ann3 -&gt; n3	 [arrowhead=none,
+		color=gray,
+		pos=&quot;603.49,613.2 577.81,632.09 546.7,654.98 524.38,671.39&quot;,
+		style=dashed];
+	n4	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_em_skfusjdoej&quot;,
+		color=&quot;#808080&quot;,
+		fillcolor=&quot;#FFFC87&quot;,
+		height=0.62854,
+		label=&lt;Earth Model&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_em_skfusjdoej&lt;/font&gt;&gt;,
+		pos=&quot;348,578&quot;,
+		shape=oval,
+		style=filled,
+		width=2.8348];
+	b2	 [color=gray,
+		height=0.05,
+		label=&quot;&quot;,
+		pos=&quot;348,694&quot;,
+		shape=point,
+		width=0.05];
+	n4 -&gt; b2	 [arrowhead=none,
+		color=&quot;#FED37F&quot;,
+		fontsize=10.0,
+		label=wasAssociatedWith,
+		lp=&quot;387.51,636&quot;,
+		pos=&quot;348,600.71 348,631.2 348,683.91 348,691.96&quot;];
+	ann4	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.97222,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Earth Model&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;seis_prov:earth_model&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#model_name&quot;&gt;seis_prov:model_name&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Random Model&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#model_type&quot;&gt;seis_prov:model_type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;3D&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#website&quot;&gt;seis_prov:website&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;http://random.org/model&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;348,342&quot;,
+		shape=note,
+		width=2.9306];
+	ann4 -&gt; n4	 [arrowhead=none,
+		color=gray,
+		pos=&quot;348,377.03 348,425.83 348,514.31 348,555.2&quot;,
+		style=dashed];
+	n5	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_in_38jd89da8l&quot;,
+		color=&quot;#808080&quot;,
+		fillcolor=&quot;#FFFC87&quot;,
+		height=0.62854,
+		label=&lt;Input Parameters&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_in_38jd89da8l&lt;/font&gt;&gt;,
+		pos=&quot;1300,578&quot;,
+		shape=oval,
+		style=filled,
+		width=2.824];
+	b4	 [color=gray,
+		height=0.05,
+		label=&quot;&quot;,
+		pos=&quot;1165,694&quot;,
+		shape=point,
+		width=0.05];
+	n5 -&gt; b4	 [arrowhead=none,
+		fontsize=10.0,
+		label=wasDerivedFrom,
+		lp=&quot;1235.7,636&quot;,
+		pos=&quot;1255.1,598.41 1228.7,611.91 1196.5,632.29 1176,659 1167.5,670.02 1165.5,687.79 1165.1,692.06&quot;];
+	ann5	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=4.3056,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Input Parameters&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;seis_prov:input_parameters&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ABSORBING_CONDITIONS&quot;&gt;seis_prov:ABSORBING_CONDITIONS&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ANGULAR_WIDTH_ETA_IN_DEGREES&quot;&gt;seis_prov:ANGULAR_WIDTH_ETA_IN_DEGREES&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;90.0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ANGULAR_WIDTH_XI_IN_DEGREES&quot;&gt;seis_prov:ANGULAR_WIDTH_XI_IN_DEGREES&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;90.0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ANISOTROPIC_KL&quot;&gt;seis_prov:ANISOTROPIC_KL&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ATTENUATION&quot;&gt;seis_prov:ATTENUATION&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#CENTER_LATITUDE_IN_DEGREES&quot;&gt;seis_prov:CENTER_LATITUDE_IN_DEGREES&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;40.0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#CENTER_LONGITUDE_IN_DEGREES&quot;&gt;seis_prov:CENTER_LONGITUDE_IN_DEGREES&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;10.0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ELLIPTICITY&quot;&gt;seis_prov:ELLIPTICITY&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#EXACT_MASS_MATRIX_FOR_ROTATION&quot;&gt;seis_prov:EXACT_MASS_MATRIX_FOR_ROTATION&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#GAMMA_ROTATION_AZIMUTH&quot;&gt;seis_prov:GAMMA_ROTATION_AZIMUTH&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;20.0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#GRAVITY&quot;&gt;seis_prov:GRAVITY&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#NCHUNKS&quot;&gt;seis_prov:NCHUNKS&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;1&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#NEX_ETA&quot;&gt;seis_prov:NEX_ETA&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;240&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#NEX_XI&quot;&gt;seis_prov:NEX_XI&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;240&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#NOISE_TOMOGRAPHY&quot;&gt;seis_prov:NOISE_TOMOGRAPHY&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;0&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#NPROC_ETA&quot;&gt;seis_prov:NPROC_ETA&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;5&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#NPROC_XI&quot;&gt;seis_prov:NPROC_XI&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;5&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#OCEANS&quot;&gt;seis_prov:OCEANS&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#RECEIVERS_CAN_BE_BURIED&quot;&gt;seis_prov:RECEIVERS_CAN_BE_BURIED&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;True&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#ROTATION&quot;&gt;seis_prov:ROTATION&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#SIMULATION_TYPE&quot;&gt;seis_prov:SIMULATION_TYPE&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;1&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#TOPOGRAPHY&quot;&gt;seis_prov:TOPOGRAPHY&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#USE_LDDRK&quot;&gt;seis_prov:USE_LDDRK&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;False&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;1300,342&quot;,
+		shape=note,
+		width=5];
+	ann5 -&gt; n5	 [arrowhead=none,
+		color=gray,
+		pos=&quot;1300,497.12 1300,519.89 1300,540.56 1300,555.16&quot;,
+		style=dashed];
+	n6	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_fi_d49dh0h4&quot;,
+		color=&quot;#808080&quot;,
+		fillcolor=&quot;#FFFC87&quot;,
+		height=0.62854,
+		label=&lt;File&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_fi_d49dh0h4&lt;/font&gt;&gt;,
+		pos=&quot;925,578&quot;,
+		shape=oval,
+		style=filled,
+		width=2.6823];
+	ann6	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.97222,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;File&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;seis_prov:file&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#filename&quot;&gt;seis_prov:filename&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;constants.h&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#location&quot;&gt;seis_prov:location&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;/AuxiliaryData/Files/constants_h&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#location_type&quot;&gt;seis_prov:location_type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;HDF5 Data Set&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;925,342&quot;,
+		shape=note,
+		width=3.4583];
+	ann6 -&gt; n6	 [arrowhead=none,
+		color=gray,
+		pos=&quot;925,377.03 925,425.83 925,514.31 925,555.2&quot;,
+		style=dashed];
+	n7	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp000_fi_asf90345&quot;,
+		color=&quot;#808080&quot;,
+		fillcolor=&quot;#FFFC87&quot;,
+		height=0.62854,
+		label=&lt;File&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp000_fi_asf90345&lt;/font&gt;&gt;,
+		pos=&quot;1265,804&quot;,
+		shape=oval,
+		style=filled,
+		width=2.6167];
+	ann7	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.97222,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;File&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;seis_prov:file&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#filename&quot;&gt;seis_prov:filename&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Parfile&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#location&quot;&gt;seis_prov:location&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;/AuxiliaryData/Files/Parfile&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#location_type&quot;&gt;seis_prov:location_type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;HDF5 Data Set&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;1299,694&quot;,
+		shape=note,
+		width=3.1667];
+	ann7 -&gt; n7	 [arrowhead=none,
+		color=gray,
+		pos=&quot;1288.2,729.17 1282.9,746.23 1276.5,766.35 1271.8,781.27&quot;,
+		style=dashed];
+	n8	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp001_wf_4j09fj3&quot;,
+		color=&quot;#808080&quot;,
+		fillcolor=&quot;#FFFC87&quot;,
+		height=0.62854,
+		label=&lt;Waveform Trace&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp001_wf_4j09fj3&lt;/font&gt;&gt;,
+		pos=&quot;486,112&quot;,
+		shape=oval,
+		style=filled,
+		width=2.5621];
+	n9	 [URL=&quot;http://seisprov.org/seis_prov/0.1/#sp001_ws_f87sf7sf78&quot;,
+		color=&quot;#0000FF&quot;,
+		fillcolor=&quot;#9FB1FC&quot;,
+		height=0.5,
+		label=&lt;Waveform Simulation&lt;br /&gt;&lt;font color=&quot;#333333&quot; point-size=&quot;10&quot;&gt;seis_prov:sp001_ws_f87sf7sf78&lt;/font&gt;&gt;,
+		pos=&quot;627,342&quot;,
+		shape=box,
+		style=filled,
+		width=2.0123];
+	n8 -&gt; n9	 [color=darkgreen,
+		fontcolor=darkgreen,
+		fontsize=10.0,
+		label=wasGeneratedBy,
+		lp=&quot;554.15,164&quot;,
+		pos=&quot;e,616.42,323.89 499.26,134.45 525.3,176.56 583.01,269.86 611.06,315.23&quot;];
+	ann8	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.63889,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Waveform Trace&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;seis_prov:waveform_trace&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://seisprov.org/seis_prov/0.1/#description&quot;&gt;seis_prov:description&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Synthetic Waveform&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;486,23&quot;,
+		shape=note,
+		width=2.9583];
+	ann8 -&gt; n8	 [arrowhead=none,
+		color=gray,
+		pos=&quot;486,46.405 486,59.595 486,76.201 486,89.272&quot;,
+		style=dashed];
+	n9 -&gt; n4	 [color=red4,
+		fontcolor=red,
+		fontsize=10.0,
+		label=used,
+		lp=&quot;447.17,520&quot;,
+		pos=&quot;e,380.14,556.47 610.51,360.04 581.76,389.39 520.05,450.78 463,497 439.31,516.19 411.24,535.77 388.77,550.76&quot;];
+	n9 -&gt; n5	 [color=red4,
+		fontcolor=red,
+		fontsize=10.0,
+		label=used,
+		lp=&quot;879.17,520&quot;,
+		pos=&quot;e,1247.4,558.57 639.2,360.11 663.82,393.11 723,465.1 792,497 953.63,571.72 1015.8,506.33 1190,543 1205.6,546.28 1222.1,550.8 1237.5,\
+555.48&quot;];
+	n9 -&gt; n6	 [color=red4,
+		fontcolor=red,
+		fontsize=10.0,
+		label=used,
+		lp=&quot;804.17,520&quot;,
+		pos=&quot;e,866.89,559.81 638.8,360.15 663.88,395.46 725.94,477 795.67,525 814.34,537.85 836.66,548.26 857.46,556.29&quot;];
+	b1	 [color=gray,
+		height=0.05,
+		label=&quot;&quot;,
+		pos=&quot;470,578&quot;,
+		shape=point,
+		width=0.05];
+	n9 -&gt; b1	 [arrowhead=none,
+		color=&quot;#FED37F&quot;,
+		fontsize=10.0,
+		label=wasAssociatedWith,
+		lp=&quot;532.51,520&quot;,
+		pos=&quot;611.45,360.2 582.21,393.34 518.61,469.28 481,543 474.68,555.38 471,572.13 470.18,576.12&quot;];
+	ann9	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.80556,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#startTime&quot;&gt;prov:startTime&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;2014-02-02T12:15:03&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#endTime&quot;&gt;prov:endTime&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;2014-02-02T14:07:13&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#label&quot;&gt;prov:label&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;Waveform Simulation&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot;&gt;seis_prov:waveform_simulation&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;701,112&quot;,
+		shape=note,
+		width=2.9028];
+	ann9 -&gt; n9	 [arrowhead=none,
+		color=gray,
+		pos=&quot;691.78,141.42 676.2,189.4 645.15,285.07 632.53,323.97&quot;,
+		style=dashed];
+	b1 -&gt; n3	 [color=&quot;#FED37F&quot;,
+		fontsize=10.0,
+		pos=&quot;e,490.21,671.17 470.28,580.28 472.01,588.17 481.37,630.85 488.06,661.36&quot;];
+	b2 -&gt; n2	 [color=&quot;#FED37F&quot;,
+		fontsize=10.0,
+		pos=&quot;e,348,781.11 348,696.21 348,703.52 348,742.32 348,771.06&quot;];
+	b3 -&gt; n1	 [color=&quot;#FED37F&quot;,
+		fontsize=10.0,
+		pos=&quot;e,325.46,880.09 492.91,805.85 492.46,809.66 490.08,825.39 481,833 458.22,852.08 395.33,867.44 335.43,878.32&quot;];
+	b4 -&gt; n7	 [fontsize=10.0,
+		pos=&quot;e,1232.2,782.59 1165.1,695.92 1165.6,700.09 1168.2,717.49 1176,729 1188.6,747.59 1207.1,764.05 1224,776.69&quot;];
+	ann10	 [color=gray,
+		fontcolor=black,
+		fontsize=10,
+		height=0.5,
+		label=&lt;&lt;TABLE cellpadding=&quot;0&quot; border=&quot;0&quot;&gt;
+    &lt;TR&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#type&quot;&gt;prov:type&lt;/TD&gt;
+        &lt;TD align=&quot;left&quot; href=&quot;http://www.w3.org/ns/prov#PrimarySource&quot;&gt;prov:PrimarySource&lt;/TD&gt;
+    &lt;/TR&gt;
+    &lt;/TABLE&gt;&gt;,
+		pos=&quot;1110,578&quot;,
+		shape=note,
+		width=1.9583];
+	ann10 -&gt; b4	 [arrowhead=none,
+		color=gray,
+		pos=&quot;1118.4,596.31 1132.5,625.71 1160.2,683.08 1164.5,691.86&quot;,
+		style=dashed];
+}
+</section>
+<section id="reading-auxiliary-data">
+<h4><a class="toc-backref" href="#id12" role="doc-backlink">Reading Auxiliary Data</a><a class="headerlink" href="#reading-auxiliary-data" title="Link to this heading">¶</a></h4>
+<p>ASDF can additionally also store non-waveform data. Access is via the
+<code class="docutils literal notranslate"><span class="pre">auxiliary_data</span></code> attribute. Once again, dictionary access is possible.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="p">)</span>
+<span class="go">Data set contains the following auxiliary data types:</span>
+<span class="go">    AdjointSource (12 item(s))</span>
+<span class="go">    File (1 item(s))</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span><span class="p">)</span>
+<span class="go">print(ds.auxiliary_data.AdjointSource)</span>
+<span class="go">12 auxiliary data item(s) of type &#39;AdjointSource&#39; available:</span>
+<span class="go">    BW_ALFO_EHE</span>
+<span class="go">    BW_ALFO_EHN</span>
+<span class="go">    BW_ALFO_EHZ</span>
+<span class="go">    BW_BLA_EHE</span>
+<span class="go">    BW_BLA_EHN</span>
+<span class="go">    BW_BLA_EHZ</span>
+<span class="go">    IU_ANMO_EHE</span>
+<span class="go">    IU_ANMO_EHN</span>
+<span class="go">    IU_ANMO_EHZ</span>
+<span class="go">    TA_A023_BHE</span>
+<span class="go">    TA_A023_BHN</span>
+<span class="go">    TA_A023_BHZ</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="go">[&#39;AdjointSource&#39;, &#39;File&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span> <span class="o">==</span> <span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="p">[</span><span class="s2">&quot;AdjointSource&quot;</span><span class="p">]</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Accessing a single item once again by attribute or key access.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span><span class="o">.</span><span class="n">BW_ALFO_EHE</span>
+<span class="go">Auxiliary Data of Type &#39;AdjointSource&#39;</span>
+<span class="go">    Path &#39;BW_ALFO_EHE&#39;</span>
+<span class="go">    Provenance ID: &#39;{http://seisprov.org/seis_prov/0.1/#}sp012_as_cd84e87&#39;</span>
+<span class="go">    Data shape: &#39;(20000,)&#39;, dtype: &#39;float64&#39;</span>
+<span class="go">    Parameters:</span>
+<span class="go">        adjoint_source_type: multitaper</span>
+<span class="go">        elevation_in_m: 473.232036071</span>
+<span class="go">        latitude: 57.9589770294</span>
+<span class="go">        local_depth_in_m: 0.0</span>
+<span class="go">        longitude: 170.352381909</span>
+<span class="go">        misfit_value: 1.45e-05</span>
+<span class="go">        orientation: E</span>
+<span class="go">        sampling_rate_in_hz: 10.0</span>
+<span class="go">        station_id: BW.ALFO..EHE</span>
+<span class="go">        units: m</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="go">[&#39;BW_ALFO_EHE&#39;, &#39;BW_ALFO_EHN&#39;, &#39;BW_ALFO_EHZ&#39;, &#39;BW_BLA_EHE&#39;, &#39;BW_BLA_EHN&#39;, &#39;BW_BLA_EHZ&#39;,</span>
+<span class="go"> &#39;IU_ANMO_EHE&#39;, &#39;IU_ANMO_EHN&#39;, &#39;IU_ANMO_EHZ&#39;, &#39;TA_A023_BHE&#39;, &#39;TA_A023_BHN&#39;, &#39;TA_A023_BHZ&#39;]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span><span class="o">.</span><span class="n">BW_ALFO_EHE</span> <span class="o">==</span> <span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span><span class="p">[</span><span class="s2">&quot;BW_ALFO_EHE&quot;</span><span class="p">]</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adj_src</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">auxiliary_data</span><span class="o">.</span><span class="n">AdjointSource</span><span class="o">.</span><span class="n">BW_ALFO_EHE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adj_src</span><span class="o">.</span><span class="n">data</span>
+<span class="go">&lt;HDF5 dataset &quot;BW_ALFO_EHE&quot;: shape (20000,), type &quot;&lt;f8&quot;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adj_src</span><span class="o">.</span><span class="n">parameters</span>
+<span class="go">{&#39;adjoint_source_type&#39;: &#39;multitaper&#39;,</span>
+<span class="go"> &#39;elevation_in_m&#39;: 473.23203607130199,</span>
+<span class="go"> &#39;latitude&#39;: 57.958977029361542,</span>
+<span class="go"> &#39;local_depth_in_m&#39;: 0.0,</span>
+<span class="go"> &#39;longitude&#39;: 170.35238190943915,</span>
+<span class="go"> &#39;misfit_value&#39;: 1.45e-05,</span>
+<span class="go"> &#39;orientation&#39;: &#39;E&#39;,</span>
+<span class="go"> &#39;sampling_rate_in_hz&#39;: 10.0,</span>
+<span class="go"> &#39;station_id&#39;: &#39;BW.ALFO..EHE&#39;,</span>
+<span class="go"> &#39;units&#39;: &#39;m&#39;}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

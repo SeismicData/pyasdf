@@ -1,0 +1,196 @@
+
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Converting Data to ASDF &mdash; pyasdf 0.8.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5349f25f" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+    <link rel="stylesheet" href="_static/my-styles.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+      <script src="_static/documentation_options.js?v=dbee5847"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Parallel Processing" href="parallel_processing.html" />
+    <link rel="prev" title="Detailed Explanations" href="detailed_explanations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pyasdf
+              <img src="_static/pyasdf_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="detailed_explanations.html">Detailed Explanations</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Converting Data to ASDF</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#converting-a-folder-of-sac-files-to-asdf">Converting a folder of SAC files to ASDF</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parallel_processing.html">Parallel Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage_as_context_manager.html">Usage as a Context Manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deleting_pieces.html">Deleting Pieces of a Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="of_tags_and_labels.html">Of Tags and Labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="querying_data.html">Querying a Data Set</a></li>
+<li class="toctree-l2"><a class="reference internal" href="station_data.html">Working With Station Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="large_continuous_datasets.html">Large Continuous Data Sets</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pyasdf</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="detailed_explanations.html">Detailed Explanations</a></li>
+      <li class="breadcrumb-item active">Converting Data to ASDF</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/converting_data_asdf.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="converting-data-to-asdf">
+<h1>Converting Data to ASDF<a class="headerlink" href="#converting-data-to-asdf" title="Link to this heading">¶</a></h1>
+<p>To convert generic data to ASDF please just use ObsPy to read it and add it
+to ASDF files as written in the tutorial: <a class="reference internal" href="tutorial.html"><span class="doc">Tutorial</span></a>.</p>
+<section id="converting-a-folder-of-sac-files-to-asdf">
+<h2>Converting a folder of SAC files to ASDF<a class="headerlink" href="#converting-a-folder-of-sac-files-to-asdf" title="Link to this heading">¶</a></h2>
+<p>As this is a common use case we ship a utility for this. Note that this is
+not a silver bullet and it cannot cover all cases, so please check your data
+afterwards.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pyasdf.scripts.sac2asdf<span class="w"> </span>folder_with_sac_files<span class="w"> </span>out.h5<span class="w"> </span>synthetics
+</pre></div>
+</div>
+<p>This will search (not recursively) for all SAC files in
+<code class="docutils literal notranslate"><span class="pre">folder_with_sac_files</span></code> and write them to the <cite>out.h5</cite> ASDF file. All
+waveforms will (in this case) have the tag <cite>synthetics</cite>.</p>
+<p>It will honor the following SAC header fields and convert them to corresponding
+StationXML and QuakeML documents:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">evla</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evlo</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evdp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">o</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stla</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stlo</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stel</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stdp</span></code></p></li>
+</ul>
+<p>The waveforms will be correctly linked to the corresponding QuakeML files
+with ASDF’s internal reference system. Please see the help of the script for
+more details.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pyasdf.scripts.sac2asdf<span class="w"> </span>--help
+</pre></div>
+</div>
+<p>The file can then be read as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pyasdf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">pyasdf</span><span class="o">.</span><span class="n">ASDFDataSet</span><span class="p">(</span><span class="s2">&quot;./out.h5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span>
+<span class="go">ASDF file [format version: 1.0.0]: &#39;out.h5&#39; (615.1 MB)</span>
+<span class="go">    Contains 1 event(s)</span>
+<span class="go">    Contains waveform data from 1829 station(s).</span>
+
+<span class="go"># Get all events.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">events</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span>
+<span class="go">1 Event(s) in Catalog:</span>
+<span class="go">2005-02-16T20:28:06.438750Z | -35.390,  -16.000</span>
+
+<span class="go"># Get waveforms.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">st</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="o">.</span><span class="n">synthetics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">st</span>
+<span class="go">3 Trace(s) in Stream:</span>
+<span class="go">IU.ANMO.S3.MXE | 2005-02-16T20:28:06.438750Z - ... | 6.2 Hz, 37200 samples</span>
+<span class="go">IU.ANMO.S3.MXN | 2005-02-16T20:28:06.438750Z - ... | 6.2 Hz, 37200 samples</span>
+<span class="go">IU.ANMO.S3.MXZ | 2005-02-16T20:28:06.438750Z - ... | 6.2 Hz, 37200 samples</span>
+
+<span class="go"># Get station coordinates.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">waveforms</span><span class="o">.</span><span class="n">IU_ANMO</span><span class="o">.</span><span class="n">coordinates</span>
+<span class="go">{&#39;elevation_in_m&#39;: 1720.0,</span>
+<span class="go"> &#39;latitude&#39;: 34.945899963378906,</span>
+<span class="go"> &#39;longitude&#39;: -106.45719909667969}</span>
+
+<span class="go"># Get event associated with a certain trace</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">st</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">asdf</span><span class="o">.</span><span class="n">event_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_referred_object</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">latitude</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">origins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">longitude</span>
+<span class="go">(-35.38999938964844, -16.0)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="detailed_explanations.html" class="btn btn-neutral float-left" title="Detailed Explanations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="parallel_processing.html" class="btn btn-neutral float-right" title="Parallel Processing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2014-2023, Lion Krischer.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
