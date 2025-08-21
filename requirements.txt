@@ -5,3 +5,4 @@ numpy
 obspy>=1.2.1
 packaging
 prov
+rdflib
