@@ -396,7 +396,7 @@ class ASDFDataSet:
 
         :param text: The text to be converted.
         """
-        return np.string_((text + "\x00").encode())
+        return np.bytes_((text + "\x00").encode())
 
     @property
     def _waveform_group(self):
