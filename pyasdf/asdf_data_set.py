@@ -263,9 +263,9 @@ class ASDFDataSet:
         else:
             # If not given, use the most recent one.
             self.asdf_format_version = format_version or __most_recent_version
-            self.__file.attrs[
-                "file_format_version"
-            ] = self._zeropad_ascii_string(self.asdf_format_version)
+            self.__file.attrs["file_format_version"] = (
+                self._zeropad_ascii_string(self.asdf_format_version)
+            )
 
         # Just a final safety check - should not be able to fail!
         assert self.asdf_format_version in SUPPORTED_FORMAT_VERSIONS
@@ -1647,9 +1647,9 @@ class ASDFDataSet:
         ):
             provenance_id = trace.stats.asdf["provenance_id"]
         if provenance_id:
-            info["dataset_attrs"][
-                "provenance_id"
-            ] = self._zeropad_ascii_string(str(provenance_id))
+            info["dataset_attrs"]["provenance_id"] = (
+                self._zeropad_ascii_string(str(provenance_id))
+            )
 
         return info
 

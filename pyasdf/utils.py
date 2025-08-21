@@ -324,9 +324,11 @@ class AuxiliaryDataContainer:
                 data_shape=self.data.shape,
                 dtype=self.data.dtype,
                 path="/".join(path),
-                provenance=""
-                if self.provenance_id is None
-                else "\tProvenance ID: '%s'\n" % self.provenance_id,
+                provenance=(
+                    ""
+                    if self.provenance_id is None
+                    else "\tProvenance ID: '%s'\n" % self.provenance_id
+                ),
                 parameters="\n\t\t".join(
                     [
                         f"{_i[0]}: {_i[1]}"
@@ -1042,9 +1044,11 @@ class WaveformAccessor:
         )
         return ret_str.format(
             station=self._station_name,
-            station_xml="Has a StationXML file"
-            if "StationXML" in contents
-            else "Has no StationXML file",
+            station_xml=(
+                "Has a StationXML file"
+                if "StationXML" in contents
+                else "Has no StationXML file"
+            ),
             count=len(waveform_contents),
             waveforms="\n        ".join(waveform_contents),
         )

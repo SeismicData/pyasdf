@@ -622,9 +622,9 @@ def test_format_version_handling(tmpdir):
     os.remove(filename)
     # Both can also differ.
     with ASDFDataSet(filename) as ds:
-        ds._ASDFDataSet__file.attrs[
-            "file_format_version"
-        ] = ds._zeropad_ascii_string("x.x.x")
+        ds._ASDFDataSet__file.attrs["file_format_version"] = (
+            ds._zeropad_ascii_string("x.x.x")
+        )
         assert ds.asdf_format_version_in_file == "x.x.x"
         assert ds.asdf_format_version == "1.0.3"
     with warnings.catch_warnings(record=True) as w:
@@ -642,9 +642,9 @@ def test_format_version_handling(tmpdir):
     os.remove(filename)
     # Both can also differ.
     with ASDFDataSet(filename) as ds:
-        ds._ASDFDataSet__file.attrs[
-            "file_format_version"
-        ] = ds._zeropad_ascii_string("x.x.x")
+        ds._ASDFDataSet__file.attrs["file_format_version"] = (
+            ds._zeropad_ascii_string("x.x.x")
+        )
         assert ds.asdf_format_version_in_file == "x.x.x"
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
