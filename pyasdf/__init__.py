@@ -6,7 +6,10 @@
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
 
-import sys
+try:
+    from importlib.metadata import PackageNotFoundError, version
+except ImportError:
+    from importlib_metadata import PackageNotFoundError, version
 
 
 from .exceptions import ASDFException, ASDFWarning, WaveformNotInFileException
@@ -24,20 +27,10 @@ __all__ = [
 ]
 
 
-if sys.version_info.minor >= 9:
-    from importlib.metadata import version, PackageNotFoundError
-
-    try:
-        __version__ = version("pyasdf")
-    except PackageNotFoundError:
-        pass
-else:
-    import pkg_resources
-
-    try:
-        __version__ = pkg_resources.get_distribution("pyasdf").version
-    except pkg_resources.DistributionNotFound:
-        pass
+try:
+    __version__ = version("pyasdf")
+except PackageNotFoundError:
+    pass
 
 
 def print_sys_info():

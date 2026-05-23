@@ -9,13 +9,17 @@ and ease debugging.
     BSD 3-Clause ("BSD New" or "BSD Simplified")
 """
 
-from multiprocessing import cpu_count
-from pkg_resources import get_distribution
 import platform
+from multiprocessing import cpu_count
 from socket import gethostname
 from time import strftime
 
 import h5py
+
+try:
+    from importlib.metadata import version
+except ImportError:
+    from importlib_metadata import version
 
 try:
     from mpi4py import MPI
@@ -65,7 +69,7 @@ def get_watermark():
     }
 
     watermark["module_versions"] = {
-        module: get_distribution(module).version for module in modules
+        module: version(module) for module in modules
     }
     if MPI is None:
         watermark["module_versions"]["mpi4py"] = None
