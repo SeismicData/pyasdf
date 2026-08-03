@@ -191,6 +191,92 @@ def test_equality_checks(example_data_set):
     assert data_set_1 != data_set_2
 
 
+def _rewrite_scalar_attrs_as_arrays(filename, size=1):
+    """
+    Rewrite the scalar waveform attributes of a file as arrays of the given
+    size. Returns the number of data sets that have been modified.
+    """
+    count = 0
+    with h5py.File(filename, "a") as f:
+        for station in f["Waveforms"].values():
+            for name, ds in station.items():
+                if name == "StationXML":
+                    continue
+                ds.attrs["starttime"] = np.array(
+                    [ds.attrs["starttime"]] * size, dtype=np.int64
+                )
+                ds.attrs["sampling_rate"] = np.array(
+                    [ds.attrs["sampling_rate"]] * size, dtype=np.float64
+                )
+                count += 1
+    return count
+
+
+def test_reading_files_with_size_1_array_attributes(example_data_set):
+    """
+    pyasdf stores 'starttime' and 'sampling_rate' as true scalars but other
+    ASDF producers sometimes store them as size-1 arrays. NumPy >= 2.4 raises
+    a TypeError when converting an array with ndim > 0 to a Python scalar, so
+    make sure these are squeezed down while reading.
+    """
+    filename_1 = example_data_set.filename
+    filename_2 = os.path.join(example_data_set.tmpdir, "array_attributes.h5")
+    shutil.copyfile(filename_1, filename_2)
+
+    assert _rewrite_scalar_attrs_as_arrays(filename_2) == 6
+
+    with ASDFDataSet(filename_1) as ds_1, ASDFDataSet(filename_2) as ds_2:
+        # Plain read via the dot accessors.
+        st_1 = ds_1.waveforms.AE_113A.raw_recording
+        st_2 = ds_2.waveforms.AE_113A.raw_recording
+        assert st_1 == st_2
+        for tr in st_2:
+            assert isinstance(tr.stats.sampling_rate, float)
+            assert tr.stats.starttime == UTCDateTime(2013, 5, 24, 5, 40)
+
+        # Partial read - this goes through a different code path that
+        # computes the indices from the attributes.
+        starttime = UTCDateTime(2013, 5, 24, 5, 45)
+        endtime = UTCDateTime(2013, 5, 24, 5, 50)
+        kwargs = dict(
+            network="AE",
+            station="113A",
+            location="",
+            channel="BHZ",
+            tag="raw_recording",
+            starttime=starttime,
+            endtime=endtime,
+        )
+        assert ds_1.get_waveforms(**kwargs) == ds_2.get_waveforms(**kwargs)
+
+        # The query interface also reads the attributes.
+        assert [
+            _i._station_name
+            for _i in ds_2.ifilter(
+                ds_2.q.starttime <= starttime, ds_2.q.sampling_rate == 40.0
+            )
+        ] == ["AE.113A", "TA.POKR"]
+        assert list(ds_2.ifilter(ds_2.q.starttime >= endtime)) == []
+
+
+def test_reading_files_with_larger_array_attributes_raises(example_data_set):
+    """
+    Attributes that are arrays with more than one element are ambiguous and
+    are thus rejected.
+    """
+    filename = os.path.join(example_data_set.tmpdir, "array_attributes.h5")
+    shutil.copyfile(example_data_set.filename, filename)
+    _rewrite_scalar_attrs_as_arrays(filename, size=2)
+
+    with ASDFDataSet(filename) as ds:
+        with pytest.raises(ASDFValueError) as err:
+            ds.waveforms.AE_113A.raw_recording
+
+    assert err.value.args[0] == (
+        "Attribute 'starttime' must be a scalar but has shape (2,)."
+    )
+
+
 def test_adding_same_event_twice_raises(tmpdir):
     """
     Adding the same event twice raises.

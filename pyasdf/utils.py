@@ -91,6 +91,25 @@ def _read_string_array(data):
     return data[()].tobytes().strip()
 
 
+def attr_to_scalar(value, name=None):
+    """
+    Coerce an HDF5 attribute to a Python/NumPy scalar.
+
+    pyasdf writes scalar attributes as scalars but other ASDF producers
+    sometimes store them as size-1 arrays. NumPy >= 2.4 raises a TypeError
+    when converting an array with ``ndim > 0`` to a scalar (deprecated in
+    NumPy 1.25), so squeeze those down before they are used in arithmetic.
+    """
+    if isinstance(value, np.ndarray) and value.ndim > 0:
+        if value.size != 1:
+            raise ASDFValueError(
+                "Attribute '%s' must be a scalar but has shape %s."
+                % (name or "unknown", value.shape)
+            )
+        return value.reshape(-1)[0]
+    return value
+
+
 class SimpleBuffer:
     """
     Object that can be used as a cache.
@@ -667,7 +686,12 @@ class WaveformAccessor:
                     attrs = group[wf].attrs
 
                     if queries["sampling_rate"]:
-                        if queries["sampling_rate"](attrs["sampling_rate"]) is False:
+                        if (
+                            queries["sampling_rate"](
+                                attr_to_scalar(attrs["sampling_rate"], "sampling_rate")
+                            )
+                            is False
+                        ):
                             continue
 
                     if queries["npts"]:
@@ -675,9 +699,12 @@ class WaveformAccessor:
                             continue
 
                     if queries["starttime"] or queries["endtime"]:
-                        starttime = obspy.UTCDateTime(float(attrs["starttime"]) / 1.0e9)
+                        starttime = obspy.UTCDateTime(
+                            float(attr_to_scalar(attrs["starttime"], "starttime"))
+                            / 1.0e9
+                        )
                         endtime = starttime + (len(group[wf]) - 1) * 1.0 / float(
-                            attrs["sampling_rate"]
+                            attr_to_scalar(attrs["sampling_rate"], "sampling_rate")
                         )
 
                         if queries["starttime"]:

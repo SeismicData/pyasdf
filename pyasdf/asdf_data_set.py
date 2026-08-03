@@ -68,6 +68,7 @@ from .utils import (
     ProvenanceAccessor,
     split_qualified_name,
     _read_string_array,
+    attr_to_scalar,
     FilteredWaveformAccessor,
     label2string,
     labelstring2list,
@@ -811,11 +812,13 @@ class ASDFDataSet:
 
         idx_start = 0
         idx_end = data.shape[0]
-        dt = 1.0 / data.attrs["sampling_rate"]
+        dt = 1.0 / attr_to_scalar(data.attrs["sampling_rate"], "sampling_rate")
 
         # Starttime is a timestamp in nanoseconds.
         # Get time of first and time of last sample.
-        data_starttime = obspy.UTCDateTime(float(data.attrs["starttime"]) / 1.0e9)
+        data_starttime = obspy.UTCDateTime(
+            float(attr_to_scalar(data.attrs["starttime"], "starttime")) / 1.0e9
+        )
         data_endtime = data_starttime + float((idx_end - 1) * dt)
 
         # Modify the data indices to restrict the data if necessary.
@@ -879,11 +882,13 @@ class ASDFDataSet:
         else:
             idx_start = 0
             idx_end = data.shape[0]
-            data_starttime = obspy.UTCDateTime(float(attrs["starttime"]) / 1.0e9)
+            data_starttime = obspy.UTCDateTime(
+                float(attr_to_scalar(attrs["starttime"], "starttime")) / 1.0e9
+            )
 
         tr = obspy.Trace(data=data[idx_start:idx_end])
         tr.stats.starttime = data_starttime
-        tr.stats.sampling_rate = attrs["sampling_rate"]
+        tr.stats.sampling_rate = attr_to_scalar(attrs["sampling_rate"], "sampling_rate")
         tr.stats.network = network
         tr.stats.station = station
         tr.stats.location = location
@@ -1075,10 +1080,11 @@ class ASDFDataSet:
                 if not ds_name.startswith(i):
                     continue
                 ds = station_group._WaveformAccessor__hdf5_group[ds_name]
-                t = (
-                    ds.attrs["starttime"] / 1e9
-                    + ds.shape[0] * 1.0 / ds.attrs["sampling_rate"]
+                ds_starttime = attr_to_scalar(ds.attrs["starttime"], "starttime")
+                ds_sampling_rate = attr_to_scalar(
+                    ds.attrs["sampling_rate"], "sampling_rate"
                 )
+                t = ds_starttime / 1e9 + ds.shape[0] * 1.0 / ds_sampling_rate
                 del ds
                 if min_t <= t <= max_t:
                     return ds_name
@@ -1123,7 +1129,9 @@ class ASDFDataSet:
                         sta=trace.stats.station,
                         loc=trace.stats.location,
                         cha=trace.stats.channel,
-                        start=obspy.UTCDateTime(ds.attrs["starttime"] / 1e9),
+                        start=obspy.UTCDateTime(
+                            attr_to_scalar(ds.attrs["starttime"], "starttime") / 1e9
+                        ),
                         end=trace.stats.endtime,
                         tag=tag,
                     )
