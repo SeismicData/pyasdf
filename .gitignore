@@ -5,3 +5,4 @@ pip-wheel-metadata/
 .tox
 /dist
 _doc_build/
+**/__pycache__

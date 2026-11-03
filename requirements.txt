@@ -1,6 +1,7 @@
 colorama
 dill
 h5py
+importlib_metadata; python_version < '3.8'
 numpy
 obspy>=1.2.1
 packaging
